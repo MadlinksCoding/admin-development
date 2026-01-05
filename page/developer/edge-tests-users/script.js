@@ -31,6 +31,10 @@
 
     let userBaseUrlOverride = null;
 
+    function formatScenarioLabel(id, title) {
+      return `Test Scenarios ${id}: ${title}`;
+    }
+
     /**
      * Resolve base URL from page config or override
      */
@@ -99,25 +103,25 @@
             <i class="bi bi-link-45deg"></i> API Base URL
           </a>
           <a href="#test-scenario-1" class="index-link">
-            <i class="bi bi-play-circle"></i> Create User
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "Create User")}
           </a>
           <a href="#test-scenario-2" class="index-link">
-            <i class="bi bi-play-circle"></i> Get Users (list)
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("2", "Get Users (list)")}
           </a>
           <a href="#test-scenario-3" class="index-link">
-            <i class="bi bi-play-circle"></i> Get User by ID
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("3", "Get User by ID")}
           </a>
           <a href="#test-scenario-4" class="index-link">
-            <i class="bi bi-play-circle"></i> Update User (comprehensive)
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("4", "Update User (comprehensive)")}
           </a>
           <a href="#test-scenario-5" class="index-link">
-            <i class="bi bi-play-circle"></i> Update User Settings
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "Update User Settings")}
           </a>
           <a href="#test-scenario-6" class="index-link">
-            <i class="bi bi-play-circle"></i> Update User Profile
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("6", "Update User Profile")}
           </a>
           <a href="#test-scenario-7" class="index-link">
-            <i class="bi bi-play-circle"></i> Delete User
+            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("7", "Delete User")}
           </a>
           <a href="#cleanup-section" class="index-link">
             <i class="bi bi-trash"></i> Cleanup Method
@@ -140,6 +144,7 @@
       inputFields = []
     ) {
       let checklistHtml = "";
+      const displayTitle = formatScenarioLabel(scenarioId, title);
       if (checklistItems.length > 0) {
         const checklistItemsHtml = checklistItems
           .map((item, index) => {
@@ -318,7 +323,7 @@
         <div class="test-scenario-card card" id="test-scenario-${scenarioId}">
           <div class="card-header">
             <div class="d-flex align-items-center justify-content-between">
-              <h5 class="card-title mb-0">${title}</h5>
+              <h5 class="card-title mb-0">${displayTitle}</h5>
               <button class="btn btn-sm btn-outline-secondary collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="true" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
                 <i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
                 <i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
