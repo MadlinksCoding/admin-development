@@ -6,6 +6,8 @@
  */
 
 (function () {
+  const INDENT_SUB_SCENARIOS = false;
+
   // Wait for AdminShell ready event
   function waitForAdminShell() {
     return new Promise((resolveFunction) => {
@@ -89,6 +91,13 @@
      * Build index navigation
      */
     function createIndexNavigation() {
+      const subScenarioStyle = INDENT_SUB_SCENARIOS
+        ? 'style="margin-left: 20px; font-size: 0.9em;"'
+        : "";
+      const iconStyle = INDENT_SUB_SCENARIOS
+        ? '<i class="bi bi-arrow-return-right"></i>'
+        : '<i class="bi bi-play-circle"></i>';
+
       return `
         <div class="demo-section index-section">
           <h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
@@ -105,23 +114,50 @@
           <a href="#test-scenario-1" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "Create User")}
           </a>
+          <a href="#test-scenario-1-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("1-B", "Create Admin User")}
+          </a>
+          <a href="#test-scenario-1-C" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("1-C", "Create Minimal User")}
+          </a>
+          <a href="#test-scenario-1-D" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("1-D", "Duplicate User")}
+          </a>
           <a href="#test-scenario-2" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("2", "Get Users (list)")}
           </a>
           <a href="#test-scenario-3" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("3", "Get User by ID")}
           </a>
+          <a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("3-B", "Get Non-Existent User")}
+          </a>
           <a href="#test-scenario-4" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("4", "Update User (comprehensive)")}
+          </a>
+          <a href="#test-scenario-4-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("4-B", "Update Role")}
+          </a>
+          <a href="#test-scenario-4-C" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("4-C", "Update Non-Existent")}
           </a>
           <a href="#test-scenario-5" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "Update User Settings")}
           </a>
+          <a href="#test-scenario-5-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("5-B", "Update Settings 404")}
+          </a>
           <a href="#test-scenario-6" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("6", "Update User Profile")}
           </a>
+          <a href="#test-scenario-6-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("6-B", "Update Profile 404")}
+          </a>
           <a href="#test-scenario-7" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("7", "Delete User")}
+          </a>
+          <a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>
+             ${iconStyle} ${formatScenarioLabel("7-B", "Delete Non-Existent")}
           </a>
           <a href="#cleanup-section" class="index-link">
             <i class="bi bi-trash"></i> Cleanup Method
@@ -980,7 +1016,12 @@ apiHandler.handleRequest(apiParams);
         </div>
 
         <div class="demo-section">
-          <h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+          <div class="d-flex align-items-center justify-content-between">
+            <h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+            <button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
+              <i class="bi bi-arrows-collapse"></i> Collapse All
+            </button>
+          </div>
           <p class="description-text">
             Click "Test API Call" on any scenario below to execute the test. 
             Results will be displayed in the response container.
@@ -1090,6 +1131,65 @@ apiHandler.handleRequest(apiParams);
           )}
 
           ${createTestScenarioSection(
+            "1-B",
+            "Create Admin User",
+            "Creates a user with 'admin' role to verify role assignment privileges.",
+            "POST",
+            "/users/createUser",
+            {
+              userName: "edge_admin_01",
+              displayName: "Edge Admin User",
+              role: "admin",
+              isNewUser: true
+            },
+            [
+              "Verify role is 'admin'",
+              "Ensure administrative privileges are granted (if testable)"
+            ],
+            [
+              { type: "text", id: "userName", required: true, label: "Username", value: "edge_admin_01" },
+              { type: "text", id: "displayName", label: "Display Name", value: "Edge Admin User" },
+              { type: "select", id: "role", label: "Role", options: [{ value: "admin", text: "Admin" }, { value: "user", text: "User" }], value: "admin" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "1-C",
+            "Create Minimal User",
+            "Creates a user with only required fields to test minimum data requirements.",
+            "POST",
+            "/users/createUser",
+            {
+              userName: "edge_min_01"
+            },
+            [
+              "Verify user is created successfully",
+              "Check that default values are applied for missing fields"
+            ],
+            [
+              { type: "text", id: "userName", required: true, label: "Username", value: "edge_min_01" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "1-D",
+            "Duplicate User Check",
+            "Attempts to create a user with an existing username to verify 409 conflict.",
+            "POST",
+            "/users/createUser",
+            {
+               userName: "edge_user_01"
+            },
+            [
+               "Ensure response status is 409 Conflict",
+               "Verify error message indicates duplicate user"
+            ],
+            [
+               { type: "text", id: "userName", required: true, label: "Existing Username", value: "edge_user_01" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
             "2",
             "Get Users (list)",
             "Fetches users with pagination via GET /users/fetchUsers using limit and offset.",
@@ -1123,6 +1223,22 @@ apiHandler.handleRequest(apiParams);
             ],
             [
               { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Enter userId (uid)", value: "" },
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "3-B",
+            "Get Non-Existent User",
+            "Attempts to fetch a user that does not exist to verify 404 handling.",
+            "GET",
+            "/users/fetchUserById/{userId}",
+            null,
+            [
+              "Ensure response status is 404 Not Found",
+              "Verify error structure contains meaningful message"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_id_99999" }
             ]
           )}
 
@@ -1229,6 +1345,44 @@ apiHandler.handleRequest(apiParams);
           )}
 
           ${createTestScenarioSection(
+            "4-B",
+            "Update User Role",
+            "Updates just the user role (privilege escalation) to verify role mutation.",
+            "PUT",
+            "/users/updateUser/{userId}",
+            {
+              role: "moderator"
+            },
+            [
+              "Verify role changes from 'user' to 'moderator'",
+              "Check that other fields remain unchanged (if patch-like behavior)"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "User ID", value: "" },
+              { type: "select", id: "role", label: "New Role", options: [{ value: "moderator", text: "Moderator" }, { value: "admin", text: "Admin" }], value: "moderator" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "4-C",
+            "Update Non-Existent User",
+            "Attempts to update a user that does not exist to verify 404 handling.",
+            "PUT",
+            "/users/updateUser/{userId}",
+            {
+              displayName: "Ghost User"
+            },
+            [
+              "Ensure response status is 404 Not Found",
+              "Verify system handles invalid ID gracefully without crashing"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_update_id" },
+              { type: "text", id: "displayName", label: "Display Name", value: "Ghost User" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
             "5",
             "Update User Settings",
             "Updates only the settings payload via PUT /users/updateUserSettings/{userId}.",
@@ -1253,6 +1407,25 @@ apiHandler.handleRequest(apiParams);
               { type: "text", id: "presencePreference", label: "Presence Preference", placeholder: "online/away/dnd", value: "online" },
               { type: "select", id: "notifications.email", label: "Notify by Email", options: [ { value: "true", text: "Yes" }, { value: "false", text: "No" } ] },
               { type: "select", id: "notifications.sms", label: "Notify by SMS", options: [ { value: "false", text: "No" }, { value: "true", text: "Yes" } ] },
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "5-B",
+            "Update Settings Non-Existent",
+            "Attempts to update settings for a user that does not exist to verify 404 handling.",
+            "PUT",
+            "/users/updateUserSettings/{userId}",
+            {
+              locale: "fr-FR"
+            },
+            [
+              "Ensure response status is 404 Not Found",
+              "Verify system handles invalid ID gracefully"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_settings_id" },
+              { type: "text", id: "locale", label: "Locale", value: "fr-FR" }
             ]
           )}
 
@@ -1296,6 +1469,25 @@ apiHandler.handleRequest(apiParams);
           )}
 
           ${createTestScenarioSection(
+            "6-B",
+            "Update Profile Non-Existent",
+            "Attempts to update profile for a user that does not exist to verify 404 handling.",
+            "PUT",
+            "/users/updateUserProfile/{userId}",
+            {
+              bio: "Ghost Bio"
+            },
+            [
+              "Ensure response status is 404 Not Found",
+              "Verify system handles invalid ID gracefully"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_profile_id" },
+              { type: "text", id: "bio", label: "Bio", value: "Ghost Bio" }
+            ]
+          )}
+
+          ${createTestScenarioSection(
             "7",
             "Delete User",
             "Deletes a user via DELETE /users/deleteUser/{userId}.",
@@ -1310,6 +1502,22 @@ apiHandler.handleRequest(apiParams);
             ],
             [
               { type: "text", id: "userId", label: "User ID", placeholder: "userId to delete", value: "" },
+            ]
+          )}
+
+          ${createTestScenarioSection(
+            "7-B",
+            "Delete Non-Existent User",
+            "Attempts to delete a user that does not exist to verify error handling.",
+            "DELETE",
+            "/users/deleteUser/{userId}",
+            null,
+            [
+              "Ensure response status is 404 Not Found (or appropriate error)",
+              "Verify idempotent behavior if applicable"
+            ],
+            [
+              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_delete_id" }
             ]
           )}
         </div>
@@ -1340,6 +1548,48 @@ apiHandler.handleRequest(apiParams);
       const baseUrlInput = document.getElementById("baseUrlInput");
       const baseUrlStatus = document.getElementById("baseUrlStatus");
       const baseUrlApplyBtn = document.getElementById("baseUrlApply");
+      const toggleAllScenariosBtn = document.getElementById("toggle-all-scenarios-btn");
+
+      if (toggleAllScenariosBtn) {
+        toggleAllScenariosBtn.addEventListener("click", () => {
+          const isCollapsing = toggleAllScenariosBtn.innerHTML.includes("Collapse");
+          const allBodies = document.querySelectorAll(
+            ".test-scenario-card .card-body.collapse"
+          );
+          const allToggles = document.querySelectorAll(
+            ".test-scenario-card .collapse-toggle"
+          );
+
+          // Use Bootstrap API if available, otherwise toggle classes manually
+          if (window.bootstrap && window.bootstrap.Collapse) {
+            allBodies.forEach((el) => {
+              const instance = window.bootstrap.Collapse.getOrCreateInstance(el, {
+                toggle: false,
+              });
+              if (isCollapsing) instance.hide();
+              else instance.show();
+            });
+          } else {
+            allBodies.forEach((el) => {
+              if (isCollapsing) el.classList.remove("show");
+              else el.classList.add("show");
+            });
+            allToggles.forEach((btn) => {
+              btn.setAttribute("aria-expanded", !isCollapsing);
+              if (isCollapsing) btn.classList.add("collapsed");
+              else btn.classList.remove("collapsed");
+            });
+          }
+
+          if (isCollapsing) {
+            toggleAllScenariosBtn.innerHTML =
+              '<i class="bi bi-arrows-expand"></i> Expand All';
+          } else {
+            toggleAllScenariosBtn.innerHTML =
+              '<i class="bi bi-arrows-collapse"></i> Collapse All';
+          }
+        });
+      }
 
       if (baseUrlApplyBtn && baseUrlInput) {
         baseUrlApplyBtn.addEventListener("click", (e) => {
