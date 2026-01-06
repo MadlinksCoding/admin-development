@@ -5,6 +5,8 @@
  */
 
 (function () {
+	const INDENT_SUB_SCENARIOS = false;
+
 	function waitForAdminShell() {
 		return new Promise((resolveFunction) => {
 			if (window.AdminShell && window.AdminShell.pageContent) {
@@ -81,6 +83,13 @@
 		}
 
 		function createIndexNavigation() {
+			const subScenarioStyle = INDENT_SUB_SCENARIOS
+				? 'style="margin-left: 20px; font-size: 0.9em;"'
+				: "";
+			const iconStyle = INDENT_SUB_SCENARIOS
+				? '<i class="bi bi-arrow-return-right"></i>'
+				: '<i class="bi bi-play-circle"></i>';
+
 			return `
 				<div class="demo-section index-section">
 					<h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
@@ -96,18 +105,27 @@
 					</a>
 					<a href="#test-scenario-1" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "List User Blocks")}</a>
 					<a href="#test-scenario-2" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("2", "Block User")}</a>
+					<a href="#test-scenario-2-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-B", "Block Temporary")}</a>
+					<a href="#test-scenario-2-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-C", "Block Feed Scope")}</a>
+					<a href="#test-scenario-2-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-D", "Block Self (Cycle)")}</a>
 					<a href="#test-scenario-3" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("3", "Unblock User")}</a>
+					<a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-B", "Unblock (Non-Existent)")}</a>
 					<a href="#test-scenario-4" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("4", "Is User Blocked")}</a>
+					<a href="#test-scenario-4-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-B", "Is Blocked (False Check)")}</a>
 					<a href="#test-scenario-5" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "Batch Check Blocks")}</a>
 					<a href="#test-scenario-6" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("6", "List System Blocks")}</a>
 					<a href="#test-scenario-7" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("7", "Block IP")}</a>
+					<a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-B", "Block IP (Invalid)")}</a>
 					<a href="#test-scenario-8" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("8", "Is IP Blocked")}</a>
 					<a href="#test-scenario-9" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("9", "Block Email")}</a>
+					<a href="#test-scenario-9-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-B", "Block Email (Invalid)")}</a>
 					<a href="#test-scenario-10" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("10", "Is Email Blocked")}</a>
 					<a href="#test-scenario-11" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("11", "Block App Access")}</a>
+					<a href="#test-scenario-11-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("11-B", "Block App (Temporary)")}</a>
 					<a href="#test-scenario-12" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("12", "Is App Access Blocked")}</a>
 					<a href="#test-scenario-13" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("13", "List Manual Actions")}</a>
 					<a href="#test-scenario-14" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("14", "Suspend User")}</a>
+					<a href="#test-scenario-14-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("14-B", "Suspend (Duplicate)")}</a>
 					<a href="#test-scenario-15" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("15", "Unsuspend User")}</a>
 					<a href="#test-scenario-16" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("16", "Is User Suspended")}</a>
 					<a href="#test-scenario-17" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("17", "Warn User")}</a>
@@ -949,7 +967,12 @@ apiHandler.handleRequest(apiParams);
 				</div>
 
 				<div class="demo-section">
-					<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+					<div class="d-flex align-items-center justify-content-between">
+						<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+						<button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
+							<i class="bi bi-arrows-collapse"></i> Collapse All
+						</button>
+					</div>
 					<p class="description-text">
 						Click "Test API Call" on any scenario below to execute the test. 
 						Results will be displayed in the response container.
@@ -1028,6 +1051,76 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
+						"2-B",
+						"Block User (Temporary)",
+						"Blocks a user temporarily for 60 seconds.",
+						"POST",
+						"/block/blockUser",
+						{
+							from: "user_a",
+							to: "user_b",
+							scope: "chat",
+							permanent: false,
+							temporary: 60,
+						},
+						[
+							"Verify block is active immediately",
+							"Verify block expires after 60 seconds (requires manual wait)",
+							"Check expiration timestamp in response/DB"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{ type: "text", id: "scope", required: true, value: "chat" },
+							{ type: "text", id: "temporary", required: true, label: "Seconds", value: "60" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"2-C",
+						"Block User (Feed Scope)",
+						"Blocks a user specifically in the 'feed' scope.",
+						"POST",
+						"/block/blockUser",
+						{
+							from: "user_a",
+							to: "user_b",
+							scope: "feed",
+							permanent: true
+						},
+						[
+							"Verify scope is correctly recorded as 'feed'",
+							"Ensure this does not affect 'chat' scope if scopes are independent"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{ type: "text", id: "scope", required: true, value: "feed" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"2-D",
+						"Block User (Self Block)",
+						"Attempts to block self (from matches to) to test validation.",
+						"POST",
+						"/block/blockUser",
+						{
+							from: "user_a",
+							to: "user_a",
+							scope: "chat"
+						},
+						[
+							"Ideally should return 400 Bad Request",
+							"Verify system prevents self-blocking"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_a" }
+						]
+					)}
+
+					${createTestScenarioSection(
 						"3",
 						"Unblock User",
 						"Unblocks a user via POST /block/unblockUser.",
@@ -1051,6 +1144,28 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
+						"3-B",
+						"Unblock User (Non-Existent)",
+						"Attempts to unblock a user pair that is not blocked.",
+						"POST",
+						"/block/unblockUser",
+						{
+							from: "user_x",
+							to: "user_y",
+							scope: "chat"
+						},
+						[
+							"Ideally should be idempotent (success or 404, not 500)",
+							"Confirm no ghost entries created"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
+							{ type: "text", id: "scope", required: true, value: "chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
 						"4",
 						"Is User Blocked",
 						"Checks block status via GET /block/isUserBlocked.",
@@ -1066,6 +1181,24 @@ apiHandler.handleRequest(apiParams);
 							{ type: "text", id: "from", required: true, label: "From", placeholder: "user id", value: "user_a" },
 							{ type: "text", id: "to", required: true, label: "To", placeholder: "user id", value: "user_b" },
 							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "chat", value: "chat" },
+						]
+					)}
+
+					${createTestScenarioSection(
+						"4-B",
+						"Is User Blocked (False Check)",
+						"Verifies that a non-blocked pair returns false.",
+						"GET",
+						"/block/isUserBlocked",
+						null,
+						[
+							"Ensure blocked status is false",
+							"Verify response does not imply a block exists"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
+							{ type: "text", id: "scope", required: true, value: "chat" }
 						]
 					)}
 
@@ -1132,8 +1265,7 @@ apiHandler.handleRequest(apiParams);
 						},
 						[
 							"Confirm 400 on missing ip",
-							"Validate block stored with reason and permanence",
-							"Check idempotent behavior on duplicate block",
+							"Validate block stored with reason and permanence"
 						],
 						[
 							{ type: "text", id: "ip", required: true, label: "IP", placeholder: "203.0.113.10", value: "203.0.113.10" },
@@ -1147,6 +1279,25 @@ apiHandler.handleRequest(apiParams);
 									{ value: "false", text: "No" },
 								],
 							},
+						]
+					)}
+
+					${createTestScenarioSection(
+						"7-B",
+						"Block IP (Invalid Format)",
+						"Attempts to block an invalid IP address to test validation.",
+						"POST",
+						"/block/blockIP",
+						{
+							ip: "999.999.999.999",
+							reason: "test"
+						},
+						[
+							"Ensure response is 400 Bad Request",
+							"Verify invalid IP is not stored"
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "Invalid IP", value: "999.999.999.999" }
 						]
 					)}
 
@@ -1180,7 +1331,7 @@ apiHandler.handleRequest(apiParams);
 						[
 							"Confirm 400 on missing email",
 							"Validate block stored with reason",
-							"Check permanence flag",
+							"Check permanence flag"
 						],
 						[
 							{ type: "text", id: "email", required: true, label: "Email", placeholder: "user@example.com", value: "test@example.com" },
@@ -1194,6 +1345,25 @@ apiHandler.handleRequest(apiParams);
 									{ value: "false", text: "No" },
 								],
 							},
+						]
+					)}
+
+					${createTestScenarioSection(
+						"9-B",
+						"Block Email (Invalid Format)",
+						"Attempts to block an invalid email to test validation.",
+						"POST",
+						"/block/blockEmail",
+						{
+							email: "not-an-email",
+							reason: "spam"
+						},
+						[
+							"Ensure response is 400 Bad Request",
+							"Verify invalid email is not stored"
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Invalid Email", value: "not-an-email" }
 						]
 					)}
 
@@ -1243,6 +1413,29 @@ apiHandler.handleRequest(apiParams);
 									{ value: "false", text: "No" },
 								],
 							},
+						]
+					)}
+
+					${createTestScenarioSection(
+						"11-B",
+						"Block App Access (Temporary)",
+						"Blocks app access temporarily (e.g. 5 minutes).",
+						"POST",
+						"/block/blockAppAccess",
+						{
+							userId: "user_app_1",
+							scope: "app",
+							permanent: false,
+							temporary: 300
+						},
+						[
+							"Verify temporary block is created",
+							"Verify expiration time calculation"
+						],
+						[
+							{ type: "text", id: "userId", required: true, label: "User ID", value: "user_app_1" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "app" },
+							{ type: "text", id: "temporary", required: true, label: "Seconds", value: "300" }
 						]
 					)}
 
@@ -1307,6 +1500,28 @@ apiHandler.handleRequest(apiParams);
 							{ type: "text", id: "adminId", required: true, label: "Admin ID", placeholder: "admin id", value: "admin_1" },
 							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "manual" },
 							{ type: "text", id: "note", label: "Note", placeholder: "Notes for suspension", value: "investigate" },
+						]
+					)}
+
+					${createTestScenarioSection(
+						"14-B",
+						"Suspend User (Duplicate/Update)",
+						"Attempts to suspend an already suspended user to test idempotency/update behavior.",
+						"POST",
+						"/block/suspendUser",
+						{
+							userId: "user_sus_1",
+							reason: "updated_reason",
+							adminId: "admin_1"
+						},
+						[
+							"Ideally should update the existing suspension or return success",
+							"Verify reason is updated in manual actions list"
+						],
+						[
+							{ type: "text", id: "userId", required: true, label: "User ID", value: "user_sus_1" },
+							{ type: "text", id: "reason", required: true, label: "Reason", value: "updated_reason" },
+							{ type: "text", id: "adminId", required: true, label: "Admin ID", value: "admin_1" }
 						]
 					)}
 
@@ -1408,6 +1623,48 @@ apiHandler.handleRequest(apiParams);
 		}
 
 		function attachEventListeners() {
+			const toggleAllScenariosBtn = document.getElementById("toggle-all-scenarios-btn");
+
+			if (toggleAllScenariosBtn) {
+				toggleAllScenariosBtn.addEventListener("click", () => {
+					const isCollapsing = toggleAllScenariosBtn.innerHTML.includes("Collapse");
+					const allBodies = document.querySelectorAll(
+						".test-scenario-card .card-body.collapse"
+					);
+					const allToggles = document.querySelectorAll(
+						".test-scenario-card .collapse-toggle"
+					);
+
+					if (window.bootstrap && window.bootstrap.Collapse) {
+						allBodies.forEach((el) => {
+							const instance = window.bootstrap.Collapse.getOrCreateInstance(el, {
+								toggle: false,
+							});
+							if (isCollapsing) instance.hide();
+							else instance.show();
+						});
+					} else {
+						allBodies.forEach((el) => {
+							if (isCollapsing) el.classList.remove("show");
+							else el.classList.add("show");
+						});
+						allToggles.forEach((btn) => {
+							btn.setAttribute("aria-expanded", !isCollapsing);
+							if (isCollapsing) btn.classList.add("collapsed");
+							else btn.classList.remove("collapsed");
+						});
+					}
+
+					if (isCollapsing) {
+						toggleAllScenariosBtn.innerHTML =
+							'<i class="bi bi-arrows-expand"></i> Expand All';
+					} else {
+						toggleAllScenariosBtn.innerHTML =
+							'<i class="bi bi-arrows-collapse"></i> Collapse All';
+					}
+				});
+			}
+
 			const baseUrlInput = document.getElementById("baseUrlInput");
 			const baseUrlStatus = document.getElementById("baseUrlStatus");
 			const baseUrlApplyBtn = document.getElementById("baseUrlApply");
