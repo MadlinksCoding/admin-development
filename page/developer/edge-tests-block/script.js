@@ -103,33 +103,65 @@
 					<a href="#base-url-section" class="index-link">
 						<i class="bi bi-link-45deg"></i> API Base URL
 					</a>
-					<a href="#test-scenario-1" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "List User Blocks")}</a>
-					<a href="#test-scenario-2" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("2", "Block User")}</a>
-					<a href="#test-scenario-2-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-B", "Block Temporary")}</a>
-					<a href="#test-scenario-2-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-C", "Block Feed Scope")}</a>
-					<a href="#test-scenario-2-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-D", "Block Self (Cycle)")}</a>
-					<a href="#test-scenario-3" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("3", "Unblock User")}</a>
-					<a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-B", "Unblock (Non-Existent)")}</a>
-					<a href="#test-scenario-4" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("4", "Is User Blocked")}</a>
-					<a href="#test-scenario-4-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-B", "Is Blocked (False Check)")}</a>
-					<a href="#test-scenario-5" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "Batch Check Blocks")}</a>
-					<a href="#test-scenario-6" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("6", "List System Blocks")}</a>
-					<a href="#test-scenario-7" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("7", "Block IP")}</a>
-					<a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-B", "Block IP (Invalid)")}</a>
-					<a href="#test-scenario-8" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("8", "Is IP Blocked")}</a>
-					<a href="#test-scenario-9" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("9", "Block Email")}</a>
-					<a href="#test-scenario-9-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-B", "Block Email (Invalid)")}</a>
-					<a href="#test-scenario-10" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("10", "Is Email Blocked")}</a>
-					<a href="#test-scenario-11" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("11", "Block App Access")}</a>
-					<a href="#test-scenario-11-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("11-B", "Block App (Temporary)")}</a>
-					<a href="#test-scenario-12" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("12", "Is App Access Blocked")}</a>
-					<a href="#test-scenario-13" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("13", "List Manual Actions")}</a>
-					<a href="#test-scenario-14" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("14", "Suspend User")}</a>
-					<a href="#test-scenario-14-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("14-B", "Suspend (Duplicate)")}</a>
-					<a href="#test-scenario-15" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("15", "Unsuspend User")}</a>
-					<a href="#test-scenario-16" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("16", "Is User Suspended")}</a>
-					<a href="#test-scenario-17" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("17", "Warn User")}</a>
-					<a href="#test-scenario-18" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("18", "User Manual Actions")}</a>
+					
+					<!-- User-User Actions -->
+					<a href="#test-scenario-1" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("1-A", "User to User - List User Blocks(all, global)")}</a>
+					<a href="#test-scenario-1-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("1-B", "User to User - List Blocks (Feed)")}</a>
+					<a href="#test-scenario-1-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("1-C", "User to User - List Blocks (Private Chat)")}</a>
+
+					<a href="#test-scenario-2" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("2-A", "User to User - Block User (Feed Permanent)")}</a>
+					<a href="#test-scenario-2-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-B", "User to User - Block User (Private Chat Permanent)")}</a>
+					<a href="#test-scenario-2-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-C", "User to User - Block User (Feed Temporary)")}</a>
+					<a href="#test-scenario-2-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-D", "User to User - Block User (Private Chat Temporary)")}</a>
+
+					<a href="#test-scenario-3" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("3-A", "User to User - Unblock (Feed)")}</a>
+					<a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-B", "User to User - Unblock (Feed, Non-Existent)")}</a>
+					<a href="#test-scenario-3-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-C", "User to User - Unblock (Private Chat)")}</a>
+					<a href="#test-scenario-3-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-D", "User to User - Unblock (Private Chat, Non-Existent)")}</a>
+
+					<a href="#test-scenario-4-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-A", "User to User - Is Blocked (Feed)")}</a>
+					<a href="#test-scenario-4-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-B", "User to User - Is Blocked (Private Chat)")}</a>
+
+					<a href="#test-scenario-5" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "User to User - Batch Check (all, global Scopes)")}</a>
+
+					<!-- System Blocks -->
+					<a href="#test-scenario-6" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("6-A", "System - List System Blocks(all/ global scopes)")}</a>
+					<a href="#test-scenario-6-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-B", "System - List System (Auth)")}</a>
+					<a href="#test-scenario-6-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-C", "System - List System (Feed)")}</a>
+					<a href="#test-scenario-6-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-D", "System - List System (Private Chat)")}</a>
+
+					<a href="#test-scenario-7" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("7-A", "System - Block IP (Auth Permanent)")}</a>
+					<a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-B", "System - Block IP (Feed Permanent)")}</a>
+					<a href="#test-scenario-7-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-C", "System - Block IP (Private Chat Permanent)")}</a>
+
+					<a href="#test-scenario-7-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-D", "System - Block IP (Auth Temporary)")}</a>
+					<a href="#test-scenario-7-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-E", "System - Block IP (Feed Temporary)")}</a>
+					<a href="#test-scenario-7-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-F", "System - Block IP (Private Chat Temporary)")}</a>
+
+					<a href="#test-scenario-8" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("8-A", "System - Is IP Blocked (Auth)")}</a>
+					<a href="#test-scenario-8-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("8-B", "System - Is IP Blocked (Feed)")}</a>
+					<a href="#test-scenario-8-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("8-C", "System - Is IP Blocked (Private Chat)")}</a>
+
+					<a href="#test-scenario-9" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("9-A", "System - Block Email (Auth Permanent)")}</a>
+					<a href="#test-scenario-9-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-B", "System - Block Email (Feed Permanent)")}</a>
+					<a href="#test-scenario-9-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-C", "System - Block Email (Private Chat Permanent)")}</a>
+
+					<a href="#test-scenario-9-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-D", "System - Block Email (Auth Temporary)")}</a>
+					<a href="#test-scenario-9-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-E", "System - Block Email (Feed Temporary)")}</a>
+					<a href="#test-scenario-9-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-F", "System - Block Email (Private Chat Temporary)")}</a>
+
+					<a href="#test-scenario-10" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("10-A", "System - Is Email Blocked (Auth)")}</a>
+					<a href="#test-scenario-10-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("10-B", "System - Is Email Blocked (Feed)")}</a>
+					<a href="#test-scenario-10-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("10-C", "System - Is Email Blocked (Private Chat)")}</a>
+
+					<!-- Manual Actions -->
+					<a href="#test-scenario-11" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("11", "Manual Action - List Manual Actions(all, paginated)")}</a>
+					<a href="#test-scenario-12" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("12-A", "Manual Action - Suspend User")}</a>
+					<a href="#test-scenario-12-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("12-B", "Manual Action - Suspend (Duplicate)")}</a>
+					<a href="#test-scenario-13" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("13", "Manual Action - Unsuspend User")}</a>
+					<a href="#test-scenario-14" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("14", "Manual Action - Is User Suspended")}</a>
+					<a href="#test-scenario-15" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("15", "Manual Action - Warn User")}</a>
+
 					<a href="#cleanup-section" class="index-link">
 						<i class="bi bi-trash"></i> Cleanup Method
 					</a>
@@ -619,6 +651,24 @@ apiHandler.handleRequest(apiParams);
 					return;
 				}
 
+				// If an expiresAt datetime is provided (ms since epoch) but temporary is not,
+				// derive temporary (seconds) as the difference from now.
+				try {
+					if (
+						Object.prototype.hasOwnProperty.call(inputValues, "expiresAt") &&
+						!Object.prototype.hasOwnProperty.call(inputValues, "temporary")
+					) {
+						const expMs = parseInt(String(inputValues.expiresAt), 10);
+						if (!Number.isNaN(expMs)) {
+							const nowMs = Date.now();
+							const diffSec = Math.max(0, Math.ceil((expMs - nowMs) / 1000));
+							inputValues.temporary = String(diffSec);
+						}
+					}
+				} catch (e) {
+					console.warn("[Edge Tests Block] Could not derive temporary from expiresAt:", e);
+				}
+
 				let finalEndpoint = endpoint;
 				const pathParamKeys = new Set();
 				Object.entries(inputValues).forEach(([fieldId, fieldValue]) => {
@@ -936,7 +986,7 @@ apiHandler.handleRequest(apiParams);
 						<strong>Block:</strong> Restrict interactions or access between subjects (users/IP/email/app scope).
 					</div>
 					<div class="terminology-item">
-						<strong>Scope:</strong> Context for a block (e.g., chat, feed, payments).
+						<strong>Scope:</strong> Context for a block (e.g., feed, private_chat).
 					</div>
 					<div class="terminology-item">
 						<strong>Temporary vs Permanent:</strong> Temporary uses seconds duration; permanent is boolean flag.
@@ -978,9 +1028,10 @@ apiHandler.handleRequest(apiParams);
 						Results will be displayed in the response container.
 					</p>
 
+
 					${createTestScenarioSection(
-						"1",
-						"List User Blocks",
+						"1-A",
+						"User to User - List User Blocks(all, global)",
 						"Lists user blocks with filters via GET /block/listUserBlocks.",
 						"GET",
 						"/block/listUserBlocks",
@@ -993,7 +1044,17 @@ apiHandler.handleRequest(apiParams);
 						[
 							{ type: "text", id: "from", label: "From", placeholder: "user id", value: "" },
 							{ type: "text", id: "to", label: "To", placeholder: "user id", value: "" },
-							{ type: "text", id: "scope", label: "Scope", placeholder: "chat", value: "" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "", text: "Any" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat (DM)" },
+								],
+								value: "",
+							},
 							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "" },
 							{
 								type: "select",
@@ -1011,74 +1072,42 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"2",
-						"Block User",
-						"Blocks a user with scope and optional reason/flags via POST /block/blockUser.",
-						"POST",
-						"/block/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "chat",
-							reason: "abuse",
-							flag: "manual",
-							permanent: false,
-							temporary: 3600,
-						},
+						"1-B",
+						"User to User - List Blocks (Feed)",
+						"Lists user blocks filtered by 'feed' scope.",
+						"GET",
+						"/block/listUserBlocks",
+						null,
 						[
-							"Confirm 400 when required fields are missing",
-							"Validate temporary seconds parsed correctly and positive",
-							"Check block entry created with scope and flags",
-							"Verify permanent/temporary options honored",
+							"Verify all returned items have scope 'feed'",
 						],
 						[
-							{ type: "text", id: "from", required: true, label: "From (blocker)", placeholder: "user id", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To (blocked)", placeholder: "user id", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "chat/feed/etc", value: "chat" },
-							{ type: "text", id: "reason", label: "Reason", placeholder: "abuse", value: "" },
-							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "manual" },
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "No" },
-									{ value: "true", text: "Yes" },
-								],
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "3600", value: "3600", inputMode: "numeric" },
+							{ type: "text", id: "scope", label: "Scope", value: "feed", required: true },
+							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
 						]
 					)}
 
 					${createTestScenarioSection(
-						"2-B",
-						"Block User (Temporary)",
-						"Blocks a user temporarily for 60 seconds.",
-						"POST",
-						"/block/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "chat",
-							permanent: false,
-							temporary: 60,
-						},
+						"1-C",
+						"User to User - List Blocks (Private Chat)",
+						"Lists user blocks filtered by 'private_chat' scope.",
+						"GET",
+						"/block/listUserBlocks",
+						null,
 						[
-							"Verify block is active immediately",
-							"Verify block expires after 60 seconds (requires manual wait)",
-							"Check expiration timestamp in response/DB"
+							"Verify all returned items have scope 'private_chat'",
 						],
 						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, value: "chat" },
-							{ type: "text", id: "temporary", required: true, label: "Seconds", value: "60" }
+							{ type: "text", id: "scope", label: "Scope", value: "private_chat", required: true },
+							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
 						]
 					)}
 
+					<!-- Block Actions -->
+
 					${createTestScenarioSection(
-						"2-C",
-						"Block User (Feed Scope)",
+						"2-A",
+						"User to User - Block User (Feed Permanent)",
 						"Blocks a user specifically in the 'feed' scope.",
 						"POST",
 						"/block/blockUser",
@@ -1095,64 +1124,161 @@ apiHandler.handleRequest(apiParams);
 						[
 							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
 							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, value: "feed" }
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"2-B",
+						"User to User - Block User (Private Chat Permanent)",
+						"Blocks a user specifically in the 'private_chat' (dm) scope.",
+						"POST",
+						"/block/blockUser",
+						{
+							from: "user_a",
+							to: "user_b",
+							scope: "private_chat",
+							permanent: true
+						},
+						[
+							"Verify scope is correctly recorded as 'private_chat'",
+							"Ensure this does not affect 'feed' scope"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"2-C",
+						"User to User - Block User (Feed Temporary)",
+						"Temporarily blocks a user in the 'feed' scope.",
+						"POST",
+						"/block/blockUser",
+						{
+							from: "user_a",
+							to: "user_b",
+							scope: "feed",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify block expires after ~24 hours",
+							"Ensure permanent is false",
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat (DM)" },
+								],
+								value: "feed",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
 						]
 					)}
 
 					${createTestScenarioSection(
 						"2-D",
-						"Block User (Self Block)",
-						"Attempts to block self (from matches to) to test validation.",
+						"User to User - Block User (Private Chat Temporary)",
+						"Temporarily blocks a user in the 'private_chat' scope.",
 						"POST",
 						"/block/blockUser",
 						{
 							from: "user_a",
-							to: "user_a",
-							scope: "chat"
+							to: "user_b",
+							scope: "private_chat",
+							permanent: false,
+							temporary: 86400
 						},
 						[
-							"Ideally should return 400 Bad Request",
-							"Verify system prevents self-blocking"
+							"Verify block expires after ~24 hours",
+							"Ensure permanent is false",
 						],
 						[
 							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_a" }
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat (DM)" },
+								],
+								value: "private_chat",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
 						]
 					)}
 
+					<!-- Unblock Actions -->
+
 					${createTestScenarioSection(
-						"3",
-						"Unblock User",
-						"Unblocks a user via POST /block/unblockUser.",
+						"3-A",
+						"User to User - Unblock (Feed)",
+						"Unblocks a user specifically in the 'feed' scope.",
 						"POST",
 						"/block/unblockUser",
 						{
 							from: "user_a",
 							to: "user_b",
-							scope: "chat",
+							scope: "feed"
 						},
 						[
-							"Confirm unblock removes prior block entry",
-							"Verify 400 on missing required fields",
-							"Check idempotent behavior (unblocking non-blocked returns success/error as expected)",
+							"Verify 'feed' block is removed",
+							"Verify other scopes remain if they existed"
 						],
 						[
-							{ type: "text", id: "from", required: true, label: "From (blocker)", placeholder: "user id", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To (blocked)", placeholder: "user id", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "chat", value: "chat" },
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
 						]
 					)}
 
 					${createTestScenarioSection(
 						"3-B",
-						"Unblock User (Non-Existent)",
-						"Attempts to unblock a user pair that is not blocked.",
+						"User to User - Unblock (Feed, Non-Existent)",
+						"Attempts to unblock a user pair that is not blocked (Feed scope).",
 						"POST",
 						"/block/unblockUser",
 						{
 							from: "user_x",
 							to: "user_y",
-							scope: "chat"
+							scope: "feed"
 						},
 						[
 							"Ideally should be idempotent (success or 404, not 500)",
@@ -1161,57 +1287,121 @@ apiHandler.handleRequest(apiParams);
 						[
 							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
 							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
-							{ type: "text", id: "scope", required: true, value: "chat" }
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"4",
-						"Is User Blocked",
-						"Checks block status via GET /block/isUserBlocked.",
+						"3-C",
+						"User to User - Unblock (Private Chat)",
+						"Unblocks a user specifically in the 'private_chat' scope.",
+						"POST",
+						"/block/unblockUser",
+						{
+							from: "user_a",
+							to: "user_b",
+							scope: "private_chat"
+						},
+						[
+							"Verify 'private_chat' block is removed",
+							"Verify other scopes remain if they existed"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"3-D",
+						"User to User - Unblock (Private Chat, Non-Existent)",
+						"Attempts to unblock a user pair that is not blocked (Private Chat scope).",
+						"POST",
+						"/block/unblockUser",
+						{
+							from: "user_x",
+							to: "user_y",
+							scope: "private_chat"
+						},
+						[
+							"Ideally should be idempotent"
+						],
+						[
+							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					<!-- Check Actions -->
+
+					${createTestScenarioSection(
+						"4-A",
+						"User to User - Is Blocked (Feed)",
+						"Checks block status specifically for 'feed' scope.",
 						"GET",
 						"/block/isUserBlocked",
 						null,
 						[
-							"Validate blocked true/false matches database",
-							"Verify blockDetails shape when blocked",
-							"Confirm 400 on missing required query params",
+							"Confirm result reflects feed block status",
 						],
 						[
-							{ type: "text", id: "from", required: true, label: "From", placeholder: "user id", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", placeholder: "user id", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "chat", value: "chat" },
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "", text: "Any" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat (DM)" },
+								],
+								value: "feed",
+								required: true
+							}
 						]
 					)}
 
 					${createTestScenarioSection(
 						"4-B",
-						"Is User Blocked (False Check)",
-						"Verifies that a non-blocked pair returns false.",
+						"User to User - Is Blocked (Private Chat)",
+						"Checks block status specifically for 'private_chat' scope.",
 						"GET",
 						"/block/isUserBlocked",
 						null,
 						[
-							"Ensure blocked status is false",
-							"Verify response does not imply a block exists"
+							"Confirm result reflects private_chat block status",
 						],
 						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
-							{ type: "text", id: "scope", required: true, value: "chat" }
+							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
+							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "", text: "Any" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat (DM)" },
+								],
+								value: "private_chat",
+								required: true
+							}
 						]
 					)}
 
 					${createTestScenarioSection(
 						"5",
-						"Batch Check User Blocks",
+						"User to User - Batch Check (all, global Scopes)",
 						"Batch check multiple pairs via POST /block/batchCheckUserBlocks.",
 						"POST",
 						"/block/batchCheckUserBlocks",
 						{
 							blocks: [
-								{ from: "user_a", to: "user_b", scope: "chat" },
-								{ from: "user_c", to: "user_d", scope: "feed" },
+								{ from: "user_a", to: "user_b", scope: "feed" },
+								{ from: "user_c", to: "user_d", scope: "private_chat" },
 							],
 						},
 						[
@@ -1222,20 +1412,34 @@ apiHandler.handleRequest(apiParams);
 						[]
 					)}
 
+					<!-- System Blocks -->
+
 					${createTestScenarioSection(
-						"6",
-						"List System Blocks",
+						"6-A",
+						"System - List System Blocks(all/ global scopes)",
 						"Lists system blocks with filters via GET /block/listSystemBlocks.",
 						"GET",
 						"/block/listSystemBlocks",
 						null,
 						[
-							"Validate pagination and filters (ip, flag, permanent)",
+							"Validate pagination and filters (ip, flag, permanent, scope)",
 							"Confirm count matches items length",
 						],
 						[
 							{ type: "text", id: "ip", label: "IP", placeholder: "203.0.113.10", value: "" },
 							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "", text: "Any" },
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "",
+							},
 							{ type: "text", id: "reason", label: "Reason", placeholder: "fraud", value: "" },
 							{
 								type: "select",
@@ -1253,212 +1457,544 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"7",
-						"Block IP",
-						"Blocks an IP via POST /block/blockIP.",
+						"6-B",
+						"System - List System (Auth)",
+						"Lists system blocks filtered by 'auth' scope.",
+						"GET",
+						"/block/listSystemBlocks",
+						null,
+						[
+							"Verify all returned items have scope 'auth'",
+						],
+						[
+							{ type: "text", id: "scope", label: "Scope", value: "auth", required: true },
+							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
+						]
+					)}
+
+					${createTestScenarioSection(
+						"6-C",
+						"System - List System (Feed)",
+						"Lists system blocks filtered by 'feed' scope.",
+						"GET",
+						"/block/listSystemBlocks",
+						null,
+						[
+							"Verify all returned items have scope 'feed'",
+						],
+						[
+							{ type: "text", id: "scope", label: "Scope", value: "feed", required: true },
+							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
+						]
+					)}
+
+					${createTestScenarioSection(
+						"6-D",
+						"System - List System (Private Chat)",
+						"Lists system blocks filtered by 'private_chat' scope.",
+						"GET",
+						"/block/listSystemBlocks",
+						null,
+						[
+							"Verify all returned items have scope 'private_chat'",
+						],
+						[
+							{ type: "text", id: "scope", label: "Scope", value: "private_chat", required: true },
+							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
+						]
+					)}
+
+					${createTestScenarioSection(
+						"7-A",
+						"System - Block IP (Auth Permanent)",
+						"Blocks an IP in the 'auth' scope.",
 						"POST",
 						"/block/blockIP",
 						{
 							ip: "203.0.113.10",
-							reason: "abuse",
-							permanent: true,
+							scope: "auth",
+							permanent: true
 						},
 						[
-							"Confirm 400 on missing ip",
-							"Validate block stored with reason and permanence"
+							"Verify scope is correctly recorded as 'auth'",
 						],
 						[
-							{ type: "text", id: "ip", required: true, label: "IP", placeholder: "203.0.113.10", value: "203.0.113.10" },
-							{ type: "text", id: "reason", label: "Reason", placeholder: "abuse", value: "abuse" },
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "true", text: "Yes" },
-									{ value: "false", text: "No" },
-								],
-							},
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
 						]
 					)}
 
 					${createTestScenarioSection(
 						"7-B",
-						"Block IP (Invalid Format)",
-						"Attempts to block an invalid IP address to test validation.",
+						"System - Block IP (Feed Permanent)",
+						"Blocks an IP in the 'feed' scope.",
 						"POST",
 						"/block/blockIP",
 						{
-							ip: "999.999.999.999",
-							reason: "test"
+							ip: "203.0.113.10",
+							scope: "feed",
+							permanent: true
 						},
 						[
-							"Ensure response is 400 Bad Request",
-							"Verify invalid IP is not stored"
+							"Verify scope is correctly recorded as 'feed'",
 						],
 						[
-							{ type: "text", id: "ip", required: true, label: "Invalid IP", value: "999.999.999.999" }
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"8",
-						"Is IP Blocked",
-						"Checks IP block via GET /block/isIPBlocked.",
-						"GET",
-						"/block/isIPBlocked",
-						null,
-						[
-							"Validate blocked boolean matches IP block entry",
-							"Confirm details payload includes metadata",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", placeholder: "203.0.113.10", value: "203.0.113.10" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"9",
-						"Block Email",
-						"Blocks an email via POST /block/blockEmail.",
+						"7-C",
+						"System - Block IP (Private Chat Permanent)",
+						"Blocks an IP in the 'private_chat' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block/blockIP",
 						{
-							email: "test@example.com",
-							reason: "fraud",
-							permanent: true,
+							ip: "203.0.113.10",
+							scope: "private_chat",
+							permanent: true
 						},
 						[
-							"Confirm 400 on missing email",
-							"Validate block stored with reason",
-							"Check permanence flag"
+							"Verify scope is correctly recorded as 'private_chat'",
 						],
 						[
-							{ type: "text", id: "email", required: true, label: "Email", placeholder: "user@example.com", value: "test@example.com" },
-							{ type: "text", id: "reason", label: "Reason", placeholder: "fraud", value: "fraud" },
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"7-D",
+						"System - Block IP (Auth Temporary)",
+						"Temporarily blocks an IP in the 'auth' scope.",
+						"POST",
+						"/block/blockIP",
+						{
+							ip: "203.0.113.10",
+							scope: "auth",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify IP block expires after ~24 hours",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "auth",
+								required: true
+							},
 							{
 								type: "select",
 								id: "permanent",
 								label: "Permanent",
 								options: [
-									{ value: "true", text: "Yes" },
-									{ value: "false", text: "No" },
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
 								],
+								value: "false",
+								required: true
 							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"7-E",
+						"System - Block IP (Feed Temporary)",
+						"Temporarily blocks an IP in the 'feed' scope.",
+						"POST",
+						"/block/blockIP",
+						{
+							ip: "203.0.113.10",
+							scope: "feed",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify IP block expires after ~24 hours",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "feed",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"7-F",
+						"System - Block IP (Private Chat Temporary)",
+						"Temporarily blocks an IP in the 'private_chat' scope.",
+						"POST",
+						"/block/blockIP",
+						{
+							ip: "203.0.113.10",
+							scope: "private_chat",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify IP block expires after ~24 hours",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "private_chat",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"8-A",
+						"System - Is IP Blocked (Auth)",
+						"Checks if IP is blocked in 'auth' scope.",
+						"GET",
+						"/block/isIPBlocked",
+						null,
+						[
+							"Confirm result reflects auth block status",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"8-B",
+						"System - Is IP Blocked (Feed)",
+						"Checks if IP is blocked in 'feed' scope.",
+						"GET",
+						"/block/isIPBlocked",
+						null,
+						[
+							"Confirm result reflects feed block status",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"8-C",
+						"System - Is IP Blocked (Private Chat)",
+						"Checks if IP is blocked in 'private_chat' scope.",
+						"GET",
+						"/block/isIPBlocked",
+						null,
+						[
+							"Confirm result reflects private_chat block status",
+						],
+						[
+							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"9-A",
+						"System - Block Email (Auth Permanent)",
+						"Blocks an email in the 'auth' scope.",
+						"POST",
+						"/block/blockEmail",
+						{
+							email: "test@example.com",
+							scope: "auth",
+							permanent: true
+						},
+						[
+							"Verify scope is correctly recorded as 'auth'",
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
 						]
 					)}
 
 					${createTestScenarioSection(
 						"9-B",
-						"Block Email (Invalid Format)",
-						"Attempts to block an invalid email to test validation.",
+						"System - Block Email (Feed Permanent)",
+						"Blocks an email in the 'feed' scope.",
 						"POST",
 						"/block/blockEmail",
 						{
-							email: "not-an-email",
-							reason: "spam"
+							email: "test@example.com",
+							scope: "feed",
+							permanent: true
 						},
 						[
-							"Ensure response is 400 Bad Request",
-							"Verify invalid email is not stored"
+							"Verify scope is correctly recorded as 'feed'",
 						],
 						[
-							{ type: "text", id: "email", required: true, label: "Invalid Email", value: "not-an-email" }
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"10",
-						"Is Email Blocked",
-						"Checks email block via GET /block/isEmailBlocked.",
-						"GET",
-						"/block/isEmailBlocked",
-						null,
-						[
-							"Verify blocked boolean matches email block entry",
-							"Confirm details payload present when blocked",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", placeholder: "user@example.com", value: "test@example.com" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"11",
-						"Block App Access",
-						"Blocks app access for a user via POST /block/blockAppAccess.",
+						"9-C",
+						"System - Block Email (Private Chat Permanent)",
+						"Blocks an email in the 'private_chat' scope.",
 						"POST",
-						"/block/blockAppAccess",
+						"/block/blockEmail",
 						{
-							userId: "user_app_1",
-							scope: "app",
-							reason: "policy",
-							permanent: true,
+							email: "test@example.com",
+							scope: "private_chat",
+							permanent: true
 						},
 						[
-							"Confirm required userId/scope validation",
-							"Validate reason/permanent persisted",
-							"Check user cannot access scoped resources",
+							"Verify scope is correctly recorded as 'private_chat'",
 						],
 						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_app_1" },
-							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "app", value: "app" },
-							{ type: "text", id: "reason", label: "Reason", placeholder: "policy", value: "policy" },
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"9-D",
+						"System - Block Email (Auth Temporary)",
+						"Temporarily blocks an email in the 'auth' scope.",
+						"POST",
+						"/block/blockEmail",
+						{
+							email: "test@example.com",
+							scope: "auth",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify email block expires after ~24 hours",
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "auth",
+								required: true
+							},
 							{
 								type: "select",
 								id: "permanent",
 								label: "Permanent",
 								options: [
-									{ value: "true", text: "Yes" },
-									{ value: "false", text: "No" },
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
 								],
+								value: "false",
+								required: true
 							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"11-B",
-						"Block App Access (Temporary)",
-						"Blocks app access temporarily (e.g. 5 minutes).",
+						"9-E",
+						"System - Block Email (Feed Temporary)",
+						"Temporarily blocks an email in the 'feed' scope.",
 						"POST",
-						"/block/blockAppAccess",
+						"/block/blockEmail",
 						{
-							userId: "user_app_1",
-							scope: "app",
+							email: "test@example.com",
+							scope: "feed",
 							permanent: false,
-							temporary: 300
+							temporary: 86400
 						},
 						[
-							"Verify temporary block is created",
-							"Verify expiration time calculation"
+							"Verify email block expires after ~24 hours",
 						],
 						[
-							{ type: "text", id: "userId", required: true, label: "User ID", value: "user_app_1" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "app" },
-							{ type: "text", id: "temporary", required: true, label: "Seconds", value: "300" }
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "feed",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"12",
-						"Is App Access Blocked",
-						"Checks app access block via GET /block/isAppAccessBlocked.",
+						"9-F",
+						"System - Block Email (Private Chat Temporary)",
+						"Temporarily blocks an email in the 'private_chat' scope.",
+						"POST",
+						"/block/blockEmail",
+						{
+							email: "test@example.com",
+							scope: "private_chat",
+							permanent: false,
+							temporary: 86400
+						},
+						[
+							"Verify email block expires after ~24 hours",
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{
+								type: "select",
+								id: "scope",
+								label: "Scope",
+								options: [
+									{ value: "auth", text: "Auth" },
+									{ value: "feed", text: "Feed" },
+									{ value: "private_chat", text: "Private Chat" },
+								],
+								value: "private_chat",
+								required: true
+							},
+							{
+								type: "select",
+								id: "permanent",
+								label: "Permanent",
+								options: [
+									{ value: "false", text: "False" },
+									{ value: "true", text: "True" }
+								],
+								value: "false",
+								required: true
+							},
+							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
+							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"10-A",
+						"System - Is Email Blocked (Auth)",
+						"Checks if email is blocked in 'auth' scope.",
 						"GET",
-						"/block/isAppAccessBlocked",
+						"/block/isEmailBlocked",
 						null,
 						[
-							"Validate blocked boolean matches block entry",
-							"Confirm details payload includes scope and reason",
+							"Confirm result reflects auth block status",
 						],
 						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_app_1" },
-							{ type: "text", id: "scope", required: true, label: "Scope", placeholder: "app", value: "app" },
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
 						]
 					)}
 
 					${createTestScenarioSection(
-						"13",
-						"List Manual Actions",
+						"10-B",
+						"System - Is Email Blocked (Feed)",
+						"Checks if email is blocked in 'feed' scope.",
+						"GET",
+						"/block/isEmailBlocked",
+						null,
+						[
+							"Confirm result reflects feed block status",
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
+						]
+					)}
+
+					${createTestScenarioSection(
+						"10-C",
+						"System - Is Email Blocked (Private Chat)",
+						"Checks if email is blocked in 'private_chat' scope.",
+						"GET",
+						"/block/isEmailBlocked",
+						null,
+						[
+							"Confirm result reflects private_chat block status",
+						],
+						[
+							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
+							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
+						]
+					)}
+
+					<!-- Manual Actions -->
+
+					${createTestScenarioSection(
+						"11",
+						"Manual Action - List Manual Actions(all, paginated)",
 						"Lists manual actions with filters via GET /block/listManualActions.",
 						"GET",
 						"/block/listManualActions",
@@ -1477,8 +2013,8 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"14",
-						"Suspend User",
+						"12",
+						"Manual Action - Suspend User",
 						"Suspends a user via POST /block/suspendUser.",
 						"POST",
 						"/block/suspendUser",
@@ -1504,8 +2040,8 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"14-B",
-						"Suspend User (Duplicate/Update)",
+						"12-B",
+						"Manual Action - Suspend (Duplicate)",
 						"Attempts to suspend an already suspended user to test idempotency/update behavior.",
 						"POST",
 						"/block/suspendUser",
@@ -1526,8 +2062,8 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"15",
-						"Unsuspend User",
+						"13",
+						"Manual Action - Unsuspend User",
 						"Unsuspends a user via POST /block/unsuspendUser.",
 						"POST",
 						"/block/unsuspendUser",
@@ -1544,8 +2080,8 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"16",
-						"Is User Suspended",
+						"14",
+						"Manual Action - Is User Suspended",
 						"Checks suspension status via GET /block/isUserSuspended.",
 						"GET",
 						"/block/isUserSuspended",
@@ -1560,8 +2096,8 @@ apiHandler.handleRequest(apiParams);
 					)}
 
 					${createTestScenarioSection(
-						"17",
-						"Warn User",
+						"15",
+						"Manual Action - Warn User",
 						"Warns a user via POST /block/warnUser.",
 						"POST",
 						"/block/warnUser",
@@ -1580,22 +2116,6 @@ apiHandler.handleRequest(apiParams);
 							{ type: "text", id: "flagKey", required: true, label: "Flag Key", placeholder: "warning_low", value: "warning_low" },
 							{ type: "text", id: "adminId", required: true, label: "Admin ID", placeholder: "admin id", value: "admin_1" },
 							{ type: "text", id: "note", label: "Note", placeholder: "first warning", value: "first warning" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"18",
-						"User Manual Actions",
-						"Fetches manual actions via GET /block/getUserManualActions.",
-						"GET",
-						"/block/getUserManualActions",
-						null,
-						[
-							"Confirm actions include warnings/suspensions for user",
-							"Validate 400 when userId missing",
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_warn_1" },
 						]
 					)}
 				</div>

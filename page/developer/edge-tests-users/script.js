@@ -114,12 +114,7 @@
           <a href="#test-scenario-1" class="index-link">
             <i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "Create User")}
           </a>
-          <a href="#test-scenario-1-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("1-B", "Create Admin User")}
-          </a>
-          <a href="#test-scenario-1-C" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("1-C", "Create Minimal User")}
-          </a>
+
           <a href="#test-scenario-1-D" class="index-link" ${subScenarioStyle}>
              ${iconStyle} ${formatScenarioLabel("1-D", "Duplicate User")}
           </a>
@@ -1130,46 +1125,9 @@ apiHandler.handleRequest(apiParams);
             ]
           )}
 
-          ${createTestScenarioSection(
-            "1-B",
-            "Create Admin User",
-            "Creates a user with 'admin' role to verify role assignment privileges.",
-            "POST",
-            "/users/createUser",
-            {
-              userName: "edge_admin_01",
-              displayName: "Edge Admin User",
-              role: "admin",
-              isNewUser: true
-            },
-            [
-              "Verify role is 'admin'",
-              "Ensure administrative privileges are granted (if testable)"
-            ],
-            [
-              { type: "text", id: "userName", required: true, label: "Username", value: "edge_admin_01" },
-              { type: "text", id: "displayName", label: "Display Name", value: "Edge Admin User" },
-              { type: "select", id: "role", label: "Role", options: [{ value: "admin", text: "Admin" }, { value: "user", text: "User" }], value: "admin" }
-            ]
-          )}
 
-          ${createTestScenarioSection(
-            "1-C",
-            "Create Minimal User",
-            "Creates a user with only required fields to test minimum data requirements.",
-            "POST",
-            "/users/createUser",
-            {
-              userName: "edge_min_01"
-            },
-            [
-              "Verify user is created successfully",
-              "Check that default values are applied for missing fields"
-            ],
-            [
-              { type: "text", id: "userName", required: true, label: "Username", value: "edge_min_01" }
-            ]
-          )}
+
+
 
           ${createTestScenarioSection(
             "1-D",
