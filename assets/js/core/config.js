@@ -147,8 +147,8 @@ window.AdminConfig = {
               label: "Users Class"
             },
             {
-              slug: "developer/edge-tests-block",
-              label: "Block Class"
+              slug: "developer/edge-tests-blockUsers",
+              label: "BlockUsers Class"
             },
             {
               slug: "developer/edge-tests-kyc",

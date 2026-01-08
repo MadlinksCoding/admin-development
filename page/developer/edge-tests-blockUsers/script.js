@@ -914,7 +914,7 @@ apiHandler.handleRequest(apiParams);
 
 			try {
 				const baseUrl = getBaseUrl();
-				const cleanupUrl = `${baseUrl}/block/cleanupTestBlocks`;
+				const cleanupUrl = `${baseUrl}/block-users/cleanupTestBlocks`;
 
 				const apiHandler = new APIHandler();
 
@@ -1032,9 +1032,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"1-A",
 						"User to User - List User Blocks(all, global)",
-						"Lists user blocks with filters via GET /block/listUserBlocks.",
+						"Lists user blocks with filters via GET /block-users/listUserBlocks.",
 						"GET",
-						"/block/listUserBlocks",
+						"/block-users/listUserBlocks",
 						null,
 						[
 							"Validate pagination limit/nextToken",
@@ -1076,7 +1076,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - List Blocks (Feed)",
 						"Lists user blocks filtered by 'feed' scope.",
 						"GET",
-						"/block/listUserBlocks",
+						"/block-users/listUserBlocks",
 						null,
 						[
 							"Verify all returned items have scope 'feed'",
@@ -1092,7 +1092,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - List Blocks (Private Chat)",
 						"Lists user blocks filtered by 'private_chat' scope.",
 						"GET",
-						"/block/listUserBlocks",
+						"/block-users/listUserBlocks",
 						null,
 						[
 							"Verify all returned items have scope 'private_chat'",
@@ -1110,7 +1110,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Block User (Feed Permanent)",
 						"Blocks a user specifically in the 'feed' scope.",
 						"POST",
-						"/block/blockUser",
+						"/block-users/blockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1133,7 +1133,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Block User (Private Chat Permanent)",
 						"Blocks a user specifically in the 'private_chat' (dm) scope.",
 						"POST",
-						"/block/blockUser",
+						"/block-users/blockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1156,7 +1156,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Block User (Feed Temporary)",
 						"Temporarily blocks a user in the 'feed' scope.",
 						"POST",
-						"/block/blockUser",
+						"/block-users/blockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1203,7 +1203,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Block User (Private Chat Temporary)",
 						"Temporarily blocks a user in the 'private_chat' scope.",
 						"POST",
-						"/block/blockUser",
+						"/block-users/blockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1252,7 +1252,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Unblock (Feed)",
 						"Unblocks a user specifically in the 'feed' scope.",
 						"POST",
-						"/block/unblockUser",
+						"/block-users/unblockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1274,7 +1274,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Unblock (Feed, Non-Existent)",
 						"Attempts to unblock a user pair that is not blocked (Feed scope).",
 						"POST",
-						"/block/unblockUser",
+						"/block-users/unblockUser",
 						{
 							from: "user_x",
 							to: "user_y",
@@ -1296,7 +1296,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Unblock (Private Chat)",
 						"Unblocks a user specifically in the 'private_chat' scope.",
 						"POST",
-						"/block/unblockUser",
+						"/block-users/unblockUser",
 						{
 							from: "user_a",
 							to: "user_b",
@@ -1318,7 +1318,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Unblock (Private Chat, Non-Existent)",
 						"Attempts to unblock a user pair that is not blocked (Private Chat scope).",
 						"POST",
-						"/block/unblockUser",
+						"/block-users/unblockUser",
 						{
 							from: "user_x",
 							to: "user_y",
@@ -1341,7 +1341,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Is Blocked (Feed)",
 						"Checks block status specifically for 'feed' scope.",
 						"GET",
-						"/block/isUserBlocked",
+						"/block-users/isUserBlocked",
 						null,
 						[
 							"Confirm result reflects feed block status",
@@ -1369,7 +1369,7 @@ apiHandler.handleRequest(apiParams);
 						"User to User - Is Blocked (Private Chat)",
 						"Checks block status specifically for 'private_chat' scope.",
 						"GET",
-						"/block/isUserBlocked",
+						"/block-users/isUserBlocked",
 						null,
 						[
 							"Confirm result reflects private_chat block status",
@@ -1395,9 +1395,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"5",
 						"User to User - Batch Check (all, global Scopes)",
-						"Batch check multiple pairs via POST /block/batchCheckUserBlocks.",
+						"Batch check multiple pairs via POST /block-users/batchCheckUserBlocks.",
 						"POST",
-						"/block/batchCheckUserBlocks",
+						"/block-users/batchCheckUserBlocks",
 						{
 							blocks: [
 								{ from: "user_a", to: "user_b", scope: "feed" },
@@ -1417,9 +1417,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"6-A",
 						"System - List System Blocks(all/ global scopes)",
-						"Lists system blocks with filters via GET /block/listSystemBlocks.",
+						"Lists system blocks with filters via GET /block-users/listSystemBlocks.",
 						"GET",
-						"/block/listSystemBlocks",
+						"/block-users/listSystemBlocks",
 						null,
 						[
 							"Validate pagination and filters (ip, flag, permanent, scope)",
@@ -1461,7 +1461,7 @@ apiHandler.handleRequest(apiParams);
 						"System - List System (Auth)",
 						"Lists system blocks filtered by 'auth' scope.",
 						"GET",
-						"/block/listSystemBlocks",
+						"/block-users/listSystemBlocks",
 						null,
 						[
 							"Verify all returned items have scope 'auth'",
@@ -1477,7 +1477,7 @@ apiHandler.handleRequest(apiParams);
 						"System - List System (Feed)",
 						"Lists system blocks filtered by 'feed' scope.",
 						"GET",
-						"/block/listSystemBlocks",
+						"/block-users/listSystemBlocks",
 						null,
 						[
 							"Verify all returned items have scope 'feed'",
@@ -1493,7 +1493,7 @@ apiHandler.handleRequest(apiParams);
 						"System - List System (Private Chat)",
 						"Lists system blocks filtered by 'private_chat' scope.",
 						"GET",
-						"/block/listSystemBlocks",
+						"/block-users/listSystemBlocks",
 						null,
 						[
 							"Verify all returned items have scope 'private_chat'",
@@ -1509,7 +1509,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Auth Permanent)",
 						"Blocks an IP in the 'auth' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "auth",
@@ -1529,7 +1529,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Feed Permanent)",
 						"Blocks an IP in the 'feed' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "feed",
@@ -1549,7 +1549,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Private Chat Permanent)",
 						"Blocks an IP in the 'private_chat' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "private_chat",
@@ -1569,7 +1569,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Auth Temporary)",
 						"Temporarily blocks an IP in the 'auth' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "auth",
@@ -1614,7 +1614,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Feed Temporary)",
 						"Temporarily blocks an IP in the 'feed' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "feed",
@@ -1659,7 +1659,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block IP (Private Chat Temporary)",
 						"Temporarily blocks an IP in the 'private_chat' scope.",
 						"POST",
-						"/block/blockIP",
+						"/block-users/blockIP",
 						{
 							ip: "203.0.113.10",
 							scope: "private_chat",
@@ -1704,7 +1704,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is IP Blocked (Auth)",
 						"Checks if IP is blocked in 'auth' scope.",
 						"GET",
-						"/block/isIPBlocked",
+						"/block-users/isIPBlocked",
 						null,
 						[
 							"Confirm result reflects auth block status",
@@ -1720,7 +1720,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is IP Blocked (Feed)",
 						"Checks if IP is blocked in 'feed' scope.",
 						"GET",
-						"/block/isIPBlocked",
+						"/block-users/isIPBlocked",
 						null,
 						[
 							"Confirm result reflects feed block status",
@@ -1736,7 +1736,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is IP Blocked (Private Chat)",
 						"Checks if IP is blocked in 'private_chat' scope.",
 						"GET",
-						"/block/isIPBlocked",
+						"/block-users/isIPBlocked",
 						null,
 						[
 							"Confirm result reflects private_chat block status",
@@ -1752,7 +1752,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Auth Permanent)",
 						"Blocks an email in the 'auth' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "auth",
@@ -1772,7 +1772,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Feed Permanent)",
 						"Blocks an email in the 'feed' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "feed",
@@ -1792,7 +1792,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Private Chat Permanent)",
 						"Blocks an email in the 'private_chat' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "private_chat",
@@ -1812,7 +1812,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Auth Temporary)",
 						"Temporarily blocks an email in the 'auth' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "auth",
@@ -1857,7 +1857,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Feed Temporary)",
 						"Temporarily blocks an email in the 'feed' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "feed",
@@ -1902,7 +1902,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Block Email (Private Chat Temporary)",
 						"Temporarily blocks an email in the 'private_chat' scope.",
 						"POST",
-						"/block/blockEmail",
+						"/block-users/blockEmail",
 						{
 							email: "test@example.com",
 							scope: "private_chat",
@@ -1947,7 +1947,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is Email Blocked (Auth)",
 						"Checks if email is blocked in 'auth' scope.",
 						"GET",
-						"/block/isEmailBlocked",
+						"/block-users/isEmailBlocked",
 						null,
 						[
 							"Confirm result reflects auth block status",
@@ -1963,7 +1963,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is Email Blocked (Feed)",
 						"Checks if email is blocked in 'feed' scope.",
 						"GET",
-						"/block/isEmailBlocked",
+						"/block-users/isEmailBlocked",
 						null,
 						[
 							"Confirm result reflects feed block status",
@@ -1979,7 +1979,7 @@ apiHandler.handleRequest(apiParams);
 						"System - Is Email Blocked (Private Chat)",
 						"Checks if email is blocked in 'private_chat' scope.",
 						"GET",
-						"/block/isEmailBlocked",
+						"/block-users/isEmailBlocked",
 						null,
 						[
 							"Confirm result reflects private_chat block status",
@@ -1995,9 +1995,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"11",
 						"Manual Action - List Manual Actions(all, paginated)",
-						"Lists manual actions with filters via GET /block/listManualActions.",
+						"Lists manual actions with filters via GET /block-users/listManualActions.",
 						"GET",
-						"/block/listManualActions",
+						"/block-users/listManualActions",
 						null,
 						[
 							"Validate filters (userId/adminId/flagKey) affect results",
@@ -2015,9 +2015,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"12",
 						"Manual Action - Suspend User",
-						"Suspends a user via POST /block/suspendUser.",
+						"Suspends a user via POST /block-users/suspendUser.",
 						"POST",
-						"/block/suspendUser",
+						"/block-users/suspendUser",
 						{
 							userId: "user_sus_1",
 							reason: "tos_violation",
@@ -2044,7 +2044,7 @@ apiHandler.handleRequest(apiParams);
 						"Manual Action - Suspend (Duplicate)",
 						"Attempts to suspend an already suspended user to test idempotency/update behavior.",
 						"POST",
-						"/block/suspendUser",
+						"/block-users/suspendUser",
 						{
 							userId: "user_sus_1",
 							reason: "updated_reason",
@@ -2064,9 +2064,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"13",
 						"Manual Action - Unsuspend User",
-						"Unsuspends a user via POST /block/unsuspendUser.",
+						"Unsuspends a user via POST /block-users/unsuspendUser.",
 						"POST",
-						"/block/unsuspendUser",
+						"/block-users/unsuspendUser",
 						{
 							userId: "user_sus_1",
 						},
@@ -2082,9 +2082,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"14",
 						"Manual Action - Is User Suspended",
-						"Checks suspension status via GET /block/isUserSuspended.",
+						"Checks suspension status via GET /block-users/isUserSuspended.",
 						"GET",
-						"/block/isUserSuspended",
+						"/block-users/isUserSuspended",
 						null,
 						[
 							"Validate suspended boolean matches suspension table",
@@ -2098,9 +2098,9 @@ apiHandler.handleRequest(apiParams);
 					${createTestScenarioSection(
 						"15",
 						"Manual Action - Warn User",
-						"Warns a user via POST /block/warnUser.",
+						"Warns a user via POST /block-users/warnUser.",
 						"POST",
-						"/block/warnUser",
+						"/block-users/warnUser",
 						{
 							userId: "user_warn_1",
 							flagKey: "warning_low",
