@@ -105,62 +105,172 @@
 					</a>
 					
 					<!-- User-User Actions -->
-					<a href="#test-scenario-1" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("1-A", "User to User - List User Blocks(all, global)")}</a>
-					<a href="#test-scenario-1-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("1-B", "User to User - List Blocks (Feed)")}</a>
-					<a href="#test-scenario-1-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("1-C", "User to User - List Blocks (Private Chat)")}</a>
+					<a href="#test-scenario-1" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"1-A",
+				"List BlockedUsers(all, global)"
+			)}</a>
+					<a href="#test-scenario-1-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"1-B",
+				"List BlockedUsers (Scoped)"
+			)}</a>
+					<a href="#test-scenario-1-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+						"1-C",
+						"Get Blocks For User"
+					)}</a>
 
-					<a href="#test-scenario-2" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("2-A", "User to User - Block User (Feed Permanent)")}</a>
-					<a href="#test-scenario-2-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-B", "User to User - Block User (Private Chat Permanent)")}</a>
-					<a href="#test-scenario-2-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-C", "User to User - Block User (Feed Temporary)")}</a>
-					<a href="#test-scenario-2-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("2-D", "User to User - Block User (Private Chat Temporary)")}</a>
+					<a href="#test-scenario-2" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"2-A",
+				"User to User - Block User (SCOPED Permanent)"
+			)}</a>
+			<a href="#test-scenario-2-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"2-B",
+				"User to User - Block User (Scoped Temporary)"
+			)}</a>
+			<a href="#test-scenario-2-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+					"2-C",
+					"System to User - Block User (Scoped)"
+				)}</a>
+				<a href="#test-scenario-3" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"3-A",
+				"User to User - Unblock (Scoped)"
+			)}</a>
+			<a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"3-B",
+				"User to User - Unblock (Scoped, Non-Existent)"
+			)}</a>
+			<a href="#test-scenario-3-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"3-C",
+				"System to User - Unblock (Scoped)"
+			)}</a>
 
-					<a href="#test-scenario-3" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("3-A", "User to User - Unblock (Feed)")}</a>
-					<a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-B", "User to User - Unblock (Feed, Non-Existent)")}</a>
-					<a href="#test-scenario-3-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-C", "User to User - Unblock (Private Chat)")}</a>
-					<a href="#test-scenario-3-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("3-D", "User to User - Unblock (Private Chat, Non-Existent)")}</a>
-
-					<a href="#test-scenario-4-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-A", "User to User - Is Blocked (Feed)")}</a>
-					<a href="#test-scenario-4-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("4-B", "User to User - Is Blocked (Private Chat)")}</a>
-
-					<a href="#test-scenario-5" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "User to User - Batch Check (all, global Scopes)")}</a>
+		<a href="#test-scenario-4-A" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"4-A",
+				"User to User - Is Blocked (Scoped)"
+			)}</a>
+		<a href="#test-scenario-4-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"4-B",
+				"System to User - Is Blocked (Scoped)"
+			)}</a>
+			<a href="#test-scenario-5" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"5",
+				"User to User - Batch Check (all, global Scopes)"
+			)}</a>
 
 					<!-- System Blocks -->
-					<a href="#test-scenario-6" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("6-A", "System - List System Blocks(all/ global scopes)")}</a>
-					<a href="#test-scenario-6-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-B", "System - List System (Auth)")}</a>
-					<a href="#test-scenario-6-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-C", "System - List System (Feed)")}</a>
-					<a href="#test-scenario-6-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("6-D", "System - List System (Private Chat)")}</a>
+					<a href="#test-scenario-6" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"6-A",
+				"System - List System Blocks(all/ global scopes)"
+			)}</a>
+					<a href="#test-scenario-6-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"6-B",
+				"System - List System Blocks(Scoped)"
+			)}</a>
+			
+			
 
-					<a href="#test-scenario-7" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("7-A", "System - Block IP (Auth Permanent)")}</a>
-					<a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-B", "System - Block IP (Feed Permanent)")}</a>
-					<a href="#test-scenario-7-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-C", "System - Block IP (Private Chat Permanent)")}</a>
+					<a href="#test-scenario-7" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"7-A",
+				"System - Block IP (Auth Permanent)"
+			)}</a>
+					<a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"7-B",
+				"System - Block IP (Feed Permanent)"
+			)}</a>
+					<a href="#test-scenario-7-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"7-C",
+				"System - Block IP (Private Chat Permanent)"
+			)}</a>
 
-					<a href="#test-scenario-7-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-D", "System - Block IP (Auth Temporary)")}</a>
-					<a href="#test-scenario-7-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-E", "System - Block IP (Feed Temporary)")}</a>
-					<a href="#test-scenario-7-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("7-F", "System - Block IP (Private Chat Temporary)")}</a>
+					<a href="#test-scenario-7-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"7-D",
+				"System - Block IP (Auth Temporary)"
+			)}</a>
+					<a href="#test-scenario-7-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"7-E",
+				"System - Block IP (Feed Temporary)"
+			)}</a>
+					<a href="#test-scenario-7-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"7-F",
+				"System - Block IP (Private Chat Temporary)"
+			)}</a>
 
-					<a href="#test-scenario-8" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("8-A", "System - Is IP Blocked (Auth)")}</a>
-					<a href="#test-scenario-8-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("8-B", "System - Is IP Blocked (Feed)")}</a>
-					<a href="#test-scenario-8-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("8-C", "System - Is IP Blocked (Private Chat)")}</a>
+					<a href="#test-scenario-8" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"8-A",
+				"System - Is IP Blocked (Auth)"
+			)}</a>
+					<a href="#test-scenario-8-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"8-B",
+				"System - Is IP Blocked (Feed)"
+			)}</a>
+					<a href="#test-scenario-8-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"8-C",
+				"System - Is IP Blocked (Private Chat)"
+			)}</a>
 
-					<a href="#test-scenario-9" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("9-A", "System - Block Email (Auth Permanent)")}</a>
-					<a href="#test-scenario-9-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-B", "System - Block Email (Feed Permanent)")}</a>
-					<a href="#test-scenario-9-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-C", "System - Block Email (Private Chat Permanent)")}</a>
+					<a href="#test-scenario-9" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"9-A",
+				"System - Block Email (Auth Permanent)"
+			)}</a>
+					<a href="#test-scenario-9-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"9-B",
+				"System - Block Email (Feed Permanent)"
+			)}</a>
+					<a href="#test-scenario-9-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"9-C",
+				"System - Block Email (Private Chat Permanent)"
+			)}</a>
 
-					<a href="#test-scenario-9-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-D", "System - Block Email (Auth Temporary)")}</a>
-					<a href="#test-scenario-9-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-E", "System - Block Email (Feed Temporary)")}</a>
-					<a href="#test-scenario-9-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("9-F", "System - Block Email (Private Chat Temporary)")}</a>
+					<a href="#test-scenario-9-D" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"9-D",
+				"System - Block Email (Auth Temporary)"
+			)}</a>
+					<a href="#test-scenario-9-E" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"9-E",
+				"System - Block Email (Feed Temporary)"
+			)}</a>
+					<a href="#test-scenario-9-F" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"9-F",
+				"System - Block Email (Private Chat Temporary)"
+			)}</a>
 
-					<a href="#test-scenario-10" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("10-A", "System - Is Email Blocked (Auth)")}</a>
-					<a href="#test-scenario-10-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("10-B", "System - Is Email Blocked (Feed)")}</a>
-					<a href="#test-scenario-10-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("10-C", "System - Is Email Blocked (Private Chat)")}</a>
+					<a href="#test-scenario-10" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"10-A",
+				"System - Is Email Blocked (Auth)"
+			)}</a>
+					<a href="#test-scenario-10-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"10-B",
+				"System - Is Email Blocked (Feed)"
+			)}</a>
+					<a href="#test-scenario-10-C" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"10-C",
+				"System - Is Email Blocked (Private Chat)"
+			)}</a>
 
 					<!-- Manual Actions -->
-					<a href="#test-scenario-11" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("11", "Manual Action - List Manual Actions(all, paginated)")}</a>
-					<a href="#test-scenario-12" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("12-A", "Manual Action - Suspend User")}</a>
-					<a href="#test-scenario-12-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel("12-B", "Manual Action - Suspend (Duplicate)")}</a>
-					<a href="#test-scenario-13" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("13", "Manual Action - Unsuspend User")}</a>
-					<a href="#test-scenario-14" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("14", "Manual Action - Is User Suspended")}</a>
-					<a href="#test-scenario-15" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel("15", "Manual Action - Warn User")}</a>
+					<a href="#test-scenario-11" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"11",
+				"Manual Action - List Manual Actions(all, paginated)"
+			)}</a>
+					<a href="#test-scenario-12" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"12-A",
+				"Manual Action - Suspend User"
+			)}</a>
+					<a href="#test-scenario-12-B" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+				"12-B",
+				"Manual Action - Suspend (Duplicate)"
+			)}</a>
+					<a href="#test-scenario-13" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"13",
+				"Manual Action - Unsuspend User"
+			)}</a>
+					<a href="#test-scenario-14" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"14",
+				"Manual Action - Is User Suspended"
+			)}</a>
+					<a href="#test-scenario-15" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+				"15",
+				"Manual Action - Warn User"
+			)}</a>
 
 					<a href="#cleanup-section" class="index-link">
 						<i class="bi bi-trash"></i> Cleanup Method
@@ -169,7 +279,7 @@
 			`;
 		}
 
-		function createTestScenarioSection(
+		function createTestScenarioSection({
 			scenarioId,
 			title,
 			description,
@@ -177,8 +287,8 @@
 			apiEndpoint,
 			requestPayload = null,
 			checklistItems = [],
-			inputFields = []
-		) {
+			inputFields = [],
+		}) {
 			let checklistHtml = "";
 			const displayTitle = formatScenarioLabel(scenarioId, title);
 			if (checklistItems.length > 0) {
@@ -236,7 +346,8 @@
 							const indentLevel = path.split(".").length - 1;
 							const indentStyle =
 								indentLevel > 0
-									? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
+									? `style="margin-left: ${indentLevel * 16
+									}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
 									: "";
 							const labelText = path.split(".").pop();
 							return `<div class="nested-group-label" ${indentStyle}><strong>${labelText}</strong></div>`;
@@ -253,7 +364,8 @@
 						: 0;
 					const indentStyle =
 						indentLevel > 0
-							? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
+							? `style="margin-left: ${indentLevel * 16
+							}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
 							: "";
 					const inputId = `input-${scenarioId}-${field.id.replace(/\./g, "-")}`;
 
@@ -276,28 +388,26 @@
 						return `
 						${parentLabelsHtml}
 						<div class="test-input-group" ${indentStyle}>
-							<label for="${inputId}">${field.label}${
-							field.required ? " *" : ""
-						}:</label>
-							<select id="${inputId}" class="form-control" data-field-id="${
-							field.id
-						}" data-field-type="select" ${
-							field.required ? "required" : ""
-						} data-required="${field.required ? "true" : "false"}">
+							<label for="${inputId}">${field.label}${field.required ? " *" : ""}:</label>
+							<select id="${inputId}" class="form-control" data-field-id="${field.id
+							}" data-field-type="select" ${field.required ? "required" : ""
+							} data-required="${field.required ? "true" : "false"}">
 								${optionsHtml}
 							</select>
 						</div>
 					`;
 					} else {
 						const inputType = field.typeOverride || field.type || "text";
-						const patternAttr = field.pattern ? `pattern="${field.pattern}"` : "";
-						const inputModeAttr = field.inputMode ? `inputmode="${field.inputMode}"` : "";
+						const patternAttr = field.pattern
+							? `pattern="${field.pattern}"`
+							: "";
+						const inputModeAttr = field.inputMode
+							? `inputmode="${field.inputMode}"`
+							: "";
 						return `
 						${parentLabelsHtml}
 						<div class="test-input-group" ${indentStyle}>
-							<label for="${inputId}">${field.label}${
-							field.required ? " *" : ""
-						}:</label>
+							<label for="${inputId}">${field.label}${field.required ? " *" : ""}:</label>
 							<input type="${inputType}" 
 										 id="${inputId}" 
 										 class="form-control" 
@@ -315,7 +425,9 @@
 				};
 
 				const pathFields = inputFields.filter((f) => placeholderIds.has(f.id));
-				const remainingFields = inputFields.filter((f) => !placeholderIds.has(f.id));
+				const remainingFields = inputFields.filter(
+					(f) => !placeholderIds.has(f.id)
+				);
 				const queryFields = apiMethod === "GET" ? remainingFields : [];
 				const bodyFields = apiMethod === "GET" ? [] : remainingFields;
 
@@ -347,7 +459,11 @@
 
 			let importantNoteMessage =
 				"This is a GET request, so no request body is sent.";
-			if (apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH") {
+			if (
+				apiMethod === "POST" ||
+				apiMethod === "PUT" ||
+				apiMethod === "PATCH"
+			) {
 				importantNoteMessage =
 					"This request includes <code>testing: true</code> parameter to indicate this is a test request.";
 			} else if (apiMethod === "DELETE") {
@@ -370,9 +486,9 @@
 					<div id="scenario-body-${scenarioId}" class="card-body collapse show">
 						<p class="description-text">${description}</p>
 						${apiEndpointHtml}
-						${requestPayloadHtml}
-						${inputFieldsHtml}
 						${codeExampleHtml}
+						${inputFieldsHtml}
+						${requestPayloadHtml}
 						<div class="important-note">
 							<strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
 							${importantNoteMessage}
@@ -382,9 +498,7 @@
 											data-scenario-id="${scenarioId}" 
 											data-method="${apiMethod}" 
 											data-endpoint="${apiEndpoint}" 
-											data-payload='${
-												requestPayload ? JSON.stringify(requestPayload) : "null"
-											}'
+											data-payload='${requestPayload ? JSON.stringify(requestPayload) : "null"}'
 											data-has-inputs="${inputFields.length > 0}">
 								<i class="bi bi-play-fill"></i> Test API Call
 							</button>
@@ -446,9 +560,11 @@
 			inputFields = []
 		) {
 			const baseUrl = getBaseUrl();
-			const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map((m) => m[1]);
+			const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map(
+				(m) => m[1]
+			);
 			const endpointTemplate = pathParams.reduce(
-				(acc, name) => acc.replace(`{${name}}`, '${' + name + '}'),
+				(acc, name) => acc.replace(`{${name}}`, "${" + name + "}"),
 				endpoint
 			);
 			const pathParamDecls = pathParams
@@ -461,7 +577,8 @@
 			const sampleValue = (field) => {
 				if (field.value !== undefined && field.value !== "") return field.value;
 				if (field.placeholder) return field.placeholder;
-				if (field.options && field.options.length > 0) return field.options[0].value;
+				if (field.options && field.options.length > 0)
+					return field.options[0].value;
 				return `<${field.id}>`;
 			};
 
@@ -473,7 +590,10 @@
 			let queryParamsBlock = "{}";
 			if (queryFields.length) {
 				const qpLines = queryFields
-					.map((f) => `    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`)
+					.map(
+						(f) =>
+							`    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`
+					)
 					.join("\n");
 				queryParamsBlock = `{
 ${qpLines}
@@ -492,7 +612,7 @@ ${qpLines}
 					: "{}";
 
 			let paramExplanations = `
-				<div class="api-params-block">
+				<div class="mt-3">
 					<strong>Parameter Explanations:</strong>
 					<div class="param-item">
 						<span class="param-name">apiBaseUrl</span>
@@ -573,12 +693,21 @@ apiHandler.handleRequest(apiParams);
 
 			return `
 				<div class="api-params-block">
-					<strong>Code Usage Example:</strong>
-					<div class="code-example mt-2">
-						<pre><code>${codeExample}</code></pre>
+					<div class="d-flex align-items-center justify-content-between">
+						<strong>Code Usage Example:</strong>
+						<button class="btn btn-sm btn-outline-secondary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#code-example-body-${scenarioId}" aria-expanded="false" aria-controls="code-example-body-${scenarioId}" aria-label="Toggle code example">
+							<i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
+							<i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
+							<span class="visually-hidden">Toggle code example</span>
+						</button>
+					</div>
+					<div id="code-example-body-${scenarioId}" class="collapse mt-2">
+						<div class="code-example mt-2">
+							<pre><code>${codeExample}</code></pre>
+						</div>
+						${paramExplanations}
 					</div>
 				</div>
-				${paramExplanations}
 			`;
 		}
 
@@ -587,7 +716,9 @@ apiHandler.handleRequest(apiParams);
 				`response-${scenarioId}`
 			);
 			if (!responseContainer) {
-				console.error(`Response container not found for scenario: ${scenarioId}`);
+				console.error(
+					`Response container not found for scenario: ${scenarioId}`
+				);
 				return;
 			}
 
@@ -666,7 +797,10 @@ apiHandler.handleRequest(apiParams);
 						}
 					}
 				} catch (e) {
-					console.warn("[Edge Tests Block] Could not derive temporary from expiresAt:", e);
+					console.warn(
+						"[Edge Tests Block] Could not derive temporary from expiresAt:",
+						e
+					);
 				}
 
 				let finalEndpoint = endpoint;
@@ -684,7 +818,9 @@ apiHandler.handleRequest(apiParams);
 
 				let editablePayload = payload;
 				if (methodNeedsBody) {
-					const payloadEditor = document.getElementById(`payload-${scenarioId}`);
+					const payloadEditor = document.getElementById(
+						`payload-${scenarioId}`
+					);
 					if (payloadEditor) {
 						try {
 							editablePayload = payloadEditor.value
@@ -704,24 +840,31 @@ apiHandler.handleRequest(apiParams);
 					}
 				}
 
-				const arrayFieldIds = new Set([
-					"blocks",
-				]);
+				const arrayFieldIds = new Set(["blocks"]);
 
 				const parseArrayValue = (raw) => {
 					if (Array.isArray(raw)) return raw;
 					if (typeof raw !== "string") return raw;
 					const trimmed = raw.trim();
 					if (!trimmed) return [];
-					if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || trimmed.startsWith("{")) {
+					if (
+						(trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+						trimmed.startsWith("{")
+					) {
 						try {
 							const parsed = JSON.parse(trimmed);
 							return Array.isArray(parsed) ? parsed : parsed;
 						} catch (e) {
-							return trimmed.split(",").map((v) => v.trim()).filter(Boolean);
+							return trimmed
+								.split(",")
+								.map((v) => v.trim())
+								.filter(Boolean);
 						}
 					}
-					return trimmed.split(",").map((v) => v.trim()).filter(Boolean);
+					return trimmed
+						.split(",")
+						.map((v) => v.trim())
+						.filter(Boolean);
 				};
 
 				const nestDotPaths = (flatObj = {}, arrayFields = new Set()) => {
@@ -782,10 +925,10 @@ apiHandler.handleRequest(apiParams);
 					queryParams:
 						method === "GET"
 							? Object.fromEntries(
-									Object.entries(inputValues).filter(
-										([key]) => !pathParamKeys.has(key)
-									)
+								Object.entries(inputValues).filter(
+									([key]) => !pathParamKeys.has(key)
 								)
+							)
 							: {},
 					httpMethod: method,
 					requestData: requestData,
@@ -817,11 +960,14 @@ apiHandler.handleRequest(apiParams);
 							detail.error_message?.message ||
 							detail.error_message ||
 							"Request failed";
-						const statusText = detail.response?.status || detail.error_message?.status
-							? `Status: ${
-									detail.response?.status || detail.error_message?.status
-								}${detail.response?.statusText ? ` ${detail.response.statusText}` : ""}`
-							: "";
+						const statusText =
+							detail.response?.status || detail.error_message?.status
+								? `Status: ${detail.response?.status || detail.error_message?.status
+								}${detail.response?.statusText
+									? ` ${detail.response.statusText}`
+									: ""
+								}`
+								: "";
 						const responsePayload =
 							detail.data?.error ??
 							detail.data ??
@@ -832,11 +978,10 @@ apiHandler.handleRequest(apiParams);
 							detail.response?.responseText ??
 							detail.response;
 						const responseBlock = responsePayload
-							? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${
-									typeof responsePayload === "string"
-										? responsePayload
-										: JSON.stringify(responsePayload, null, 2)
-								}</code></pre>`
+							? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${typeof responsePayload === "string"
+								? responsePayload
+								: JSON.stringify(responsePayload, null, 2)
+							}</code></pre>`
 							: "";
 						responseContainer.innerHTML = `
 							<div class="alert alert-danger">
@@ -882,22 +1027,23 @@ apiHandler.handleRequest(apiParams);
 					error?.response?.responseText ??
 					error?.response;
 				const responseBlock = responsePayload
-					? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${
-							typeof responsePayload === "string"
-								? responsePayload
-								: JSON.stringify(responsePayload, null, 2)
-						}</code></pre>`
+					? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${typeof responsePayload === "string"
+						? responsePayload
+						: JSON.stringify(responsePayload, null, 2)
+					}</code></pre>`
 					: "";
 				responseContainer.innerHTML = `
 					<div class="alert alert-danger">
 						<strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
-						<p>Status: ${error.status || error?.response?.status || ""}${
-							error?.response?.statusText ? ` ${error.response.statusText}` : ""
-						} ${error.message || "Unknown error occurred"}</p>
+						<p>Status: ${error.status || error?.response?.status || ""}${error?.response?.statusText ? ` ${error.response.statusText}` : ""
+					} ${error.message || "Unknown error occurred"}</p>
 						${responseBlock}
 					</div>
 				`;
-				console.error(`[Edge Tests Block] Error in scenario ${scenarioId}:`, error);
+				console.error(
+					`[Edge Tests Block] Error in scenario ${scenarioId}:`,
+					error
+				);
 			}
 		}
 
@@ -914,7 +1060,7 @@ apiHandler.handleRequest(apiParams);
 
 			try {
 				const baseUrl = getBaseUrl();
-				const cleanupUrl = `${baseUrl}/block-users/cleanupTestBlocks`;
+				const cleanupUrl = `${baseUrl}/user-blocks/cleanupTestBlocks`;
 
 				const apiHandler = new APIHandler();
 
@@ -931,10 +1077,10 @@ apiHandler.handleRequest(apiParams);
 							<div class="alert alert-success">
 								<strong><i class="bi bi-check-circle"></i> Cleanup Successful:</strong>
 								<pre class="bg-light p-3 rounded mt-2"><code>${JSON.stringify(
-									data,
-									null,
-									2
-								)}</code></pre>
+							data,
+							null,
+							2
+						)}</code></pre>
 								<p class="mt-2">Test data has been cleaned up. Database is ready for next test run.</p>
 							</div>
 						`;
@@ -1029,1095 +1175,1622 @@ apiHandler.handleRequest(apiParams);
 					</p>
 
 
-					${createTestScenarioSection(
-						"1-A",
-						"User to User - List User Blocks(all, global)",
-						"Lists user blocks with filters via GET /block-users/listUserBlocks.",
-						"GET",
-						"/block-users/listUserBlocks",
-						null,
-						[
-							"Validate pagination limit/nextToken",
-							"Filter by from/to/scope and ensure results match",
-							"Confirm count matches returned items length",
+		${createTestScenarioSection({
+				scenarioId: "1-A",
+				title: "List BlockedUsers(all, global)",
+				description:
+					"Lists user blocks with filters via GET /user-blocks/listUserBlocks.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/listUserBlocks",
+				requestPayload: null,
+				checklistItems: [
+					"Validate pagination limit/nextToken",
+					"Filter by from/to/scope and ensure results match",
+					"Confirm count matches returned items length",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						label: "From",
+						placeholder: "user id",
+						value: "",
+					},
+					{
+						type: "text",
+						id: "to",
+						label: "To",
+						placeholder: "user id",
+						value: "",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
 						],
-						[
-							{ type: "text", id: "from", label: "From", placeholder: "user id", value: "" },
-							{ type: "text", id: "to", label: "To", placeholder: "user id", value: "" },
+						value: "",
+					},
+					{
+						type: "text",
+						id: "flag",
+						label: "Flag",
+						placeholder: "manual",
+						value: "",
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "true", text: "True" },
+							{ value: "false", text: "False" },
+						],
+					},
+					{
+						type: "text",
+						id: "limit",
+						label: "Limit",
+						placeholder: "20",
+						value: "20",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "nextToken",
+						label: "Next Token",
+						placeholder: "token",
+						value: "",
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "1-B",
+				title: "List BlockedUsers (Scoped)",
+				description:
+					"Lists user blocks filtered by scope ('feed', 'private_chat', 'global' ).",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/listUserBlocks",
+				requestPayload: null,
+				checklistItems: ["Verify all returned items have scope 'feed'"],
+				inputFields: [
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "limit",
+						label: "Limit",
+						placeholder: "20",
+						value: "20",
+						inputMode: "numeric",
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "1-C",
+				title: "Get Blocks For User",
+				description:
+					"Retrieves blocks for a specific user via GET /user-blocks/getBlocksForUser.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/getBlocksForUser",
+				requestPayload: null,
+				checklistItems: [
+					"Returns active records by default",
+					"When show_deleted is true, includes soft-deleted rows",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "to",
+						label: "Blocked User ID",
+						placeholder: "user id",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "show_deleted",
+						label: "Show Deleted",
+						options: [
+							{ value: "false", text: "No (default)" },
+							{ value: "true", text: "Yes" },
+						],
+						value: "false",
+					},
+				],
+			})}
+
+		<!-- Block Actions -->
+
+				
+		${createTestScenarioSection({
+				scenarioId: "2-A",
+				title: "User to User - Block User (SCOPED Permanent)",
+				description: "Blocks a user specifically in the 'feed' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockUser",
+				requestPayload: {
+					from: "user_a",
+					to: "user_b",
+					scope: "feed",
+					is_permanent: true,
+				},
+				checklistItems: [
+					"Verify scope is correctly recorded as 'feed'",
+					"Ensure this does not affect 'chat' scope if scopes are independent",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_a",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "2-B",
+				title: "User to User - Block User (SCOPED Temporary)",
+				description:
+					"Blocks a user specifically in the 'private_chat' (dm) scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockUser",
+				requestPayload: {
+					from: "user_a",
+					to: "user_b",
+					scope: "private_chat",
+					is_permanent: false,
+					expires_at: 86000,
+				},
+				checklistItems: [
+					"Verify scope is correctly recorded as 'private_chat'",
+					"Ensure this does not affect 'feed' scope",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_a",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "global", text: "Global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "expires_at",
+						required: true,
+						label: "expires_at",
+						value: "86000",
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "2-C",
+				title: "System to User - Block User (SCOPED)",
+				description:
+					"Blocks a user specifically in the 'private_chat' (dm) scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockUser",
+				requestPayload: {
+					from: "user_a",
+					to: "system",
+					scope: "private_chat",
+					is_permanent: false,
+					expires_at: 86000,
+				},
+				checklistItems: [
+					"Verify scope is correctly recorded as 'private_chat'",
+					"Ensure this does not affect 'feed' scope",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_a",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "system",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "global", text: "Global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "expires_at",
+						required: true,
+						label: "expires_at",
+						value: "86000",
+					},
+				],
+			})}
+		
+		<!-- Unblock Actions -->
+					
+		${createTestScenarioSection({
+				scenarioId: "3-A",
+				title: "User to User - Unblock (Scoped)",
+				description: "Unblocks a user specifically in the  scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/unblockUser",
+				requestPayload: {
+					from: "user_a",
+					to: "user_b",
+					scope: "feed",
+				},
+				checklistItems: [
+					"Verify 'feed' block is removed",
+					"Verify other scopes remain if they existed",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_a",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+				],
+			})}
+
+		
+		${createTestScenarioSection({
+				scenarioId: "3-B",
+				title: "User to User - Unblock (Scoped, Non-Existent)",
+				description:
+					"Attempts to unblock a user pair that is not blocked (Feed scope).",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/unblockUser",
+				requestPayload: {
+					from: "user_x",
+					to: "user_y",
+					scope: "feed",
+				},
+				checklistItems: [
+					"Ideally should be idempotent (success or 404, not 500)",
+					"Confirm no ghost entries created",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_x",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_y",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "feed",
+						required: true,
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "3-A",
+				title: "System to User - Unblock (Scoped)",
+				description: "Unblocks a user specifically in the  scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/unblockUser",
+				requestPayload: {
+					from: "system",
+					to: "user_b",
+					scope: "feed",
+				},
+				checklistItems: [
+					"Verify 'feed' block is removed",
+					"Verify other scopes remain if they existed",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "system",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "private_chat",
+						required: true,
+					},
+				],
+			})}
+
+		<!-- Check Actions -->
+					
+		${createTestScenarioSection({
+				scenarioId: "4-A",
+				title: "User to User - Is Blocked (Scoped)",
+				description: "Checks block status specifically for 'feed' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isUserBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects feed block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "user_a",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "Global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "feed",
+						required: true,
+					},
+				],
+			})}
+		${createTestScenarioSection({
+				scenarioId: "4-B",
+				title: "System to User - Is Blocked (Scoped)",
+				description: "Checks block status specifically for 'feed' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isUserBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects feed block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "from",
+						required: true,
+						label: "From",
+						value: "system",
+					},
+					{
+						type: "text",
+						id: "to",
+						required: true,
+						label: "To",
+						value: "user_b",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "Global" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat (DM)" },
+						],
+						value: "feed",
+						required: true,
+					},
+				],
+			})}
+
+		${createTestScenarioSection({
+				scenarioId: "5",
+				title: "User to User - Batch Check (all, global Scopes)",
+				description:
+					"Batch check multiple pairs via POST /user-blocks/batchCheckUserBlocks.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/batchCheckUserBlocks",
+				requestPayload: {
+					blocks: [
+						{ from: "user_a", to: "user_b", scope: "feed" },
+						{ from: "user_c", to: "user_d", scope: "private_chat" },
+					],
+				},
+				checklistItems: [
+					"Confirm array validation returns 400 when blocks is not an array",
+					"Verify per-item results align with single check endpoint",
+					"Test mixed blocked/unblocked cases",
+				],
+				inputFields: [],
+			})}
+
+		<!-- System Blocks -->
+
+			${createTestScenarioSection({
+				scenarioId: "6-A",
+				title: "System - List System Blocks(all/ global scopes)",
+				description:
+					"Lists system blocks with filters via GET /user-blocks/listSystemBlocks.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/listSystemBlocks",
+				requestPayload: null,
+				checklistItems: [
+					"Validate pagination and filters (ip, flag, permanent, scope)",
+					"Confirm count matches items length",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						label: "IP",
+						placeholder: "203.0.113.10",
+						value: "",
+					},
+					{
+						type: "text",
+						id: "flag",
+						label: "Flag",
+						placeholder: "manual",
+						value: "",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
+						],
+						value: "",
+					},
+					{
+						type: "text",
+						id: "reason",
+						label: "Reason",
+						placeholder: "fraud",
+						value: "",
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "true", text: "True" },
+							{ value: "false", text: "False" },
+						],
+					},
+					{
+						type: "text",
+						id: "limit",
+						label: "Limit",
+						placeholder: "20",
+						value: "20",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "nextToken",
+						label: "Next Token",
+						placeholder: "token",
+						value: "",
+					},
+				],
+			})}
+
+			${createTestScenarioSection({
+				scenarioId: "6-B",
+				title: "System - List System Blocks (Scoped)",
+				description: "Lists system blocks filtered by scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/listSystemBlocks",
+				requestPayload: null,
+				checklistItems: ["Verify all returned items have scope 'auth'"],
+				inputFields: [
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "", text: "global" },
+							{ value: "feed", text: "Feed" },
 							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat (DM)" },
-								],
-								value: "",
-							},
-							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "" },
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "true", text: "True" },
-									{ value: "false", text: "False" },
-								],
-							},
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-							{ type: "text", id: "nextToken", label: "Next Token", placeholder: "token", value: "" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"1-B",
-						"User to User - List Blocks (Feed)",
-						"Lists user blocks filtered by 'feed' scope.",
-						"GET",
-						"/block-users/listUserBlocks",
-						null,
-						[
-							"Verify all returned items have scope 'feed'",
-						],
-						[
-							{ type: "text", id: "scope", label: "Scope", value: "feed", required: true },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"1-C",
-						"User to User - List Blocks (Private Chat)",
-						"Lists user blocks filtered by 'private_chat' scope.",
-						"GET",
-						"/block-users/listUserBlocks",
-						null,
-						[
-							"Verify all returned items have scope 'private_chat'",
-						],
-						[
-							{ type: "text", id: "scope", label: "Scope", value: "private_chat", required: true },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-						]
-					)}
-
-					<!-- Block Actions -->
-
-					${createTestScenarioSection(
-						"2-A",
-						"User to User - Block User (Feed Permanent)",
-						"Blocks a user specifically in the 'feed' scope.",
-						"POST",
-						"/block-users/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "feed",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'feed'",
-							"Ensure this does not affect 'chat' scope if scopes are independent"
-						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"2-B",
-						"User to User - Block User (Private Chat Permanent)",
-						"Blocks a user specifically in the 'private_chat' (dm) scope.",
-						"POST",
-						"/block-users/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "private_chat",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'private_chat'",
-							"Ensure this does not affect 'feed' scope"
-						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"2-C",
-						"User to User - Block User (Feed Temporary)",
-						"Temporarily blocks a user in the 'feed' scope.",
-						"POST",
-						"/block-users/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "feed",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify block expires after ~24 hours",
-							"Ensure permanent is false",
-						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat (DM)" },
-								],
-								value: "feed",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"2-D",
-						"User to User - Block User (Private Chat Temporary)",
-						"Temporarily blocks a user in the 'private_chat' scope.",
-						"POST",
-						"/block-users/blockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "private_chat",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify block expires after ~24 hours",
-							"Ensure permanent is false",
-						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat (DM)" },
-								],
 								value: "private_chat",
-								required: true
+								text: "Private Chat (DM)",
 							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
-
-					<!-- Unblock Actions -->
-
-					${createTestScenarioSection(
-						"3-A",
-						"User to User - Unblock (Feed)",
-						"Unblocks a user specifically in the 'feed' scope.",
-						"POST",
-						"/block-users/unblockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "feed"
-						},
-						[
-							"Verify 'feed' block is removed",
-							"Verify other scopes remain if they existed"
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "limit",
+						label: "Limit",
+						placeholder: "20",
+						value: "20",
+						inputMode: "numeric",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"3-B",
-						"User to User - Unblock (Feed, Non-Existent)",
-						"Attempts to unblock a user pair that is not blocked (Feed scope).",
-						"POST",
-						"/block-users/unblockUser",
-						{
-							from: "user_x",
-							to: "user_y",
-							scope: "feed"
-						},
-						[
-							"Ideally should be idempotent (success or 404, not 500)",
-							"Confirm no ghost entries created"
+			
+
+			${createTestScenarioSection({
+				scenarioId: "7-A",
+				title: "System - Block IP (Auth Permanent)",
+				description: "Blocks an IP in the 'auth' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "auth",
+					is_permanent: true,
+				},
+				checklistItems: ["Verify scope is correctly recorded as 'auth'"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "auth",
+					},
+				],
+			})}
+
+			${createTestScenarioSection({
+				scenarioId: "7-B",
+				title: "System - Block IP (Feed Permanent)",
+				description: "Blocks an IP in the 'feed' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "feed",
+					is_permanent: true,
+				},
+				checklistItems: ["Verify scope is correctly recorded as 'feed'"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "feed",
+					},
+				],
+			})}
+
+			${createTestScenarioSection({
+				scenarioId: "7-C",
+				title: "System - Block IP (Private Chat Permanent)",
+				description: "Blocks an IP in the 'private_chat' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "private_chat",
+					is_permanent: true,
+				},
+				checklistItems: [
+					"Verify scope is correctly recorded as 'private_chat'",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "private_chat",
+					},
+				],
+			})}
+
+			${createTestScenarioSection({
+				scenarioId: "7-D",
+				title: "System - Block IP (Auth Temporary)",
+				description: "Temporarily blocks an IP in the 'auth' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "auth",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify IP block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"3-C",
-						"User to User - Unblock (Private Chat)",
-						"Unblocks a user specifically in the 'private_chat' scope.",
-						"POST",
-						"/block-users/unblockUser",
-						{
-							from: "user_a",
-							to: "user_b",
-							scope: "private_chat"
-						},
-						[
-							"Verify 'private_chat' block is removed",
-							"Verify other scopes remain if they existed"
+						value: "auth",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"3-D",
-						"User to User - Unblock (Private Chat, Non-Existent)",
-						"Attempts to unblock a user pair that is not blocked (Private Chat scope).",
-						"POST",
-						"/block-users/unblockUser",
-						{
-							from: "user_x",
-							to: "user_y",
-							scope: "private_chat"
-						},
-						[
-							"Ideally should be idempotent"
+			${createTestScenarioSection({
+				scenarioId: "7-E",
+				title: "System - Block IP (Feed Temporary)",
+				description: "Temporarily blocks an IP in the 'feed' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "feed",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify IP block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_x" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_y" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
-
-					<!-- Check Actions -->
-
-					${createTestScenarioSection(
-						"4-A",
-						"User to User - Is Blocked (Feed)",
-						"Checks block status specifically for 'feed' scope.",
-						"GET",
-						"/block-users/isUserBlocked",
-						null,
-						[
-							"Confirm result reflects feed block status",
+						value: "feed",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat (DM)" },
-								],
-								value: "feed",
-								required: true
-							}
-						]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"4-B",
-						"User to User - Is Blocked (Private Chat)",
-						"Checks block status specifically for 'private_chat' scope.",
-						"GET",
-						"/block-users/isUserBlocked",
-						null,
-						[
-							"Confirm result reflects private_chat block status",
+				${createTestScenarioSection({
+				scenarioId: "7-F",
+				title: "System - Block IP (Private Chat Temporary)",
+				description: "Temporarily blocks an IP in the 'private_chat' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockIP",
+				requestPayload: {
+					ip: "203.0.113.10",
+					scope: "private_chat",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify IP block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "from", required: true, label: "From", value: "user_a" },
-							{ type: "text", id: "to", required: true, label: "To", value: "user_b" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat (DM)" },
-								],
-								value: "private_chat",
-								required: true
-							}
-						]
-					)}
-
-					${createTestScenarioSection(
-						"5",
-						"User to User - Batch Check (all, global Scopes)",
-						"Batch check multiple pairs via POST /block-users/batchCheckUserBlocks.",
-						"POST",
-						"/block-users/batchCheckUserBlocks",
-						{
-							blocks: [
-								{ from: "user_a", to: "user_b", scope: "feed" },
-								{ from: "user_c", to: "user_d", scope: "private_chat" },
-							],
-						},
-						[
-							"Confirm array validation returns 400 when blocks is not an array",
-							"Verify per-item results align with single check endpoint",
-							"Test mixed blocked/unblocked cases",
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					<!-- System Blocks -->
+				${createTestScenarioSection({
+				scenarioId: "8-A",
+				title: "System - Is IP Blocked (Auth)",
+				description: "Checks if IP is blocked in 'auth' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isIPBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects auth block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "auth",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"6-A",
-						"System - List System Blocks(all/ global scopes)",
-						"Lists system blocks with filters via GET /block-users/listSystemBlocks.",
-						"GET",
-						"/block-users/listSystemBlocks",
-						null,
-						[
-							"Validate pagination and filters (ip, flag, permanent, scope)",
-							"Confirm count matches items length",
+				${createTestScenarioSection({
+				scenarioId: "8-B",
+				title: "System - Is IP Blocked (Feed)",
+				description: "Checks if IP is blocked in 'feed' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isIPBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects feed block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "feed",
+					},
+				],
+			})}
+
+				${createTestScenarioSection({
+				scenarioId: "8-C",
+				title: "System - Is IP Blocked (Private Chat)",
+				description: "Checks if IP is blocked in 'private_chat' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isIPBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects private_chat block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "ip",
+						required: true,
+						label: "IP",
+						value: "203.0.113.10",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "private_chat",
+					},
+				],
+			})}
+
+				${createTestScenarioSection({
+				scenarioId: "9-A",
+				title: "System - Block Email (Auth Permanent)",
+				description: "Blocks an email in the 'auth' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "auth",
+					is_permanent: true,
+				},
+				checklistItems: ["Verify scope is correctly recorded as 'auth'"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "auth",
+					},
+				],
+			})}
+
+				${createTestScenarioSection({
+				scenarioId: "9-B",
+				title: "System - Block Email (Feed Permanent)",
+				description: "Blocks an email in the 'feed' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "feed",
+					is_permanent: true,
+				},
+				checklistItems: ["Verify scope is correctly recorded as 'feed'"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "feed",
+					},
+				],
+			})}
+
+				${createTestScenarioSection({
+				scenarioId: "9-C",
+				title: "System - Block Email (Private Chat Permanent)",
+				description: "Blocks an email in the 'private_chat' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "private_chat",
+					is_permanent: true,
+				},
+				checklistItems: [
+					"Verify scope is correctly recorded as 'private_chat'",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "private_chat",
+					},
+				],
+			})}
+
+				${createTestScenarioSection({
+				scenarioId: "9-D",
+				title: "System - Block Email (Auth Temporary)",
+				description: "Temporarily blocks an email in the 'auth' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "auth",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify email block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "ip", label: "IP", placeholder: "203.0.113.10", value: "" },
-							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "",
-							},
-							{ type: "text", id: "reason", label: "Reason", placeholder: "fraud", value: "" },
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "", text: "Any" },
-									{ value: "true", text: "True" },
-									{ value: "false", text: "False" },
-								],
-							},
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-							{ type: "text", id: "nextToken", label: "Next Token", placeholder: "token", value: "" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"6-B",
-						"System - List System (Auth)",
-						"Lists system blocks filtered by 'auth' scope.",
-						"GET",
-						"/block-users/listSystemBlocks",
-						null,
-						[
-							"Verify all returned items have scope 'auth'",
+						value: "auth",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[
-							{ type: "text", id: "scope", label: "Scope", value: "auth", required: true },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-						]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"6-C",
-						"System - List System (Feed)",
-						"Lists system blocks filtered by 'feed' scope.",
-						"GET",
-						"/block-users/listSystemBlocks",
-						null,
-						[
-							"Verify all returned items have scope 'feed'",
+				${createTestScenarioSection({
+				scenarioId: "9-E",
+				title: "System - Block Email (Feed Temporary)",
+				description: "Temporarily blocks an email in the 'feed' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "feed",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify email block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "scope", label: "Scope", value: "feed", required: true },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"6-D",
-						"System - List System (Private Chat)",
-						"Lists system blocks filtered by 'private_chat' scope.",
-						"GET",
-						"/block-users/listSystemBlocks",
-						null,
-						[
-							"Verify all returned items have scope 'private_chat'",
+						value: "feed",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[
-							{ type: "text", id: "scope", label: "Scope", value: "private_chat", required: true },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-						]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"7-A",
-						"System - Block IP (Auth Permanent)",
-						"Blocks an IP in the 'auth' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "auth",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'auth'",
+				${createTestScenarioSection({
+				scenarioId: "9-F",
+				title: "System - Block Email (Private Chat Temporary)",
+				description:
+					"Temporarily blocks an email in the 'private_chat' scope.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/blockEmail",
+				requestPayload: {
+					email: "test@example.com",
+					scope: "private_chat",
+					is_permanent: false,
+					expires_at: 86400,
+				},
+				checklistItems: ["Verify email block expires after ~24 hours"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "select",
+						id: "scope",
+						label: "Scope",
+						options: [
+							{ value: "auth", text: "Auth" },
+							{ value: "feed", text: "Feed" },
+							{ value: "private_chat", text: "Private Chat" },
 						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"7-B",
-						"System - Block IP (Feed Permanent)",
-						"Blocks an IP in the 'feed' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "feed",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'feed'",
+						value: "private_chat",
+						required: true,
+					},
+					{
+						type: "select",
+						id: "permanent",
+						label: "Permanent",
+						options: [
+							{ value: "false", text: "False" },
+							{ value: "true", text: "True" },
 						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
+						value: "false",
+						required: true,
+					},
+					{
+						type: "text",
+						id: "temporary",
+						label: "Temporary (seconds)",
+						placeholder: "86400",
+						value: "86400",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "expiresAt",
+						label: "Expires At (optional)",
+						placeholder: "Pick date/time below",
+						typeOverride: "datetime-local",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"7-C",
-						"System - Block IP (Private Chat Permanent)",
-						"Blocks an IP in the 'private_chat' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "private_chat",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'private_chat'",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "10-A",
+				title: "System - Is Email Blocked (Auth)",
+				description: "Checks if email is blocked in 'auth' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isEmailBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects auth block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "auth",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"7-D",
-						"System - Block IP (Auth Temporary)",
-						"Temporarily blocks an IP in the 'auth' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "auth",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify IP block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "auth",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "10-B",
+				title: "System - Is Email Blocked (Feed)",
+				description: "Checks if email is blocked in 'feed' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isEmailBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects feed block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "feed",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"7-E",
-						"System - Block IP (Feed Temporary)",
-						"Temporarily blocks an IP in the 'feed' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "feed",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify IP block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "feed",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "10-C",
+				title: "System - Is Email Blocked (Private Chat)",
+				description: "Checks if email is blocked in 'private_chat' scope.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isEmailBlocked",
+				requestPayload: null,
+				checklistItems: ["Confirm result reflects private_chat block status"],
+				inputFields: [
+					{
+						type: "text",
+						id: "email",
+						required: true,
+						label: "Email",
+						value: "test@example.com",
+					},
+					{
+						type: "text",
+						id: "scope",
+						required: true,
+						label: "Scope",
+						value: "private_chat",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"7-F",
-						"System - Block IP (Private Chat Temporary)",
-						"Temporarily blocks an IP in the 'private_chat' scope.",
-						"POST",
-						"/block-users/blockIP",
-						{
-							ip: "203.0.113.10",
-							scope: "private_chat",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify IP block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "private_chat",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
+				<!-- Manual Action -->
 
-					${createTestScenarioSection(
-						"8-A",
-						"System - Is IP Blocked (Auth)",
-						"Checks if IP is blocked in 'auth' scope.",
-						"GET",
-						"/block-users/isIPBlocked",
-						null,
-						[
-							"Confirm result reflects auth block status",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "11",
+				title: "Manual Action - List Manual Actions(all, paginated)",
+				description:
+					"Lists manual actions with filters via GET /user-blocks/listManualActions.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/listManualActions",
+				requestPayload: null,
+				checklistItems: [
+					"Validate filters (userId/adminId/flagKey) affect results",
+					"Confirm pagination behavior",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						label: "User ID",
+						placeholder: "user id",
+						value: "",
+					},
+					{
+						type: "text",
+						id: "adminId",
+						label: "Admin ID",
+						placeholder: "admin id",
+						value: "",
+					},
+					{
+						type: "text",
+						id: "flagKey",
+						label: "Flag Key",
+						placeholder: "warning_low",
+						value: "",
+					},
+					{
+						type: "text",
+						id: "limit",
+						label: "Limit",
+						placeholder: "20",
+						value: "20",
+						inputMode: "numeric",
+					},
+					{
+						type: "text",
+						id: "nextToken",
+						label: "Next Token",
+						placeholder: "token",
+						value: "",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"8-B",
-						"System - Is IP Blocked (Feed)",
-						"Checks if IP is blocked in 'feed' scope.",
-						"GET",
-						"/block-users/isIPBlocked",
-						null,
-						[
-							"Confirm result reflects feed block status",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "12",
+				title: "Manual Action - Suspend User",
+				description: "Suspends a user via POST /user-blocks/suspendUser.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/suspendUser",
+				requestPayload: {
+					userId: "user_sus_1",
+					reason: "tos_violation",
+					adminId: "admin_1",
+					flag: "manual",
+					note: "investigate",
+				},
+				checklistItems: [
+					"Confirm required userId/reason/adminId validation",
+					"Validate suspension recorded with flag and note",
+					"Check subsequent isUserSuspended reflects true",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						required: true,
+						label: "User ID",
+						placeholder: "user id",
+						value: "user_sus_1",
+					},
+					{
+						type: "text",
+						id: "reason",
+						required: true,
+						label: "Reason",
+						placeholder: "tos_violation",
+						value: "tos_violation",
+					},
+					{
+						type: "text",
+						id: "adminId",
+						required: true,
+						label: "Admin ID",
+						placeholder: "admin id",
+						value: "admin_1",
+					},
+					{
+						type: "text",
+						id: "flag",
+						label: "Flag",
+						placeholder: "manual",
+						value: "manual",
+					},
+					{
+						type: "text",
+						id: "note",
+						label: "Note",
+						placeholder: "Notes for suspension",
+						value: "investigate",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"8-C",
-						"System - Is IP Blocked (Private Chat)",
-						"Checks if IP is blocked in 'private_chat' scope.",
-						"GET",
-						"/block-users/isIPBlocked",
-						null,
-						[
-							"Confirm result reflects private_chat block status",
-						],
-						[
-							{ type: "text", id: "ip", required: true, label: "IP", value: "203.0.113.10" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
+				${createTestScenarioSection({
+				scenarioId: "12-B",
+				title: "Manual Action - Suspend (Duplicate)",
+				description:
+					"Attempts to suspend an already suspended user to test idempotency/update behavior.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/suspendUser",
+				requestPayload: {
+					userId: "user_sus_1",
+					reason: "updated_reason",
+					adminId: "admin_1",
+				},
+				checklistItems: [
+					"Ideally should update the existing suspension or return success",
+					"Verify reason is updated in manual actions list",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						required: true,
+						label: "User ID",
+						value: "user_sus_1",
+					},
+					{
+						type: "text",
+						id: "reason",
+						required: true,
+						label: "Reason",
+						value: "updated_reason",
+					},
+					{
+						type: "text",
+						id: "adminId",
+						required: true,
+						label: "Admin ID",
+						value: "admin_1",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"9-A",
-						"System - Block Email (Auth Permanent)",
-						"Blocks an email in the 'auth' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "auth",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'auth'",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
-						]
-					)}
+			${createTestScenarioSection({
+				scenarioId: "13",
+				title: "Manual Action - Unsuspend User",
+				description: "Unsuspends a user via POST /user-blocks/unsuspendUser.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/unsuspendUser",
+				requestPayload: {
+					userId: "user_sus_1",
+				},
+				checklistItems: [
+					"Confirm user returns to active state",
+					"Validate idempotent behavior when not suspended",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						required: true,
+						label: "User ID",
+						placeholder: "user id",
+						value: "user_sus_1",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"9-B",
-						"System - Block Email (Feed Permanent)",
-						"Blocks an email in the 'feed' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "feed",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'feed'",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
+			${createTestScenarioSection({
+				scenarioId: "14",
+				title: "Manual Action - Is User Suspended",
+				description:
+					"Checks suspension status via GET /user-blocks/isUserSuspended.",
+				apiMethod: "GET",
+				apiEndpoint: "/user-blocks/isUserSuspended",
+				requestPayload: null,
+				checklistItems: [
+					"Validate suspended boolean matches suspension table",
+					"Confirm details payload present when suspended",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						required: true,
+						label: "User ID",
+						placeholder: "user id",
+						value: "user_sus_1",
+					},
+				],
+			})}
 
-					${createTestScenarioSection(
-						"9-C",
-						"System - Block Email (Private Chat Permanent)",
-						"Blocks an email in the 'private_chat' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "private_chat",
-							permanent: true
-						},
-						[
-							"Verify scope is correctly recorded as 'private_chat'",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"9-D",
-						"System - Block Email (Auth Temporary)",
-						"Temporarily blocks an email in the 'auth' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "auth",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify email block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "auth",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"9-E",
-						"System - Block Email (Feed Temporary)",
-						"Temporarily blocks an email in the 'feed' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "feed",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify email block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "feed",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"9-F",
-						"System - Block Email (Private Chat Temporary)",
-						"Temporarily blocks an email in the 'private_chat' scope.",
-						"POST",
-						"/block-users/blockEmail",
-						{
-							email: "test@example.com",
-							scope: "private_chat",
-							permanent: false,
-							temporary: 86400
-						},
-						[
-							"Verify email block expires after ~24 hours",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{
-								type: "select",
-								id: "scope",
-								label: "Scope",
-								options: [
-									{ value: "auth", text: "Auth" },
-									{ value: "feed", text: "Feed" },
-									{ value: "private_chat", text: "Private Chat" },
-								],
-								value: "private_chat",
-								required: true
-							},
-							{
-								type: "select",
-								id: "permanent",
-								label: "Permanent",
-								options: [
-									{ value: "false", text: "False" },
-									{ value: "true", text: "True" }
-								],
-								value: "false",
-								required: true
-							},
-							{ type: "text", id: "temporary", label: "Temporary (seconds)", placeholder: "86400", value: "86400", inputMode: "numeric" },
-							{ type: "text", id: "expiresAt", label: "Expires At (optional)", placeholder: "Pick date/time below", typeOverride: "datetime-local" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"10-A",
-						"System - Is Email Blocked (Auth)",
-						"Checks if email is blocked in 'auth' scope.",
-						"GET",
-						"/block-users/isEmailBlocked",
-						null,
-						[
-							"Confirm result reflects auth block status",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "auth" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"10-B",
-						"System - Is Email Blocked (Feed)",
-						"Checks if email is blocked in 'feed' scope.",
-						"GET",
-						"/block-users/isEmailBlocked",
-						null,
-						[
-							"Confirm result reflects feed block status",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "feed" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"10-C",
-						"System - Is Email Blocked (Private Chat)",
-						"Checks if email is blocked in 'private_chat' scope.",
-						"GET",
-						"/block-users/isEmailBlocked",
-						null,
-						[
-							"Confirm result reflects private_chat block status",
-						],
-						[
-							{ type: "text", id: "email", required: true, label: "Email", value: "test@example.com" },
-							{ type: "text", id: "scope", required: true, label: "Scope", value: "private_chat" }
-						]
-					)}
-
-					<!-- Manual Actions -->
-
-					${createTestScenarioSection(
-						"11",
-						"Manual Action - List Manual Actions(all, paginated)",
-						"Lists manual actions with filters via GET /block-users/listManualActions.",
-						"GET",
-						"/block-users/listManualActions",
-						null,
-						[
-							"Validate filters (userId/adminId/flagKey) affect results",
-							"Confirm pagination behavior",
-						],
-						[
-							{ type: "text", id: "userId", label: "User ID", placeholder: "user id", value: "" },
-							{ type: "text", id: "adminId", label: "Admin ID", placeholder: "admin id", value: "" },
-							{ type: "text", id: "flagKey", label: "Flag Key", placeholder: "warning_low", value: "" },
-							{ type: "text", id: "limit", label: "Limit", placeholder: "20", value: "20", inputMode: "numeric" },
-							{ type: "text", id: "nextToken", label: "Next Token", placeholder: "token", value: "" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"12",
-						"Manual Action - Suspend User",
-						"Suspends a user via POST /block-users/suspendUser.",
-						"POST",
-						"/block-users/suspendUser",
-						{
-							userId: "user_sus_1",
-							reason: "tos_violation",
-							adminId: "admin_1",
-							flag: "manual",
-							note: "investigate",
-						},
-						[
-							"Confirm required userId/reason/adminId validation",
-							"Validate suspension recorded with flag and note",
-							"Check subsequent isUserSuspended reflects true",
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_sus_1" },
-							{ type: "text", id: "reason", required: true, label: "Reason", placeholder: "tos_violation", value: "tos_violation" },
-							{ type: "text", id: "adminId", required: true, label: "Admin ID", placeholder: "admin id", value: "admin_1" },
-							{ type: "text", id: "flag", label: "Flag", placeholder: "manual", value: "manual" },
-							{ type: "text", id: "note", label: "Note", placeholder: "Notes for suspension", value: "investigate" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"12-B",
-						"Manual Action - Suspend (Duplicate)",
-						"Attempts to suspend an already suspended user to test idempotency/update behavior.",
-						"POST",
-						"/block-users/suspendUser",
-						{
-							userId: "user_sus_1",
-							reason: "updated_reason",
-							adminId: "admin_1"
-						},
-						[
-							"Ideally should update the existing suspension or return success",
-							"Verify reason is updated in manual actions list"
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", value: "user_sus_1" },
-							{ type: "text", id: "reason", required: true, label: "Reason", value: "updated_reason" },
-							{ type: "text", id: "adminId", required: true, label: "Admin ID", value: "admin_1" }
-						]
-					)}
-
-					${createTestScenarioSection(
-						"13",
-						"Manual Action - Unsuspend User",
-						"Unsuspends a user via POST /block-users/unsuspendUser.",
-						"POST",
-						"/block-users/unsuspendUser",
-						{
-							userId: "user_sus_1",
-						},
-						[
-							"Confirm user returns to active state",
-							"Validate idempotent behavior when not suspended",
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_sus_1" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"14",
-						"Manual Action - Is User Suspended",
-						"Checks suspension status via GET /block-users/isUserSuspended.",
-						"GET",
-						"/block-users/isUserSuspended",
-						null,
-						[
-							"Validate suspended boolean matches suspension table",
-							"Confirm details payload present when suspended",
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_sus_1" },
-						]
-					)}
-
-					${createTestScenarioSection(
-						"15",
-						"Manual Action - Warn User",
-						"Warns a user via POST /block-users/warnUser.",
-						"POST",
-						"/block-users/warnUser",
-						{
-							userId: "user_warn_1",
-							flagKey: "warning_low",
-							adminId: "admin_1",
-							note: "first warning",
-						},
-						[
-							"Confirm required userId/flagKey/adminId validation",
-							"Validate warning stored and visible in manual actions",
-						],
-						[
-							{ type: "text", id: "userId", required: true, label: "User ID", placeholder: "user id", value: "user_warn_1" },
-							{ type: "text", id: "flagKey", required: true, label: "Flag Key", placeholder: "warning_low", value: "warning_low" },
-							{ type: "text", id: "adminId", required: true, label: "Admin ID", placeholder: "admin id", value: "admin_1" },
-							{ type: "text", id: "note", label: "Note", placeholder: "first warning", value: "first warning" },
-						]
-					)}
+			${createTestScenarioSection({
+				scenarioId: "15",
+				title: "Manual Action - Warn User",
+				description: "Warns a user via POST /user-blocks/warnUser.",
+				apiMethod: "POST",
+				apiEndpoint: "/user-blocks/warnUser",
+				requestPayload: {
+					userId: "user_warn_1",
+					flagKey: "warning_low",
+					adminId: "admin_1",
+					note: "first warning",
+				},
+				checklistItems: [
+					"Confirm required userId/flagKey/adminId validation",
+					"Validate warning stored and visible in manual actions",
+				],
+				inputFields: [
+					{
+						type: "text",
+						id: "userId",
+						required: true,
+						label: "User ID",
+						placeholder: "user id",
+						value: "user_warn_1",
+					},
+					{
+						type: "text",
+						id: "flagKey",
+						required: true,
+						label: "Flag Key",
+						placeholder: "warning_low",
+						value: "warning_low",
+					},
+					{
+						type: "text",
+						id: "adminId",
+						required: true,
+						label: "Admin ID",
+						placeholder: "admin id",
+						value: "admin_1",
+					},
+					{
+						type: "text",
+						id: "note",
+						label: "Note",
+						placeholder: "first warning",
+						value: "first warning",
+					},
+				],
+			})}
 				</div>
 
 				<div class="demo-section cleanup-section" id="cleanup-section">
@@ -2143,11 +2816,14 @@ apiHandler.handleRequest(apiParams);
 		}
 
 		function attachEventListeners() {
-			const toggleAllScenariosBtn = document.getElementById("toggle-all-scenarios-btn");
+			const toggleAllScenariosBtn = document.getElementById(
+				"toggle-all-scenarios-btn"
+			);
 
 			if (toggleAllScenariosBtn) {
 				toggleAllScenariosBtn.addEventListener("click", () => {
-					const isCollapsing = toggleAllScenariosBtn.innerHTML.includes("Collapse");
+					const isCollapsing =
+						toggleAllScenariosBtn.innerHTML.includes("Collapse");
 					const allBodies = document.querySelectorAll(
 						".test-scenario-card .card-body.collapse"
 					);
@@ -2157,9 +2833,12 @@ apiHandler.handleRequest(apiParams);
 
 					if (window.bootstrap && window.bootstrap.Collapse) {
 						allBodies.forEach((el) => {
-							const instance = window.bootstrap.Collapse.getOrCreateInstance(el, {
-								toggle: false,
-							});
+							const instance = window.bootstrap.Collapse.getOrCreateInstance(
+								el,
+								{
+									toggle: false,
+								}
+							);
 							if (isCollapsing) instance.hide();
 							else instance.show();
 						});
@@ -2219,7 +2898,10 @@ apiHandler.handleRequest(apiParams);
 						try {
 							payload = JSON.parse(payloadString);
 						} catch (parseError) {
-							console.error("[Edge Tests Block] Could not parse payload:", parseError);
+							console.error(
+								"[Edge Tests Block] Could not parse payload:",
+								parseError
+							);
 						}
 					}
 					testScenario(scenarioId, method, endpoint, payload);
