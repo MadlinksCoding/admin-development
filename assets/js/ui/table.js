@@ -135,19 +135,9 @@
         return column.formatter(value, row);
       }
     }
-    // Default: escape HTML, capitalize first letter, and return as string
+    // Default: escape HTML, display value as-is
     if (value == null) return '-';
-    const str = String(value);
-    // Capitalize first letter for text values (skip if it's a number, URL, or already formatted)
-    if (str && str.length > 0) {
-      // Skip capitalization for numbers, URLs, emails, or values that look like IDs
-      if (/^\d+$/.test(str) || /^https?:\/\//.test(str) || /@/.test(str) || /^[a-f0-9-]{36}$/i.test(str)) {
-        return str;
-      }
-      // Capitalize first letter and lowercase the rest
-      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-    }
-    return str;
+    return String(value);
   }
 
   /**
