@@ -1,0 +1,632 @@
+{
+  "scenarios":[
+  {
+    "scenarioId": "1",
+    "title": "Test Scenario 1: Create Moderation Entry",
+    "description": "This test creates a new moderation entry via POST /moderation/createModerationEntry using the required testing flag.",
+    "apiMethod": "POST",
+    "apiEndpoint": "/moderation/createModerationEntry",
+    "requestPayload": {
+      "userId": "user_123",
+      "contentId": "content_456",
+      "type": "image",
+      "priority": "normal",
+      "contentType": "post",
+      "mediaType": "jpg",
+      "isSystemGenerated": false,
+      "isPreApproved": false
+    },
+    "checklistItems": [
+      "Verify new moderation row exists with provided userId and contentId",
+      "Confirm default status is set (e.g., pending) and timestamps are correct",
+      "Ensure testing flag is present on the request payload",
+      "Validate type, priority, and contentType match expected values",
+      "Check mediaType and flags (isSystemGenerated, isPreApproved)"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "userId",
+        "required": true,
+        "label": "User ID",
+        "placeholder": "Enter user ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "contentId",
+        "required": true,
+        "label": "Content ID",
+        "placeholder": "Enter content ID",
+        "value": "content_456"
+      },
+      {
+        "type": "select",
+        "id": "type",
+        "required": true,
+        "label": "Type",
+        "options": [
+          { "value": "image", "text": "Image" },
+          { "value": "video", "text": "Video" },
+          { "value": "text", "text": "Text" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "priority",
+        "label": "Priority",
+        "options": [
+          { "value": "normal", "text": "Normal" },
+          { "value": "high", "text": "High" },
+          { "value": "low", "text": "Low" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "contentType",
+        "label": "Content Type",
+        "options": [
+          { "value": "post", "text": "Post" },
+          { "value": "comment", "text": "Comment" },
+          { "value": "profile", "text": "Profile" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "mediaType",
+        "label": "Media Type",
+        "options": [
+          { "value": "jpg", "text": "JPG" },
+          { "value": "png", "text": "PNG" },
+          { "value": "mp4", "text": "MP4" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "isSystemGenerated",
+        "label": "Is System Generated",
+        "options": [
+          { "value": "false", "text": "No" },
+          { "value": "true", "text": "Yes" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "isPreApproved",
+        "label": "Is Pre-Approved",
+        "options": [
+          { "value": "false", "text": "No" },
+          { "value": "true", "text": "Yes" }
+        ]
+      }
+    ]
+  },
+  {
+    "scenarioId": "2",
+    "title": "Test Scenario 2: Get Moderations (Filters)",
+    "description": "This test fetches moderation items via GET /moderation/fetchModerations using optional query filters (status, user, priority, type) plus pagination and date range.",
+    "apiMethod": "GET",
+    "apiEndpoint": "/moderation/fetchModerations",
+    "requestPayload": null,
+    "checklistItems": [
+      "Apply filters (status, userId, priority, type, asc) and confirm results reflect the query",
+      "Validate limit/nextToken pagination behavior",
+      "Use start/end to window results by timestamp when provided",
+      "Cross-check item count against database for selected filters",
+      "Confirm ordering toggles when asc flag is changed"
+    ],
+    "inputFields": [
+      {
+        "type": "select",
+        "id": "status",
+        "label": "Status",
+        "required": false,
+        "options": [
+          { "value": "", "text": "Any" },
+          { "value": "pending", "text": "Pending" },
+          { "value": "approved", "text": "Approved" },
+          { "value": "rejected", "text": "Rejected" },
+          { "value": "escalated", "text": "Escalated" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "label": "User ID",
+        "placeholder": "Filter by userId (optional)",
+        "value": ""
+      },
+      {
+        "type": "select",
+        "id": "priority",
+        "label": "Priority",
+        "options": [
+          { "value": "", "text": "Any" },
+          { "value": "normal", "text": "Normal" },
+          { "value": "high", "text": "High" },
+          { "value": "low", "text": "Low" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "type",
+        "label": "Type",
+        "options": [
+          { "value": "", "text": "Any" },
+          { "value": "image", "text": "Image" },
+          { "value": "video", "text": "Video" },
+          { "value": "text", "text": "Text" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "dayKey",
+        "label": "Day Key (YYYYMMDD)",
+        "placeholder": "YYYYMMDD",
+        "value": "",
+        "inputMode": "numeric"
+      },
+      {
+        "type": "select",
+        "id": "asc",
+        "label": "Ascending",
+        "options": [
+          { "value": "false", "text": "Descending (default)" },
+          { "value": "true", "text": "Ascending" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "limit",
+        "label": "Limit",
+        "placeholder": "Items per page (e.g., 20)",
+        "value": "20"
+      },
+      {
+        "type": "text",
+        "id": "nextToken",
+        "label": "Next Token",
+        "placeholder": "Optional next token for pagination",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "start",
+        "label": "Start (datetime)",
+        "placeholder": "Pick start date/time",
+        "value": "",
+        "typeOverride": "datetime-local"
+      },
+      {
+        "type": "text",
+        "id": "end",
+        "label": "End (datetime)",
+        "placeholder": "Pick end date/time",
+        "value": "",
+        "typeOverride": "datetime-local"
+      }
+    ]
+  },
+  {
+    "scenarioId": "3",
+    "title": "Test Scenario 3: Get Moderation by ID",
+    "description": "This test retrieves a single moderation record by ID with optional user context.",
+    "apiMethod": "GET",
+    "apiEndpoint": "/moderation/fetchModerationById/{moderationId}",
+    "requestPayload": null,
+    "checklistItems": [
+      "Enter a moderation ID to fetch a single record",
+      "Verify response contains matching moderationId and related details",
+      "Confirm optional userId filter is respected when provided",
+      "Check status, priority, and timestamps against database values",
+      "Ensure 404 or error handling is correct for missing IDs"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID (e.g., mod_123)",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "label": "User ID",
+        "placeholder": "Optional user ID for filtering",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "scenarioId": "4",
+    "title": "Test Scenario 4: Update Moderation",
+    "description": "This test updates an existing moderation entry via POST /moderation/updateModerationEntry/{moderationId} using the same payload shape as creation plus the moderationId path parameter.",
+    "apiMethod": "PUT",
+    "apiEndpoint": "/moderation/updateModeration/{moderationId}",
+    "requestPayload": {
+      "userId": "user_123",
+      "contentId": "content_456",
+      "type": "image",
+      "priority": "normal",
+      "contentType": "post",
+      "mediaType": "jpg",
+      "isSystemGenerated": false,
+      "isPreApproved": false
+    },
+    "checklistItems": [
+      "Provide a moderationId path param plus the same body fields used on creation",
+      "Confirm core fields (type, priority, contentType, mediaType) are updated",
+      "Ensure testing flag is present in the request payload",
+      "Verify userId/contentId changes persist correctly",
+      "Check audit fields and timestamps reflect the update"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID to update",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "required": false,
+        "label": "User ID",
+        "placeholder": "Enter user ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "contentId",
+        "required": false,
+        "label": "Content ID",
+        "placeholder": "Enter content ID",
+        "value": "content_456"
+      },
+      {
+        "type": "select",
+        "id": "type",
+        "required": false,
+        "label": "Type",
+        "options": [
+          { "value": "image", "text": "Image" },
+          { "value": "video", "text": "Video" },
+          { "value": "text", "text": "Text" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "priority",
+        "label": "Priority",
+        "options": [
+          { "value": "normal", "text": "Normal" },
+          { "value": "high", "text": "High" },
+          { "value": "low", "text": "Low" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "contentType",
+        "label": "Content Type",
+        "options": [
+          { "value": "post", "text": "Post" },
+          { "value": "comment", "text": "Comment" },
+          { "value": "profile", "text": "Profile" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "mediaType",
+        "label": "Media Type",
+        "options": [
+          { "value": "jpg", "text": "JPG" },
+          { "value": "png", "text": "PNG" },
+          { "value": "mp4", "text": "MP4" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "isSystemGenerated",
+        "label": "Is System Generated",
+        "options": [
+          { "value": "false", "text": "No" },
+          { "value": "true", "text": "Yes" }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "isPreApproved",
+        "label": "Is Pre-Approved",
+        "options": [
+          { "value": "false", "text": "No" },
+          { "value": "true", "text": "Yes" }
+        ]
+      }
+    ]
+  },
+  {
+    "scenarioId": "5",
+    "title": "Test Scenario 5: Update Moderation Meta",
+    "description": "This test updates moderation meta fields via POST /moderation/updateModerationMeta/{moderationId}. Use this to toggle meta flags without changing the core content attributes.",
+    "apiMethod": "POST",
+    "apiEndpoint": "/moderation/updateModerationMeta/{moderationId}",
+    "requestPayload": {
+      "userId": "",
+      "meta": {
+        "contentDeleted": false,
+        "contentDeletedAt": null,
+        "updatedBy": "moderator_1"
+      }
+    },
+    "checklistItems": [
+      "Provide a moderation ID and meta object (contentDeleted, contentDeletedAt?, updatedBy?)",
+      "Verify meta updates are persisted (e.g., contentDeleted flags, timestamps)",
+      "Ensure testing flag is present in the request payload",
+      "Confirm updatedBy defaults to userId when not provided",
+      "Check audit fields and timestamps are updated correctly"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID to update",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "label": "User ID",
+        "placeholder": "Optional user ID (used as default updatedBy)",
+        "value": ""
+      },
+      {
+        "type": "select",
+        "id": "meta.contentDeleted",
+        "required": true,
+        "label": "Content Deleted",
+        "options": [
+          { "value": "false", "text": "No" },
+          { "value": "true", "text": "Yes" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "meta.contentDeletedAt",
+        "label": "Content Deleted At",
+        "placeholder": "Pick deletion time (optional)",
+        "value": "",
+        "typeOverride": "datetime-local"
+      },
+      {
+        "type": "text",
+        "id": "meta.updatedBy",
+        "label": "Updated By",
+        "placeholder": "Override updatedBy (optional)",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "scenarioId": "6",
+    "title": "Test Scenario 6: Moderation Action (Approve/Reject)",
+    "description": "This test posts an action to approve or reject a moderation record via POST /applyModerationAction/{moderationId}.",
+    "apiMethod": "POST",
+    "apiEndpoint": "/moderation/applyModerationAction/{moderationId}",
+    "requestPayload": {
+      "moderationId": "",
+      "userId": "user_123",
+      "action": "approve",
+      "reason": "Content meets guidelines",
+      "moderatedBy": "QA Tester",
+      "moderationType": "standard"
+    },
+    "checklistItems": [
+      "Provide a moderation ID and select an action (approve/reject)",
+      "Verify moderation status updates and audit fields",
+      "Confirm reason and moderatedBy are persisted",
+      "Ensure testing flag is present in the request payload",
+      "Check timestamps and status transitions in the database"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "required": true,
+        "label": "User ID",
+        "placeholder": "Enter user ID",
+        "value": ""
+      },
+      {
+        "type": "select",
+        "id": "action",
+        "required": true,
+        "label": "Action",
+        "options": [
+          { "value": "approve", "text": "Approve" },
+          { "value": "reject", "text": "Reject" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "reason",
+        "label": "Reason",
+        "placeholder": "Add a reason for this action",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "moderatedBy",
+        "label": "Moderated By",
+        "placeholder": "Enter reviewer name",
+        "value": ""
+      },
+      {
+        "type": "select",
+        "id": "moderationType",
+        "label": "Moderation Type",
+        "options": [
+          { "value": "standard", "text": "Standard" },
+          { "value": "manual", "text": "Manual" },
+          { "value": "automated", "text": "Automated" }
+        ]
+      },
+      {
+        "type": "text",
+        "id": "note",
+        "label": "Private Note",
+        "placeholder": "Optional private note",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "publicNote",
+        "label": "Public Note",
+        "placeholder": "Optional public note",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "scenarioId": "7",
+    "title": "Test Scenario 7: Escalate Moderation",
+    "description": "This test escalates a moderation record via POST /escalateModeration/{moderationId}.",
+    "apiMethod": "POST",
+    "apiEndpoint": "/moderation/escalateModeration/{moderationId}",
+    "requestPayload": {
+      "userId": "user_123",
+      "escalatedBy": "qa_reviewer"
+    },
+    "checklistItems": [
+      "Provide moderation ID and required fields userId, escalatedBy",
+      "Verify the record is escalated and audit fields are updated",
+      "Ensure testing flag is present in the request payload",
+      "Confirm escalatedBy is stored and timestamped",
+      "Check escalation workflow state changes"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "required": true,
+        "label": "User ID",
+        "placeholder": "Enter user ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "escalatedBy",
+        "required": true,
+        "label": "Escalated By",
+        "placeholder": "Who is escalating this?",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "scenarioId": "8",
+    "title": "Test Scenario 8: Add Moderation Note",
+    "description": "This test adds a note to a moderation record via POST /addNote/{moderationId}.",
+    "apiMethod": "POST",
+    "apiEndpoint": "/moderation/addNote/{moderationId}",
+    "requestPayload": {
+      "userId": "",
+      "note": "Flagged for additional review",
+      "addedBy": "qa_reviewer"
+    },
+    "checklistItems": [
+      "Provide moderation ID and required fields userId, note, addedBy",
+      "Verify note is attached to the moderation record",
+      "Ensure testing flag is present in the request payload",
+      "Confirm addedBy is stored and timestamped",
+      "Check notes list reflects the new entry"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "required": true,
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "required": true,
+        "label": "User ID",
+        "placeholder": "Enter user ID",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "note",
+        "required": true,
+        "label": "Note",
+        "placeholder": "Enter note text",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "addedBy",
+        "required": true,
+        "label": "Added By",
+        "placeholder": "Who is adding this note?",
+        "value": ""
+      }
+    ]
+  },
+  {
+    "scenarioId": "9",
+    "title": "Test Scenario 9: Delete Moderation (soft delete)",
+    "description": "This placeholder demonstrates a delete flow for moderation records. Update the endpoint when backend delete support is available.",
+    "apiMethod": "DELETE",
+    "apiEndpoint": "/moderation/deleteModeration/{moderationId}",
+    "requestPayload": null,
+    "checklistItems": [
+      "Use a test moderation ID intended for deletion only",
+      "Confirm the item is removed from the moderation table or marked deleted",
+      "Validate related records or notes are cleaned up if applicable",
+      "Ensure response codes and messages match API contract for deletes",
+      "Verify the operation is only executed in test environments"
+    ],
+    "inputFields": [
+      {
+        "type": "text",
+        "id": "moderationId",
+        "label": "Moderation ID",
+        "placeholder": "Enter moderation ID to delete",
+        "value": ""
+      },
+      {
+        "type": "text",
+        "id": "userId",
+        "label": "User ID",
+        "placeholder": "Optional user ID for audit tracking",
+        "value": ""
+      }
+    ]
+  }
+]
+}

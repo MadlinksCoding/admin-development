@@ -22,6 +22,9 @@
  */
 
 (function () {
+
+  const INDENT_SUB_SCENARIOS = false;
+	let ScenarioList = [];
   /**
    * ============================================================================
    * PREREQUISITES SECTION
@@ -107,13 +110,23 @@
    */
 
   // Wait for AdminShell to be available before proceeding
-  waitForAdminShell().then(() => {
+  waitForAdminShell().then(async() => {
     // Verify AdminShell and pageContent are actually ready
     if (!window.AdminShell || !window.AdminShell.pageContent) {
       // Log error if AdminShell is not ready
       console.error("AdminShell.pageContent is still null after ready event");
       return;
     }
+
+    try {
+			const resp = await fetch('scenarios.json');
+			const json = await resp.json();
+			ScenarioList = Array.isArray(json) ? json : (json.scenarios || []);
+			console.log("scenarios_length:",ScenarioList.length )
+		} catch (e) {
+			console.warn('[Edge Tests Block] Failed to load scenarios.json:', e);
+			ScenarioList = [];
+		}
 
     // Get page content container element
     const pageContent = window.AdminShell.pageContent;
@@ -130,7 +143,9 @@
      * HELPER FUNCTIONS
      * ============================================================================
      */
-
+    function formatScenarioLabel(id, title) {
+          return `Test Scenarios ${id}: ${title}`;
+        }
     /**
      * Get base URL from API configuration
      *
@@ -216,52 +231,85 @@
      * @returns {string} HTML string for index navigation
      */
     function createIndexNavigation() {
-      return `
-        <div class="demo-section index-section">
-          <h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
-          <p class="description-text">Navigate to different test scenarios:</p>
-          <a href="#prerequisites-section" class="index-link">
-            <i class="bi bi-check-circle"></i> Prerequisites
-          </a>
-          <a href="#terminology-section" class="index-link">
-            <i class="bi bi-book"></i> Terminology
-          </a>
-          <a href="#base-url-section" class="index-link">
-            <i class="bi bi-link-45deg"></i> API Base URL
-          </a>
-          <a href="#test-scenario-1" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 1: Create Moderation Entry
-          </a>
-          <a href="#test-scenario-2" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 2: Get Moderations (Filters)
-          </a>
-          <a href="#test-scenario-3" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 3: Get Moderation by ID
-          </a>
-          <a href="#test-scenario-4" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 4: Update Moderation
-          </a>
-          <a href="#test-scenario-5" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 5: Update Moderation Meta
-          </a>
-          <a href="#test-scenario-6" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 6: Moderation Action (Approve/Reject)
-          </a>
-          <a href="#test-scenario-7" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 7: Escalate Moderation
-          </a>
-          <a href="#test-scenario-8" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 8: Add Moderation Note
-          </a>
-          <a href="#test-scenario-9" class="index-link">
-            <i class="bi bi-play-circle"></i> Test Scenario 9: Delete Moderation (soft delete)
-          </a>
-          <a href="#cleanup-section" class="index-link">
-            <i class="bi bi-trash"></i> Cleanup Method
-          </a>
-        </div>
-      `;
-    }
+			const subScenarioStyle = INDENT_SUB_SCENARIOS
+				? 'style="margin-left: 20px; font-size: 0.9em;"'
+				: "";
+			const iconStyle = INDENT_SUB_SCENARIOS
+				? '<i class="bi bi-arrow-return-right"></i>'
+				: '<i class="bi bi-play-circle"></i>';
+
+			// Build dynamic scenario links from ScenarioList
+			const buildScenarioLinks = () => {
+				if (!Array.isArray(ScenarioList) || ScenarioList.length === 0) {
+					return '';
+				}
+
+				// Map parent -> children for quick lookup
+				const childrenByParent = new Map();
+				ScenarioList.forEach((s) => {
+					if (s && s.parent) {
+						if (!childrenByParent.has(s.parent)) childrenByParent.set(s.parent, []);
+						childrenByParent.get(s.parent).push(s);
+					}
+				});
+
+				const parts = [];
+				// Render top-level scenarios first, in the order they appear
+				ScenarioList.filter((s) => s && !s.parent).forEach((s) => {
+					const id = s.scenarioId;
+					const title = s.title || id;
+					parts.push(
+						`<a href="#test-scenario-${id}" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+							id,
+							title
+						)}</a>`
+					);
+					const kids = childrenByParent.get(id) || [];
+					kids.forEach((k) => {
+						const kidId = k.scenarioId;
+						const kidTitle = k.title || kidId;
+						parts.push(
+							`<a href="#test-scenario-${kidId}" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+								kidId,
+								kidTitle
+							)}</a>`
+						);
+					});
+				});
+
+				// Render any orphan children whose parent wasn't listed as top-level
+				const renderedIds = new Set(parts.join('\n').match(/#test-scenario-([^"']+)/g)?.map(m => m.replace('#test-scenario-','')) || []);
+				ScenarioList.filter((s) => s && s.parent && !renderedIds.has(s.scenarioId)).forEach((s) => {
+					parts.push(
+						`<a href="#test-scenario-${s.scenarioId}" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(s.scenarioId, s.title || s.scenarioId)}</a>`
+					);
+				});
+
+				return parts.join("\n");
+			};
+
+			return `
+				<div class="demo-section index-section">
+					<h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
+					<p class="description-text">Navigate to different test scenarios:</p>
+					<a href="#prerequisites-section" class="index-link">
+						<i class="bi bi-check-circle"></i> Prerequisites
+					</a>
+					<a href="#terminology-section" class="index-link">
+						<i class="bi bi-book"></i> Terminology
+					</a>
+					<a href="#base-url-section" class="index-link">
+						<i class="bi bi-link-45deg"></i> API Base URL
+					</a>
+
+					${buildScenarioLinks()}
+
+					<a href="#cleanup-section" class="index-link">
+						<i class="bi bi-trash"></i> Cleanup Method
+					</a>
+				</div>
+			`;
+		}
 
     /**
      * ============================================================================
@@ -312,459 +360,438 @@
      *             { type: 'select', id: 'status', label: 'Status', options: [{value: 'active', text: 'Active'}, {value: 'inactive', text: 'Inactive'}] }]
      * @returns {string} HTML string for complete scenario section
      */
-    function createTestScenarioSection(
-      scenarioId,
-      title,
-      description,
-      apiMethod,
-      apiEndpoint,
-      requestPayload = null,
-      checklistItems = [],
-      inputFields = []
-    ) {
-      // Build checklist HTML
-      let checklistHtml = "";
-      if (checklistItems.length > 0) {
-        // Map checklist items to HTML checkboxes
-        const checklistItemsHtml = checklistItems
-          .map((item, index) => {
-            // Return checkbox HTML for each item
-            return `
-            <div class="checklist-item">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="checklist-${scenarioId}-${index}" />
-                <label class="form-check-label" for="checklist-${scenarioId}-${index}">${item}</label>
-              </div>
-            </div>
-          `;
-          })
-          .join("");
-        // Wrap checklist items in container
-        checklistHtml = `
-          <div class="checklist-container">
-            <strong><i class="bi bi-check2-square"></i> Manual Verification Checklist:</strong>
-            <div class="mt-2">${checklistItemsHtml}</div>
-          </div>
-        `;
-      }
+ 
+		function createTestScenarioSection({
+			scenarioId,
+			title,
+			description,
+			apiMethod,
+			apiEndpoint,
+			requestPayload = null,
+			checklistItems = [],
+			inputFields = [],
+		}) {
+			let checklistHtml = "";
+			const displayTitle = formatScenarioLabel(scenarioId, title);
+			if (checklistItems.length > 0) {
+				const checklistItemsHtml = checklistItems
+					.map((item, index) => {
+						return `
+						<div class="checklist-item">
+							<div class="form-check">
+								<input class="form-check-input" type="checkbox" id="checklist-${scenarioId}-${index}" />
+								<label class="form-check-label" for="checklist-${scenarioId}-${index}">${item}</label>
+							</div>
+						</div>
+					`;
+					})
+					.join("");
+				checklistHtml = `
+					<div class="checklist-container">
+						<strong><i class="bi bi-check2-square"></i> Manual Verification Checklist:</strong>
+						<div class="mt-2">${checklistItemsHtml}</div>
+					</div>
+				`;
+			}
 
-      // Build request payload display HTML (editable for body methods)
-      let requestPayloadHtml = "";
-      const methodNeedsBody =
-        apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
-      if (methodNeedsBody) {
-        const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
-        requestPayloadHtml = `
-          <div class="api-params-block">
-            <strong>Request Payload (editable):</strong>
-            <textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
-            <small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
-          </div>
-        `;
-      }
+			let requestPayloadHtml = "";
+			const methodNeedsBody =
+				apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
+			if (methodNeedsBody) {
+				const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
+				requestPayloadHtml = `
+					<div class="api-params-block">
+						<strong>Request Payload (editable):</strong>
+						<textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
+						<small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
+					</div>
+				`;
+			}
 
-      // Build API endpoint display HTML
-      const apiEndpointHtml = `
-        <div class="api-params-block">
-          <strong>API Endpoint:</strong>
-          <div class="mt-2">
-            <code>${apiMethod} ${apiEndpoint}</code>
-          </div>
-        </div>
-      `;
+			const apiEndpointHtml = `
+				<div class="api-params-block">
+					<strong>API Endpoint:</strong>
+					<div class="mt-2">
+						<code>${apiMethod} ${apiEndpoint}</code>
+					</div>
+				</div>
+			`;
 
-      // Build input fields HTML if provided
-      let inputFieldsHtml = "";
-      if (inputFields && inputFields.length > 0) {
-        const renderedParents = new Set();
-        const renderParentLabels = (parentPaths) => {
-          return parentPaths
-            .map((path) => {
-              if (!path || renderedParents.has(path)) return "";
-              renderedParents.add(path);
-              const indentLevel = path.split(".").length - 1;
-              const indentStyle =
-                indentLevel > 0
-                  ? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
-                  : "";
-              const labelText = path.split(".").pop();
-              return `<div class="nested-group-label" ${indentStyle}><strong>${labelText}</strong></div>`;
-            })
-            .join("");
-        };
+			let inputFieldsHtml = "";
+			if (inputFields && inputFields.length > 0) {
+				const renderedParents = new Set();
+				const renderParentLabels = (parentPaths) => {
+					return parentPaths
+						.map((path) => {
+							if (!path || renderedParents.has(path)) return "";
+							renderedParents.add(path);
+							const indentLevel = path.split(".").length - 1;
+							const indentStyle =
+								indentLevel > 0
+									? `style="margin-left: ${indentLevel * 16
+									}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
+									: "";
+							const labelText = path.split(".").pop();
+							return `<div class="nested-group-label" ${indentStyle}><strong>${labelText}</strong></div>`;
+						})
+						.join("");
+				};
 
-        // Determine placeholder ids from endpoint (path params)
-        const placeholderMatches = [...apiEndpoint.matchAll(/\{([^}]+)\}/g)];
-        const placeholderIds = new Set(placeholderMatches.map((m) => m[1]));
+				const placeholderMatches = [...apiEndpoint.matchAll(/\{([^}]+)\}/g)];
+				const placeholderIds = new Set(placeholderMatches.map((m) => m[1]));
 
-        const renderField = (field) => {
-          const indentLevel = field.id.includes(".")
-            ? field.id.split(".").length - 1
-            : 0;
-          const indentStyle =
-            indentLevel > 0
-              ? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
-              : "";
-          const inputId = `input-${scenarioId}-${field.id.replace(/\./g, "-")}`;
+				const renderField = (field) => {
+					const indentLevel = field.id.includes(".")
+						? field.id.split(".").length - 1
+						: 0;
+					const indentStyle =
+						indentLevel > 0
+							? `style="margin-left: ${indentLevel * 16
+							}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
+							: "";
+					const inputId = `input-${scenarioId}-${field.id.replace(/\./g, "-")}`;
 
-          // Determine parent paths for nested labels (supports multi-level)
-          const parentPaths = [];
-          const parts = field.id.split(".");
-          if (parts.length > 1) {
-            for (let i = 1; i < parts.length; i += 1) {
-              parentPaths.push(parts.slice(0, i).join("."));
-            }
-          }
-          const parentLabelsHtml = renderParentLabels(parentPaths);
+					const parentPaths = [];
+					const parts = field.id.split(".");
+					if (parts.length > 1) {
+						for (let i = 1; i < parts.length; i += 1) {
+							parentPaths.push(parts.slice(0, i).join("."));
+						}
+					}
+					const parentLabelsHtml = renderParentLabels(parentPaths);
 
-          if (field.type === "select") {
-            // Build select dropdown
-            const optionsHtml = field.options
-              .map(
-                (option) =>
-                  `<option value="${option.value}">${option.text}</option>`
-              )
-              .join("");
-            return `
-            ${parentLabelsHtml}
-            <div class="test-input-group" ${indentStyle}>
-              <label for="${inputId}">${field.label}${
-              field.required ? " *" : ""
-            }:</label>
-              <select id="${inputId}" class="form-control" data-field-id="${
-              field.id
-            }" data-field-type="select" ${
-              field.required ? "required" : ""
-            } data-required="${field.required ? "true" : "false"}">
-                ${optionsHtml}
-              </select>
-            </div>
-          `;
-          } else {
-            // Build text input
-            const inputType = field.typeOverride || field.type || "text";
-            const patternAttr = field.pattern ? `pattern="${field.pattern}"` : "";
-            const inputModeAttr = field.inputMode ? `inputmode="${field.inputMode}"` : "";
-            return `
-            ${parentLabelsHtml}
-            <div class="test-input-group" ${indentStyle}>
-              <label for="${inputId}">${field.label}${
-              field.required ? " *" : ""
-            }:</label>
-              <input type="${inputType}" 
-                     id="${inputId}" 
-                     class="form-control" 
-                     data-field-id="${field.id}"
-                     data-field-type="${inputType}"
-                     data-required="${field.required ? "true" : "false"}"
-                     placeholder="${field.placeholder || ""}"
-                     value="${field.value || ""}"
-                     ${patternAttr}
-                     ${inputModeAttr}
-                     ${field.required ? "required" : ""}>
-            </div>
-          `;
-          }
-        };
+					if (field.type === "select") {
+						const optionsHtml = field.options
+							.map(
+								(option) =>
+									`<option value="${option.value}">${option.text}</option>`
+							)
+							.join("");
+						return `
+						${parentLabelsHtml}
+						<div class="test-input-group" ${indentStyle}>
+							<label for="${inputId}">${field.label}${field.required ? " *" : ""}:</label>
+							<select id="${inputId}" class="form-control" data-field-id="${field.id
+							}" data-field-type="select" ${field.required ? "required" : ""
+							} data-required="${field.required ? "true" : "false"}">
+								${optionsHtml}
+							</select>
+						</div>
+					`;
+					} else {
+						const inputType = field.typeOverride || field.type || "text";
+						const patternAttr = field.pattern
+							? `pattern="${field.pattern}"`
+							: "";
+						const inputModeAttr = field.inputMode
+							? `inputmode="${field.inputMode}"`
+							: "";
+						return `
+						${parentLabelsHtml}
+						<div class="test-input-group" ${indentStyle}>
+							<label for="${inputId}">${field.label}${field.required ? " *" : ""}:</label>
+							<input type="${inputType}" 
+										 id="${inputId}" 
+										 class="form-control" 
+										 data-field-id="${field.id}"
+										 data-field-type="${inputType}"
+										 data-required="${field.required ? "true" : "false"}"
+										 placeholder="${field.placeholder || ""}"
+										 value="${field.value || ""}"
+										 ${patternAttr}
+										 ${inputModeAttr}
+										 ${field.required ? "required" : ""}>
+						</div>
+					`;
+					}
+				};
 
-        const pathFields = inputFields.filter((f) => placeholderIds.has(f.id));
-        const remainingFields = inputFields.filter((f) => !placeholderIds.has(f.id));
-        const queryFields = apiMethod === "GET" ? remainingFields : [];
-        const bodyFields = apiMethod === "GET" ? [] : remainingFields;
+				const pathFields = inputFields.filter((f) => placeholderIds.has(f.id));
+				const remainingFields = inputFields.filter(
+					(f) => !placeholderIds.has(f.id)
+				);
+				const queryFields = apiMethod === "GET" ? remainingFields : [];
+				const bodyFields = apiMethod === "GET" ? [] : remainingFields;
 
-        const renderGroup = (fields, label) => {
-          if (!fields.length) return "";
-          const content = fields.map(renderField).join("");
-          return `
-            <div class="mb-3">
-              <strong>${label}</strong>
-              ${content}
-            </div>
-          `;
-        };
+				const renderGroup = (fields, label) => {
+					if (!fields.length) return "";
+					const content = fields.map(renderField).join("");
+					return `
+						<div class="mb-3">
+							<strong>${label}</strong>
+							${content}
+						</div>
+					`;
+				};
 
-        inputFieldsHtml = `
-          ${renderGroup(pathFields, "Path Params")}
-          ${renderGroup(queryFields, "Query Params")}
-          ${renderGroup(bodyFields, "Body Params")}
-        `;
-      }
+				inputFieldsHtml = `
+					${renderGroup(pathFields, "Path Params")}
+					${renderGroup(queryFields, "Query Params")}
+					${renderGroup(bodyFields, "Body Params")}
+				`;
+			}
 
-      // Build code usage example with parameter explanations
-      const codeExampleHtml = buildCodeUsageExample(
-        scenarioId,
-        apiMethod,
-        apiEndpoint,
-        requestPayload,
-        inputFields
-      );
+			const codeExampleHtml = buildCodeUsageExample(
+				scenarioId,
+				apiMethod,
+				apiEndpoint,
+				requestPayload,
+				inputFields
+			);
 
-      // Build important note based on HTTP method
-      let importantNoteMessage =
-        "This is a GET request, so no request body is sent.";
-      if (apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH") {
-        importantNoteMessage =
-          "This request includes <code>testing: true</code> parameter to indicate this is a test request.";
-      } else if (apiMethod === "DELETE") {
-        importantNoteMessage =
-          "This is a DELETE request; ensure the backend supports deletion for this endpoint and that test data can be safely removed.";
-      }
+			let importantNoteMessage =
+				"This is a GET request, so no request body is sent.";
+			if (
+				apiMethod === "POST" ||
+				apiMethod === "PUT" ||
+				apiMethod === "PATCH"
+			) {
+				importantNoteMessage =
+					"This request includes <code>testing: true</code> parameter to indicate this is a test request.";
+			} else if (apiMethod === "DELETE") {
+				importantNoteMessage =
+					"This is a DELETE request; ensure the backend supports deletion for this endpoint and that test data can be safely removed.";
+			}
 
-      // Return complete scenario section HTML
-      return `
-        <div class="test-scenario-card card" id="test-scenario-${scenarioId}">
-          <div class="card-header">
-            <div class="d-flex align-items-center justify-content-between">
-              <h5 class="card-title mb-0">${title}</h5>
-              <button class="btn btn-sm btn-outline-secondary collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="true" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
-                <i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
-                <i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
-                <span class="visually-hidden">Toggle scenario section</span>
-              </button>
-            </div>
-          </div>
-          <div id="scenario-body-${scenarioId}" class="card-body collapse show">
-            <p class="description-text">${description}</p>
-            ${apiEndpointHtml}
-            ${requestPayloadHtml}
-            ${inputFieldsHtml}
-            ${codeExampleHtml}
-            <div class="important-note">
-              <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
-              ${importantNoteMessage}
-            </div>
-            <div class="mt-3 d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1 test-scenario-btn" 
-                      data-scenario-id="${scenarioId}" 
-                      data-method="${apiMethod}" 
-                      data-endpoint="${apiEndpoint}" 
-                      data-payload='${
-                        requestPayload ? JSON.stringify(requestPayload) : "null"
-                      }'
-                      data-has-inputs="${inputFields.length > 0}">
-                <i class="bi bi-play-fill"></i> Test API Call
-              </button>
-              <button class="btn btn-outline-secondary clear-response-btn" data-scenario-id="${scenarioId}" aria-label="Clear scenario response">
-                <i class="bi bi-x-circle"></i>
-              </button>
-            </div>
-            <div id="response-${scenarioId}" class="response-container mt-3"></div>
-            ${checklistHtml}
-          </div>
-        </div>
-      `;
-    }
+			return `
+				<div class="test-scenario-card card" id="test-scenario-${scenarioId}">
+					<div class="card-header">
+						<div class="d-flex align-items-center justify-content-between">
+							<h5 class="card-title mb-0">${displayTitle}</h5>
+							<button class="btn btn-sm btn-outline-secondary collapse-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="true" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
+								<i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
+								<i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
+								<span class="visually-hidden">Toggle scenario section</span>
+							</button>
+						</div>
+					</div>
+					<div id="scenario-body-${scenarioId}" class="card-body collapse show">
+						<p class="description-text">${description}</p>
+						${apiEndpointHtml}
+						${codeExampleHtml}
+						${inputFieldsHtml}
+						${requestPayloadHtml}
+						<div class="important-note">
+							<strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
+							${importantNoteMessage}
+						</div>
+						<div class="mt-3 d-flex gap-2">
+							<button class="btn btn-primary flex-grow-1 test-scenario-btn" 
+											data-scenario-id="${scenarioId}" 
+											data-method="${apiMethod}" 
+											data-endpoint="${apiEndpoint}" 
+											data-payload='${requestPayload ? JSON.stringify(requestPayload) : "null"}'
+											data-has-inputs="${inputFields.length > 0}">
+								<i class="bi bi-play-fill"></i> Test API Call
+							</button>
+							<button class="btn btn-outline-secondary clear-response-btn" data-scenario-id="${scenarioId}" aria-label="Clear scenario response">
+								<i class="bi bi-x-circle"></i>
+							</button>
+						</div>
+						<div id="response-${scenarioId}" class="response-container mt-3"></div>
+						${checklistHtml}
+					</div>
+				</div>
+			`;
+		}
 
-    // Ensure collapse toggle icons show/hide correctly based on collapsed state
-    function ensureCollapseToggleStyles() {
-      if (document.getElementById("edge-tests-collapse-toggle-style")) {
-        return;
-      }
-      const style = document.createElement("style");
-      style.id = "edge-tests-collapse-toggle-style";
-      style.textContent = `
-        .collapse-toggle .icon-expanded,
-        .collapse-toggle .icon-collapsed {
-          display: inline-block;
-          vertical-align: middle;
-        }
-        .collapse-toggle .icon-collapsed {
-          display: none;
-        }
-        .collapse-toggle.collapsed .icon-expanded {
-          display: none;
-        }
-        .collapse-toggle.collapsed .icon-collapsed {
-          display: inline-block;
-        }
-      `;
-      document.head.appendChild(style);
-    }
+		function ensureCollapseToggleStyles() {
+			if (document.getElementById("edge-tests-collapse-toggle-style")) {
+				return;
+			}
+			const style = document.createElement("style");
+			style.id = "edge-tests-collapse-toggle-style";
+			style.textContent = `
+				.collapse-toggle .icon-expanded,
+				.collapse-toggle .icon-collapsed {
+					display: inline-block;
+					vertical-align: middle;
+				}
+				.collapse-toggle .icon-collapsed {
+					display: none;
+				}
+				.collapse-toggle.collapsed .icon-expanded {
+					display: none;
+				}
+				.collapse-toggle.collapsed .icon-collapsed {
+					display: inline-block;
+				}
+			`;
+			document.head.appendChild(style);
+		}
 
-    // Add a subtle border radius to inputs/selects/textarea in this page
-    function ensureEdgeTestInputStyles() {
-      if (document.getElementById("edge-tests-input-style")) {
-        return;
-      }
-      const style = document.createElement("style");
-      style.id = "edge-tests-input-style";
-      style.textContent = `
-        .test-input-group .form-control {
-          border-radius: 6px;
-        }
-      `;
-      document.head.appendChild(style);
-    }
+		function ensureEdgeTestInputStyles() {
+			if (document.getElementById("edge-tests-input-style")) {
+				return;
+			}
+			const style = document.createElement("style");
+			style.id = "edge-tests-input-style";
+			style.textContent = `
+				.test-input-group .form-control {
+					border-radius: 6px;
+				}
+			`;
+			document.head.appendChild(style);
+		}
 
-    /**
-     * Build code usage example with detailed parameter explanations
-     *
-     * This creates a comprehensive code example showing how to use APIHandler
-     * with detailed comments explaining each parameter.
-     *
-     * @param {string} scenarioId - Scenario ID for reference
-     * @param {string} method - HTTP method
-     * @param {string} endpoint - API endpoint
-     * @param {Object} payload - Request payload (optional)
-     * @returns {string} HTML string for code usage example
-     */
-    function buildCodeUsageExample(
-      scenarioId,
-      method,
-      endpoint,
-      payload,
-      inputFields = []
-    ) {
-      const baseUrl = getBaseUrl();
+		function buildCodeUsageExample(
+			scenarioId,
+			method,
+			endpoint,
+			payload,
+			inputFields = []
+		) {
+			const baseUrl = getBaseUrl();
+			const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map(
+				(m) => m[1]
+			);
+			const endpointTemplate = pathParams.reduce(
+				(acc, name) => acc.replace(`{${name}}`, "${" + name + "}"),
+				endpoint
+			);
+			const pathParamDecls = pathParams
+				.map((name) => `const ${name} = "<${name}>"; // path param`)
+				.join("\n");
+			const fullUrlLine = pathParams.length
+				? `const fullUrl = \`${baseUrl}${endpointTemplate}\`;`
+				: `const fullUrl = \`${baseUrl}${endpoint}\`;`;
 
-      // Identify path params from endpoint
-      const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map(
-        (m) => m[1]
-      );
+			const sampleValue = (field) => {
+				if (field.value !== undefined && field.value !== "") return field.value;
+				if (field.placeholder) return field.placeholder;
+				if (field.options && field.options.length > 0)
+					return field.options[0].value;
+				return `<${field.id}>`;
+			};
 
-      // Build a template URL with path params interpolated
-      const endpointTemplate = pathParams.reduce(
-        (acc, name) => acc.replace(`{${name}}`, '${' + name + '}'),
-        endpoint
-      );
+			const queryFields =
+				method === "GET"
+					? inputFields.filter((f) => !pathParams.includes(f.id))
+					: [];
 
-      // Path param declarations for the code sample
-      const pathParamDecls = pathParams
-        .map((name) => `const ${name} = "<${name}>"; // path param`)
-        .join("\n");
-
-      const fullUrlLine = pathParams.length
-        ? `const fullUrl = \`${baseUrl}${endpointTemplate}\`;`
-        : `const fullUrl = \`${baseUrl}${endpoint}\`;`;
-
-      // Helper to build sample values
-      const sampleValue = (field) => {
-        if (field.value !== undefined && field.value !== "") return field.value;
-        if (field.placeholder) return field.placeholder;
-        if (field.options && field.options.length > 0) return field.options[0].value;
-        return `<${field.id}>`;
-      };
-
-      // Query fields (non-path) for GET
-      const queryFields =
-        method === "GET"
-          ? inputFields.filter((f) => !pathParams.includes(f.id))
-          : [];
-
-      let queryParamsBlock = "{}";
-      if (queryFields.length) {
-        const qpLines = queryFields
-          .map((f) => `    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`)
-          .join("\n");
-        queryParamsBlock = `{
+			let queryParamsBlock = "{}";
+			if (queryFields.length) {
+				const qpLines = queryFields
+					.map(
+						(f) =>
+							`    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`
+					)
+					.join("\n");
+				queryParamsBlock = `{
 ${qpLines}
-  }`;
-      }
+	}`;
+			}
 
-      // Body payload sample (keep scenario defaults and ensure testing flag)
-      const payloadWithTesting =
-        method === "POST" || method === "PUT" || method === "PATCH"
-          ? payload
-            ? { ...payload, testing: true }
-            : { testing: true }
-          : {};
-      const requestDataBlock =
-        method === "POST" || method === "PUT" || method === "PATCH"
-          ? JSON.stringify(payloadWithTesting, null, 2)
-          : "{}";
+			const payloadWithTesting =
+				method === "POST" || method === "PUT" || method === "PATCH"
+					? payload
+						? { ...payload, testing: true }
+						: { testing: true }
+					: {};
+			const requestDataBlock =
+				method === "POST" || method === "PUT" || method === "PATCH"
+					? JSON.stringify(payloadWithTesting, null, 2)
+					: "{}";
 
-      // Build parameter explanations
-      let paramExplanations = `
-        <div class="api-params-block">
-          <strong>Parameter Explanations:</strong>
-          <div class="param-item">
-            <span class="param-name">apiBaseUrl</span>
-            <span class="param-type">(string)</span>
-            <div class="param-desc">The base URL for the API endpoint. Example: "${baseUrl}"</div>
-          </div>
-          <div class="param-item">
-            <span class="param-name">queryParams</span>
-            <span class="param-type">(Object)</span>
-            <div class="param-desc">Query parameters for GET requests (added to URL as ?key=value&key2=value2)</div>
-          </div>
-          <div class="param-item">
-            <span class="param-name">httpMethod</span>
-            <span class="param-type">(string)</span>
-            <div class="param-desc">HTTP method: 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'. Current: "${method}"</div>
-          </div>
-      `;
+			let paramExplanations = `
+				<div class="mt-3">
+					<strong>Parameter Explanations:</strong>
+					<div class="param-item">
+						<span class="param-name">apiBaseUrl</span>
+						<span class="param-type">(string)</span>
+						<div class="param-desc">The base URL for the API endpoint. Example: "${baseUrl}"</div>
+					</div>
+					<div class="param-item">
+						<span class="param-name">queryParams</span>
+						<span class="param-type">(Object)</span>
+						<div class="param-desc">Query parameters for GET requests (added to URL as ?key=value&key2=value2)</div>
+					</div>
+					<div class="param-item">
+						<span class="param-name">httpMethod</span>
+						<span class="param-type">(string)</span>
+						<div class="param-desc">HTTP method: 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'. Current: "${method}"</div>
+					</div>
+			`;
 
-      if (method === "POST" || method === "PUT" || method === "PATCH") {
-        paramExplanations += `
-          <div class="param-item">
-            <span class="param-name">requestData</span>
-            <span class="param-type">(Object)</span>
-            <div class="param-desc">Request body data. <strong>MUST include testing: true for POST requests.</strong></div>
-          </div>
-        `;
-      }
+			if (method === "POST" || method === "PUT" || method === "PATCH") {
+				paramExplanations += `
+					<div class="param-item">
+						<span class="param-name">requestData</span>
+						<span class="param-type">(Object)</span>
+						<div class="param-desc">Request body data. <strong>MUST include testing: true for POST requests.</strong></div>
+					</div>
+				`;
+			}
 
-      paramExplanations += `
-          <div class="param-item">
-            <span class="param-name">responseCallback</span>
-            <span class="param-type">(Function)</span>
-            <div class="param-desc">Optional callback function to handle the response data</div>
-          </div>
-        </div>
-      `;
+			paramExplanations += `
+					<div class="param-item">
+						<span class="param-name">responseCallback</span>
+						<span class="param-type">(Function)</span>
+						<div class="param-desc">Optional callback function to handle the response data</div>
+					</div>
+				</div>
+			`;
 
-      const pathBlock = pathParams.length ? `${pathParamDecls}\n` : "";
+			const pathBlock = pathParams.length ? `${pathParamDecls}\n` : "";
 
-      // Build code example aligned to the scenario inputs
-      let codeExample = "";
-      if (method === "GET") {
-        codeExample = `
+			let codeExample = "";
+			if (method === "GET") {
+				codeExample = `
 // Example: GET request using APIHandler
 const apiHandler = new APIHandler();
 ${pathBlock}${fullUrlLine}
 
 const apiParams = {
-  apiBaseUrl: fullUrl,
-  queryParams: ${queryParamsBlock},
-  httpMethod: "GET",
-  requestData: {},
-  responseCallback: (data) => {
-    console.log("API Response:", data);
-  }
+	apiBaseUrl: fullUrl,
+	queryParams: ${queryParamsBlock},
+	httpMethod: "GET",
+	requestData: {},
+	responseCallback: (data) => {
+		console.log("API Response:", data);
+	}
 };
 
 apiHandler.handleRequest(apiParams);
-        `;
-      } else {
-        codeExample = `
+				`;
+			} else {
+				codeExample = `
 // Example: ${method} request using APIHandler
 const apiHandler = new APIHandler();
 ${pathBlock}${fullUrlLine}
 
 const apiParams = {
-  apiBaseUrl: fullUrl,
-  queryParams: {},
-  httpMethod: "${method}",
-  requestData: ${requestDataBlock},
-  responseCallback: (data) => {
-    console.log("API Response:", data);
-  }
+	apiBaseUrl: fullUrl,
+	queryParams: {},
+	httpMethod: "${method}",
+	requestData: ${requestDataBlock},
+	responseCallback: (data) => {
+		console.log("API Response:", data);
+	}
 };
 
 apiHandler.handleRequest(apiParams);
-        `;
-      }
+				`;
+			}
 
-      return `
-        <div class="api-params-block">
-          <strong>Code Usage Example:</strong>
-          <div class="code-example mt-2">
-            <pre><code>${codeExample}</code></pre>
-          </div>
-        </div>
-        ${paramExplanations}
-      `;
-    }
+			return `
+				<div class="api-params-block">
+					<div class="d-flex align-items-center justify-content-between">
+						<strong>Code Usage Example:</strong>
+						<button class="btn btn-sm btn-outline-secondary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#code-example-body-${scenarioId}" aria-expanded="false" aria-controls="code-example-body-${scenarioId}" aria-label="Toggle code example">
+							<i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
+							<i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
+							<span class="visually-hidden">Toggle code example</span>
+						</button>
+					</div>
+					<div id="code-example-body-${scenarioId}" class="collapse mt-2">
+						<div class="code-example mt-2">
+							<pre><code>${codeExample}</code></pre>
+						</div>
+						${paramExplanations}
+					</div>
+				</div>
+			`;
+		}
 
     /**
      * ============================================================================
@@ -1315,648 +1342,23 @@ apiHandler.handleRequest(apiParams);
 
         <!-- Test Scenarios -->
         <div class="demo-section">
-          <h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
-          <p class="description-text">
-            Click "Test API Call" on any scenario below to execute the test. 
-            Results will be displayed in the response container.
-          </p>
+          <div class="d-flex align-items-center justify-content-between">
+						<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+						<button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
+							<i class="bi bi-arrows-collapse"></i> Collapse All
+						</button>
+					</div>
+					<p class="description-text">
+						Click "Test API Call" on any scenario below to execute the test. 
+						Results will be displayed in the response container.
+					</p>
 
-          ${createTestScenarioSection(
-            "1",
-            "Test Scenario 1: Create Moderation Entry",
-            "This test creates a new moderation entry via POST /moderation/createModerationEntry using the required testing flag.",
-            "POST",
-            "/moderation/createModerationEntry",
-            {
-              userId: "user_123",
-              contentId: "content_456",
-              type: "image",
-              priority: "normal",
-              contentType: "post",
-              mediaType: "jpg",
-              isSystemGenerated: false,
-              isPreApproved: false,
-            },
-            [
-              "Verify new moderation row exists with provided userId and contentId",
-              "Confirm default status is set (e.g., pending) and timestamps are correct",
-              "Ensure testing flag is present on the request payload",
-              "Validate type, priority, and contentType match expected values",
-              "Check mediaType and flags (isSystemGenerated, isPreApproved)",
-            ],
-            [
-              {
-                type: "text",
-                id: "userId",
-                required: true,
-                label: "User ID",
-                placeholder: "Enter user ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "contentId",
-                required: true,
-                label: "Content ID",
-                placeholder: "Enter content ID",
-                value: "content_456",
-              },
-              {
-                type: "select",
-                id: "type",
-                required: true,
-                label: "Type",
-                options: [
-                  { value: "image", text: "Image" },
-                  { value: "video", text: "Video" },
-                  { value: "text", text: "Text" },
-                ],
-              },
-              {
-                type: "select",
-                id: "priority",
-                label: "Priority",
-                options: [
-                  { value: "normal", text: "Normal" },
-                  { value: "high", text: "High" },
-                  { value: "low", text: "Low" },
-                ],
-              },
-              {
-                type: "select",
-                id: "contentType",
-                label: "Content Type",
-                options: [
-                  { value: "post", text: "Post" },
-                  { value: "comment", text: "Comment" },
-                  { value: "profile", text: "Profile" },
-                ],
-              },
-              {
-                type: "select",
-                id: "mediaType",
-                label: "Media Type",
-                options: [
-                  { value: "jpg", text: "JPG" },
-                  { value: "png", text: "PNG" },
-                  { value: "mp4", text: "MP4" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isSystemGenerated",
-                label: "Is System Generated",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isPreApproved",
-                label: "Is Pre-Approved",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "2",
-            "Test Scenario 2: Get Moderations (Filters)",
-            "This test fetches moderation items via GET /moderation/fetchModerations using optional query filters (status, user, priority, type) plus pagination and date range.",
-            "GET",
-            "/moderation/fetchModerations",
-            null,
-            [
-              "Apply filters (status, userId, priority, type, asc) and confirm results reflect the query",
-              "Validate limit/nextToken pagination behavior",
-              "Use start/end to window results by timestamp when provided",
-              "Cross-check item count against database for selected filters",
-              "Confirm ordering toggles when asc flag is changed",
-            ],
-            [
-              {
-                type: "select",
-                id: "status",
-                label: "Status",
-                required: false,
-                options: [
-                  { value: "", text: "Any" },
-                  { value: "pending", text: "Pending" },
-                  { value: "approved", text: "Approved" },
-                  { value: "rejected", text: "Rejected" },
-                  { value: "escalated", text: "Escalated" },
-                ],
-              },
-              {
-                type: "text",
-                id: "userId",
-                label: "User ID",
-                placeholder: "Filter by userId (optional)",
-                value: "",
-              },
-              {
-                type: "select",
-                id: "priority",
-                label: "Priority",
-                options: [
-                  { value: "", text: "Any" },
-                  { value: "normal", text: "Normal" },
-                  { value: "high", text: "High" },
-                  { value: "low", text: "Low" },
-                ],
-              },
-              {
-                type: "select",
-                id: "type",
-                label: "Type",
-                options: [
-                  { value: "", text: "Any" },
-                  { value: "image", text: "Image" },
-                  { value: "video", text: "Video" },
-                  { value: "text", text: "Text" },
-                ],
-              },
-              {
-                type: "text",
-                id: "dayKey",
-                label: "Day Key (YYYYMMDD)",
-                placeholder: "YYYYMMDD",
-                value: "",
-                inputMode: "numeric",
-              },
-              {
-                type: "select",
-                id: "asc",
-                label: "Ascending",
-                options: [
-                  { value: "false", text: "Descending (default)" },
-                  { value: "true", text: "Ascending" },
-                ],
-              },
-              {
-                type: "text",
-                id: "limit",
-                label: "Limit",
-                placeholder: "Items per page (e.g., 20)",
-                value: "20",
-              },
-              {
-                type: "text",
-                id: "nextToken",
-                label: "Next Token",
-                placeholder: "Optional next token for pagination",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "start",
-                label: "Start (datetime)",
-                placeholder: "Pick start date/time",
-                value: "",
-                typeOverride: "datetime-local",
-              },
-              {
-                type: "text",
-                id: "end",
-                label: "End (datetime)",
-                placeholder: "Pick end date/time",
-                value: "",
-                typeOverride: "datetime-local",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "3",
-            "Test Scenario 3: Get Moderation by ID",
-            "This test retrieves a single moderation record by ID with optional user context.",
-            "GET",
-            "/moderation/fetchModerationById/{moderationId}",
-            null,
-            [
-              "Enter a moderation ID to fetch a single record",
-              "Verify response contains matching moderationId and related details",
-              "Confirm optional userId filter is respected when provided",
-              "Check status, priority, and timestamps against database values",
-              "Ensure 404 or error handling is correct for missing IDs",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID (e.g., mod_123)",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                label: "User ID",
-                placeholder: "Optional user ID for filtering",
-                value: "",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "4",
-            "Test Scenario 4: Update Moderation",
-            "This test updates an existing moderation entry via POST /moderation/updateModerationEntry/{moderationId} using the same payload shape as creation plus the moderationId path parameter.",
-            "PUT",
-            "/moderation/updateModeration/{moderationId}",
-            {
-              userId: "user_123",
-              contentId: "content_456",
-              type: "image",
-              priority: "normal",
-              contentType: "post",
-              mediaType: "jpg",
-              isSystemGenerated: false,
-              isPreApproved: false,
-            },
-            [
-              "Provide a moderationId path param plus the same body fields used on creation",
-              "Confirm core fields (type, priority, contentType, mediaType) are updated",
-              "Ensure testing flag is present in the request payload",
-              "Verify userId/contentId changes persist correctly",
-              "Check audit fields and timestamps reflect the update",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID to update",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                required: false,
-                label: "User ID",
-                placeholder: "Enter user ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "contentId",
-                required: false,
-                label: "Content ID",
-                placeholder: "Enter content ID",
-                value: "content_456",
-              },
-              {
-                type: "select",
-                id: "type",
-                required: false,
-                label: "Type",
-                options: [
-                  { value: "image", text: "Image" },
-                  { value: "video", text: "Video" },
-                  { value: "text", text: "Text" },
-                ],
-              },
-              {
-                type: "select",
-                id: "priority",
-                label: "Priority",
-                options: [
-                  { value: "normal", text: "Normal" },
-                  { value: "high", text: "High" },
-                  { value: "low", text: "Low" },
-                ],
-              },
-              {
-                type: "select",
-                id: "contentType",
-                label: "Content Type",
-                options: [
-                  { value: "post", text: "Post" },
-                  { value: "comment", text: "Comment" },
-                  { value: "profile", text: "Profile" },
-                ],
-              },
-              {
-                type: "select",
-                id: "mediaType",
-                label: "Media Type",
-                options: [
-                  { value: "jpg", text: "JPG" },
-                  { value: "png", text: "PNG" },
-                  { value: "mp4", text: "MP4" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isSystemGenerated",
-                label: "Is System Generated",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isPreApproved",
-                label: "Is Pre-Approved",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "5",
-            "Test Scenario 5: Update Moderation Meta",
-            "This test updates moderation meta fields via POST /moderation/updateModerationMeta/{moderationId}. Use this to toggle meta flags without changing the core content attributes.",
-            "POST",
-            "/moderation/updateModerationMeta/{moderationId}",
-            {
-              userId: "",
-              meta: {
-                contentDeleted: false,
-                contentDeletedAt: null,
-                updatedBy: "moderator_1",
-              },
-            },
-            [
-              "Provide a moderation ID and meta object (contentDeleted, contentDeletedAt?, updatedBy?)",
-              "Verify meta updates are persisted (e.g., contentDeleted flags, timestamps)",
-              "Ensure testing flag is present in the request payload",
-              "Confirm updatedBy defaults to userId when not provided",
-              "Check audit fields and timestamps are updated correctly",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID to update",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                label: "User ID",
-                placeholder: "Optional user ID (used as default updatedBy)",
-                value: "",
-              },
-              {
-                type: "select",
-                id: "meta.contentDeleted",
-                required: true,
-                label: "Content Deleted",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-              {
-                type: "text",
-                id: "meta.contentDeletedAt",
-                label: "Content Deleted At",
-                placeholder: "Pick deletion time (optional)",
-                value: "",
-                typeOverride: "datetime-local",
-              },
-              {
-                type: "text",
-                id: "meta.updatedBy",
-                label: "Updated By",
-                placeholder: "Override updatedBy (optional)",
-                value: "",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "6",
-            "Test Scenario 6: Moderation Action (Approve/Reject)",
-            "This test posts an action to approve or reject a moderation record via POST /applyModerationAction/{moderationId}.",
-            "POST",
-            "/moderation/applyModerationAction/{moderationId}",
-            {
-              moderationId: "",
-              userId: "user_123",
-              action: "approve",
-              reason: "Content meets guidelines",
-              moderatedBy: "QA Tester",
-              moderationType: "standard",
-            },
-            [
-              "Provide a moderation ID and select an action (approve/reject)",
-              "Verify moderation status updates and audit fields",
-              "Confirm reason and moderatedBy are persisted",
-              "Ensure testing flag is present in the request payload",
-              "Check timestamps and status transitions in the database",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                required: true,
-                label: "User ID",
-                placeholder: "Enter user ID",
-                value: "user_123",
-              },
-              {
-                type: "select",
-                id: "action",
-                required: true,
-                label: "Action",
-                options: [
-                  { value: "approve", text: "Approve" },
-                  { value: "reject", text: "Reject" },
-                ],
-              },
-              {
-                type: "text",
-                id: "reason",
-                label: "Reason",
-                placeholder: "Add a reason for this action",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "moderatedBy",
-                label: "Moderated By",
-                placeholder: "Enter reviewer name",
-                value: "",
-              },
-              {
-                type: "select",
-                id: "moderationType",
-                label: "Moderation Type",
-                options: [
-                  { value: "standard", text: "Standard" },
-                  { value: "manual", text: "Manual" },
-                  { value: "automated", text: "Automated" },
-                ],
-              },
-              {
-                type: "text",
-                id: "note",
-                label: "Private Note",
-                placeholder: "Optional private note",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "publicNote",
-                label: "Public Note",
-                placeholder: "Optional public note",
-                value: "",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "7",
-            "Test Scenario 7: Escalate Moderation",
-            "This test escalates a moderation record via POST /escalateModeration/{moderationId}.",
-            "POST",
-            "/moderation/escalateModeration/{moderationId}",
-            {
-              userId: "user_123",
-              escalatedBy: "qa_reviewer",
-            },
-            [
-              "Provide moderation ID and required fields userId, escalatedBy",
-              "Verify the record is escalated and audit fields are updated",
-              "Ensure testing flag is present in the request payload",
-              "Confirm escalatedBy is stored and timestamped",
-              "Check escalation workflow state changes",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                required: true,
-                label: "User ID",
-                placeholder: "Enter user ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "escalatedBy",
-                required: true,
-                label: "Escalated By",
-                placeholder: "Who is escalating this?",
-                value: "",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "8",
-            "Test Scenario 8: Add Moderation Note",
-            "This test adds a note to a moderation record via POST /addNote/{moderationId}.",
-            "POST",
-            "/moderation/addNote/{moderationId}",
-            {
-              userId: "",
-              note: "Flagged for additional review",
-              addedBy: "qa_reviewer",
-            },
-            [
-              "Provide moderation ID and required fields userId, note, addedBy",
-              "Verify note is attached to the moderation record",
-              "Ensure testing flag is present in the request payload",
-              "Confirm addedBy is stored and timestamped",
-              "Check notes list reflects the new entry",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                required: true,
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                required: true,
-                label: "User ID",
-                placeholder: "Enter user ID",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "note",
-                required: true,
-                label: "Note",
-                placeholder: "Enter note text",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "addedBy",
-                required: true,
-                label: "Added By",
-                placeholder: "Who is adding this note?",
-                value: "",
-              },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "9",
-            "Test Scenario 9: Delete Moderation (soft delete)",
-            "This placeholder demonstrates a delete flow for moderation records. Update the endpoint when backend delete support is available.",
-            "DELETE",
-            "/moderation/deleteModeration/{moderationId}",
-            null,
-            [
-              "Use a test moderation ID intended for deletion only",
-              "Confirm the item is removed from the moderation table or marked deleted",
-              "Validate related records or notes are cleaned up if applicable",
-              "Ensure response codes and messages match API contract for deletes",
-              "Verify the operation is only executed in test environments",
-            ],
-            [
-              {
-                type: "text",
-                id: "moderationId",
-                label: "Moderation ID",
-                placeholder: "Enter moderation ID to delete",
-                value: "",
-              },
-              {
-                type: "text",
-                id: "userId",
-                label: "User ID",
-                placeholder: "Optional user ID for audit tracking",
-                value: "",
-              },
-            ]
-          )}
+         ${ScenarioList.map((scenario)=>{
+						console.log("--");
+						return createTestScenarioSection({
+							...scenario
+						});
+					}).join("")}
         </div>
 
         <!-- Cleanup Section -->
@@ -1989,102 +1391,135 @@ apiHandler.handleRequest(apiParams);
      * Attach event listeners for test scenario buttons and cleanup button
      */
     function attachEventListeners() {
-      const baseUrlInput = document.getElementById("baseUrlInput");
-      const baseUrlStatus = document.getElementById("baseUrlStatus");
-      const baseUrlApplyBtn = document.getElementById("baseUrlApply");
+			const toggleAllScenariosBtn = document.getElementById(
+				"toggle-all-scenarios-btn"
+			);
 
-      if (baseUrlApplyBtn && baseUrlInput) {
-        baseUrlApplyBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-          const candidate = baseUrlInput.value.trim();
-          if (candidate) {
-            userBaseUrlOverride = candidate;
-            if (baseUrlStatus) {
-              baseUrlStatus.textContent = `Base URL set to ${candidate}`;
-            }
-          } else {
-            userBaseUrlOverride = null;
-            if (baseUrlStatus) {
-              baseUrlStatus.textContent = "Base URL reset to page config";
-            }
-          }
-        });
-      }
+			if (toggleAllScenariosBtn) {
+				toggleAllScenariosBtn.addEventListener("click", () => {
+					const isCollapsing =
+						toggleAllScenariosBtn.innerHTML.includes("Collapse");
+					const allBodies = document.querySelectorAll(
+						".test-scenario-card .card-body.collapse"
+					);
+					const allToggles = document.querySelectorAll(
+						".test-scenario-card .collapse-toggle"
+					);
 
-      // Use event delegation for test scenario buttons
-      document.addEventListener("click", (event) => {
-        // Check if clicked element is a test scenario button
-        const testBtn = event.target.closest(".test-scenario-btn");
-        if (testBtn) {
-          // Get scenario ID from data attribute
-          const scenarioId = testBtn.getAttribute("data-scenario-id");
-          // Get method from data attribute
-          const method = testBtn.getAttribute("data-method");
-          // Get endpoint from data attribute
-          const endpoint = testBtn.getAttribute("data-endpoint");
-          // Get payload from data attribute
-          const payloadString = testBtn.getAttribute("data-payload");
-          // Parse payload if not null
-          let payload = null;
-          if (payloadString && payloadString !== "null") {
-            try {
-              // Parse JSON payload
-              payload = JSON.parse(payloadString);
-            } catch (parseError) {
-              // Log parse error
-              console.error(
-                "[Edge Tests Demo] Could not parse payload:",
-                parseError
-              );
-            }
-          }
-          // Call test scenario function
-          testScenario(scenarioId, method, endpoint, payload);
-        }
+					if (window.bootstrap && window.bootstrap.Collapse) {
+						allBodies.forEach((el) => {
+							const instance = window.bootstrap.Collapse.getOrCreateInstance(
+								el,
+								{
+									toggle: false,
+								}
+							);
+							if (isCollapsing) instance.hide();
+							else instance.show();
+						});
+					} else {
+						allBodies.forEach((el) => {
+							if (isCollapsing) el.classList.remove("show");
+							else el.classList.add("show");
+						});
+						allToggles.forEach((btn) => {
+							btn.setAttribute("aria-expanded", !isCollapsing);
+							if (isCollapsing) btn.classList.add("collapsed");
+							else btn.classList.remove("collapsed");
+						});
+					}
 
-        // Clear response/output for a scenario
-        const clearBtn = event.target.closest(".clear-response-btn");
-        if (clearBtn) {
-          const scenarioId = clearBtn.getAttribute("data-scenario-id");
-          const responseEl = document.getElementById(`response-${scenarioId}`);
-          if (responseEl) {
-            responseEl.innerHTML = "";
-          }
-          return;
-        }
+					if (isCollapsing) {
+						toggleAllScenariosBtn.innerHTML =
+							'<i class="bi bi-arrows-expand"></i> Expand All';
+					} else {
+						toggleAllScenariosBtn.innerHTML =
+							'<i class="bi bi-arrows-collapse"></i> Collapse All';
+					}
+				});
+			}
 
-        // Check if clicked element is cleanup button
-        if (
-          event.target.id === "cleanup-btn" ||
-          event.target.closest("#cleanup-btn")
-        ) {
-          // Confirm before cleanup
-          if (
-            confirm(
-              "Are you sure you want to clean up test data? This action cannot be undone."
-            )
-          ) {
-            // Run cleanup
-            cleanupTestData();
-          }
-        }
-      });
+			const baseUrlInput = document.getElementById("baseUrlInput");
+			const baseUrlStatus = document.getElementById("baseUrlStatus");
+			const baseUrlApplyBtn = document.getElementById("baseUrlApply");
 
-      // Smooth scroll for index links
-      document.querySelectorAll(".index-link").forEach((link) => {
-        link.addEventListener("click", (e) => {
-          e.preventDefault();
-          const targetId = link.getAttribute("href").substring(1);
-          const targetElement = document.getElementById(targetId);
-          if (targetElement) {
-            targetElement.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
-          }
-        });
-      });
-    }
+			if (baseUrlApplyBtn && baseUrlInput) {
+				baseUrlApplyBtn.addEventListener("click", (e) => {
+					e.preventDefault();
+					const candidate = baseUrlInput.value.trim();
+					if (candidate) {
+						userBaseUrlOverride = candidate;
+						if (baseUrlStatus) {
+							baseUrlStatus.textContent = `Base URL set to ${candidate}`;
+						}
+					} else {
+						userBaseUrlOverride = null;
+						if (baseUrlStatus) {
+							baseUrlStatus.textContent = "Base URL reset to page config";
+						}
+					}
+				});
+			}
+
+			document.addEventListener("click", (event) => {
+				const testBtn = event.target.closest(".test-scenario-btn");
+				if (testBtn) {
+					const scenarioId = testBtn.getAttribute("data-scenario-id");
+					const method = testBtn.getAttribute("data-method");
+					const endpoint = testBtn.getAttribute("data-endpoint");
+					const payloadString = testBtn.getAttribute("data-payload");
+					let payload = null;
+					if (payloadString && payloadString !== "null") {
+						try {
+							payload = JSON.parse(payloadString);
+						} catch (parseError) {
+							console.error(
+								"[Edge Tests Block] Could not parse payload:",
+								parseError
+							);
+						}
+					}
+					testScenario(scenarioId, method, endpoint, payload);
+				}
+
+				const clearBtn = event.target.closest(".clear-response-btn");
+				if (clearBtn) {
+					const scenarioId = clearBtn.getAttribute("data-scenario-id");
+					const responseEl = document.getElementById(`response-${scenarioId}`);
+					if (responseEl) {
+						responseEl.innerHTML = "";
+					}
+					return;
+				}
+
+				if (
+					event.target.id === "cleanup-btn" ||
+					event.target.closest("#cleanup-btn")
+				) {
+					if (
+						confirm(
+							"Are you sure you want to clean up test data? This action cannot be undone."
+						)
+					) {
+						cleanupTestData();
+					}
+				}
+			});
+
+			document.querySelectorAll(".index-link").forEach((link) => {
+				link.addEventListener("click", (e) => {
+					e.preventDefault();
+					const targetId = link.getAttribute("href").substring(1);
+					const targetElement = document.getElementById(targetId);
+					if (targetElement) {
+						targetElement.scrollIntoView({
+							behavior: "smooth",
+							block: "start",
+						});
+					}
+				});
+			});
+		}
 
     // Expose functions to global scope for debugging
     window.EdgeTestsDemo = {

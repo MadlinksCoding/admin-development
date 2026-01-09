@@ -91,88 +91,98 @@
      * Build index navigation
      */
     function createIndexNavigation() {
-      const subScenarioStyle = INDENT_SUB_SCENARIOS
-        ? 'style="margin-left: 20px; font-size: 0.9em;"'
-        : "";
-      const iconStyle = INDENT_SUB_SCENARIOS
-        ? '<i class="bi bi-arrow-return-right"></i>'
-        : '<i class="bi bi-play-circle"></i>';
+			const subScenarioStyle = INDENT_SUB_SCENARIOS
+				? 'style="margin-left: 20px; font-size: 0.9em;"'
+				: "";
+			const iconStyle = INDENT_SUB_SCENARIOS
+				? '<i class="bi bi-arrow-return-right"></i>'
+				: '<i class="bi bi-play-circle"></i>';
 
-      return `
-        <div class="demo-section index-section">
-          <h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
-          <p class="description-text">Navigate to different test scenarios:</p>
-          <a href="#prerequisites-section" class="index-link">
-            <i class="bi bi-check-circle"></i> Prerequisites
-          </a>
-          <a href="#terminology-section" class="index-link">
-            <i class="bi bi-book"></i> Terminology
-          </a>
-          <a href="#base-url-section" class="index-link">
-            <i class="bi bi-link-45deg"></i> API Base URL
-          </a>
-          <a href="#test-scenario-1" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("1", "Create User")}
-          </a>
+			// Build dynamic scenario links from ScenarioList
+			const buildScenarioLinks = () => {
+				if (!Array.isArray(ScenarioList) || ScenarioList.length === 0) {
+					return '';
+				}
 
-          <a href="#test-scenario-1-D" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("1-D", "Duplicate User")}
-          </a>
-          <a href="#test-scenario-2" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("2", "Get Users (list)")}
-          </a>
-          <a href="#test-scenario-3" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("3", "Get User by ID")}
-          </a>
-          <a href="#test-scenario-3-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("3-B", "Get Non-Existent User")}
-          </a>
-          <a href="#test-scenario-4" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("4", "Update User (comprehensive)")}
-          </a>
-          <a href="#test-scenario-4-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("4-B", "Update Role")}
-          </a>
-          <a href="#test-scenario-4-C" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("4-C", "Update Non-Existent")}
-          </a>
-          <a href="#test-scenario-5" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("5", "Update User Settings")}
-          </a>
-          <a href="#test-scenario-5-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("5-B", "Update Settings 404")}
-          </a>
-          <a href="#test-scenario-6" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("6", "Update User Profile")}
-          </a>
-          <a href="#test-scenario-6-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("6-B", "Update Profile 404")}
-          </a>
-          <a href="#test-scenario-7" class="index-link">
-            <i class="bi bi-play-circle"></i> ${formatScenarioLabel("7", "Delete User")}
-          </a>
-          <a href="#test-scenario-7-B" class="index-link" ${subScenarioStyle}>
-             ${iconStyle} ${formatScenarioLabel("7-B", "Delete Non-Existent")}
-          </a>
-          <a href="#cleanup-section" class="index-link">
-            <i class="bi bi-trash"></i> Cleanup Method
-          </a>
-        </div>
-      `;
-    }
+				// Map parent -> children for quick lookup
+				const childrenByParent = new Map();
+				ScenarioList.forEach((s) => {
+					if (s && s.parent) {
+						if (!childrenByParent.has(s.parent)) childrenByParent.set(s.parent, []);
+						childrenByParent.get(s.parent).push(s);
+					}
+				});
+
+				const parts = [];
+				// Render top-level scenarios first, in the order they appear
+				ScenarioList.filter((s) => s && !s.parent).forEach((s) => {
+					const id = s.scenarioId;
+					const title = s.title || id;
+					parts.push(
+						`<a href="#test-scenario-${id}" class="index-link"><i class="bi bi-play-circle"></i> ${formatScenarioLabel(
+							id,
+							title
+						)}</a>`
+					);
+					const kids = childrenByParent.get(id) || [];
+					kids.forEach((k) => {
+						const kidId = k.scenarioId;
+						const kidTitle = k.title || kidId;
+						parts.push(
+							`<a href="#test-scenario-${kidId}" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(
+								kidId,
+								kidTitle
+							)}</a>`
+						);
+					});
+				});
+
+				// Render any orphan children whose parent wasn't listed as top-level
+				const renderedIds = new Set(parts.join('\n').match(/#test-scenario-([^"']+)/g)?.map(m => m.replace('#test-scenario-','')) || []);
+				ScenarioList.filter((s) => s && s.parent && !renderedIds.has(s.scenarioId)).forEach((s) => {
+					parts.push(
+						`<a href="#test-scenario-${s.scenarioId}" class="index-link" ${subScenarioStyle}>${iconStyle} ${formatScenarioLabel(s.scenarioId, s.title || s.scenarioId)}</a>`
+					);
+				});
+
+				return parts.join("\n");
+			};
+
+			return `
+				<div class="demo-section index-section">
+					<h3><i class="bi bi-list-ul"></i> Test Scenarios Index</h3>
+					<p class="description-text">Navigate to different test scenarios:</p>
+					<a href="#prerequisites-section" class="index-link">
+						<i class="bi bi-check-circle"></i> Prerequisites
+					</a>
+					<a href="#terminology-section" class="index-link">
+						<i class="bi bi-book"></i> Terminology
+					</a>
+					<a href="#base-url-section" class="index-link">
+						<i class="bi bi-link-45deg"></i> API Base URL
+					</a>
+
+					${buildScenarioLinks()}
+
+					<a href="#cleanup-section" class="index-link">
+						<i class="bi bi-trash"></i> Cleanup Method
+					</a>
+				</div>
+			`;
+		}
 
     /**
      * Create scenario sections
      */
     function createTestScenarioSection(
-      scenarioId,
+      {scenarioId,
       title,
       description,
       apiMethod,
       apiEndpoint,
       requestPayload = null,
       checklistItems = [],
-      inputFields = []
+      inputFields = []}
     ) {
       let checklistHtml = "";
       const displayTitle = formatScenarioLabel(scenarioId, title);
@@ -1022,462 +1032,12 @@ apiHandler.handleRequest(apiParams);
             Results will be displayed in the response container.
           </p>
 
-          ${createTestScenarioSection(
-            "1",
-            "Create User",
-            "Creates a new user via POST /users/createUser with nested profile and settings support.",
-            "POST",
-            "/users/createUser",
-            {
-              userName: "edge_user_01",
-              displayName: "Edge Test User",
-              avatarUrl: "https://example.com/avatar.jpg",
-              role: "user",
-              isNewUser: true,
-              user_settings: {
-                locale: "en-US",
-                notifications: { email: true, sms: false },
-                callVideoMessage: true,
-                presencePreference: "online",
-              },
-              user_profile: {
-                bio: "Edge test bio",
-                gender: "non-binary",
-                age: 29,
-                bodyType: "athletic",
-                hairColor: "brown",
-                country: "US",
-                coverImage: "https://example.com/cover.jpg",
-                backgroundImages: ["https://example.com/bg1.jpg"],
-                socialUrls: ["https://twitter.com/edge"],
-                additionalUrls: ["https://edge.example.com"],
-              },
-            },
-            [
-              "Validate the user is created with the provided username and displayName",
-              "Ensure 409 is returned when username is already taken",
-              "Confirm nested profile/settings fields are persisted",
-              "Check default flags (role, isNewUser) and timestamps",
-              "Verify testing flag is present in POST payload",
-            ],
-            [
-              { type: "text", id: "userName", required: true, label: "Username", placeholder: "Unique username", value: "edge_user_01" },
-              { type: "text", id: "displayName", label: "Display Name", placeholder: "Display name", value: "Edge Test User" },
-              { type: "text", id: "avatarUrl", label: "Avatar URL", placeholder: "https://example.com/avatar.jpg", value: "" },
-              {
-                type: "select",
-                id: "role",
-                label: "Role",
-                options: [
-                  { value: "user", text: "User" },
-                  { value: "admin", text: "Admin" },
-                  { value: "moderator", text: "Moderator" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isNewUser",
-                label: "Is New User",
-                options: [
-                  { value: "true", text: "True" },
-                  { value: "false", text: "False" },
-                ],
-              },
-              { type: "text", id: "user_settings.locale", label: "Locale", placeholder: "en-US", value: "en-US" },
-              {
-                type: "select",
-                id: "user_settings.callVideoMessage",
-                label: "Call Video Message",
-                options: [
-                  { value: "true", text: "Enabled" },
-                  { value: "false", text: "Disabled" },
-                ],
-              },
-              { type: "text", id: "user_settings.presencePreference", label: "Presence Preference", placeholder: "online", value: "online" },
-              {
-                type: "select",
-                id: "user_settings.notifications.email",
-                label: "Notify by Email",
-                options: [
-                  { value: "true", text: "Yes" },
-                  { value: "false", text: "No" },
-                ],
-              },
-              {
-                type: "select",
-                id: "user_settings.notifications.sms",
-                label: "Notify by SMS",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-              { type: "text", id: "user_profile.bio", label: "Bio", placeholder: "Short bio", value: "Edge test bio" },
-              { type: "text", id: "user_profile.gender", label: "Gender", placeholder: "", value: "" },
-              { type: "text", id: "user_profile.age", label: "Age", placeholder: "Numeric", value: "29", inputMode: "numeric" },
-              { type: "text", id: "user_profile.bodyType", label: "Body Type", placeholder: "", value: "" },
-              { type: "text", id: "user_profile.hairColor", label: "Hair Color", placeholder: "", value: "" },
-              { type: "text", id: "user_profile.country", label: "Country", placeholder: "", value: "US" },
-              { type: "text", id: "user_profile.coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover.jpg", value: "" },
-              { type: "text", id: "user_profile.backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg1.jpg, https://example.com/bg2.jpg", value: "" },
-              { type: "text", id: "user_profile.socialUrls", label: "Social URLs (comma separated)", placeholder: "https://twitter.com/edge", value: "" },
-              { type: "text", id: "user_profile.additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge.example.com", value: "" },
-            ]
-          )}
-
-
-
-
-
-          ${createTestScenarioSection(
-            "1-D",
-            "Duplicate User Check",
-            "Attempts to create a user with an existing username to verify 409 conflict.",
-            "POST",
-            "/users/createUser",
-            {
-               userName: "edge_user_01"
-            },
-            [
-               "Ensure response status is 409 Conflict",
-               "Verify error message indicates duplicate user"
-            ],
-            [
-               { type: "text", id: "userName", required: true, label: "Existing Username", value: "edge_user_01" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "2",
-            "Get Users (list)",
-            "Fetches users with pagination via GET /users/fetchUsers using limit and offset.",
-            "GET",
-            "/users/fetchUsers",
-            null,
-            [
-              "Verify pagination (limit/offset) returns expected counts",
-              "Confirm ordering is consistent and deterministic",
-              "Cross-check count matches database for the filter criteria",
-              "Ensure performance is acceptable for high offsets",
-            ],
-            [
-              { type: "text", id: "limit", label: "Limit", placeholder: "Number of users", value: "10", inputMode: "numeric" },
-              { type: "text", id: "offset", label: "Offset", placeholder: "Records to skip", value: "0", inputMode: "numeric" },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "3",
-            "Get User by ID",
-            "Retrieves a single user via GET /users/fetchUserById/{userId} including presence status.",
-            "GET",
-            "/users/fetchUserById/{userId}",
-            null,
-            [
-              "Confirm the response contains user profile plus online status",
-              "Validate 404 behavior for unknown userId",
-              "Check presence fields (online/status) reflect service values",
-              "Ensure sensitive fields are not leaked",
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Enter userId (uid)", value: "" },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "3-B",
-            "Get Non-Existent User",
-            "Attempts to fetch a user that does not exist to verify 404 handling.",
-            "GET",
-            "/users/fetchUserById/{userId}",
-            null,
-            [
-              "Ensure response status is 404 Not Found",
-              "Verify error structure contains meaningful message"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_id_99999" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "4",
-            "Update User (comprehensive)",
-            "Updates core user fields plus nested settings/profile via PUT /users/updateUser/{userId}.",
-            "PUT",
-            "/users/updateUser/{userId}",
-            {
-              displayName: "Updated Edge User",
-              avatarUrl: "https://example.com/avatar-new.jpg",
-              role: "moderator",
-              isNewUser: false,
-              user_settings: {
-                locale: "en-GB",
-                notifications: { email: true, sms: true },
-                callVideoMessage: false,
-                presencePreference: "away",
-              },
-              user_profile: {
-                bio: "Updated edge bio",
-                gender: "non-binary",
-                age: 30,
-                bodyType: "fit",
-                hairColor: "black",
-                country: "UK",
-                coverImage: "https://example.com/cover-new.jpg",
-                backgroundImages: ["https://example.com/bg-new.jpg"],
-                socialUrls: ["https://linkedin.com/in/edge"],
-                additionalUrls: ["https://edge-updated.example.com"],
-              },
-            },
-            [
-              "Provide userId path param and expected fields to change",
-              "Ensure nested settings/profile flatten correctly in service",
-              "Confirm 404 on unknown userId and 200 on success",
-              "Validate role changes respect authorization rules",
-              "Check audit fields/timestamps update",
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
-              { type: "text", id: "displayName", label: "Display Name", placeholder: "Updated name", value: "Updated Edge User" },
-              { type: "text", id: "avatarUrl", label: "Avatar URL", placeholder: "https://example.com/avatar-new.jpg", value: "" },
-              {
-                type: "select",
-                id: "role",
-                label: "Role",
-                options: [
-                  { value: "user", text: "User" },
-                  { value: "admin", text: "Admin" },
-                  { value: "moderator", text: "Moderator" },
-                ],
-              },
-              {
-                type: "select",
-                id: "isNewUser",
-                label: "Is New User",
-                options: [
-                  { value: "true", text: "True" },
-                  { value: "false", text: "False" },
-                ],
-              },
-              { type: "text", id: "user_settings.locale", label: "Locale", placeholder: "en-GB", value: "en-GB" },
-              {
-                type: "select",
-                id: "user_settings.callVideoMessage",
-                label: "Call Video Message",
-                options: [
-                  { value: "true", text: "Enabled" },
-                  { value: "false", text: "Disabled" },
-                ],
-              },
-              { type: "text", id: "user_settings.presencePreference", label: "Presence Preference", placeholder: "away", value: "away" },
-              {
-                type: "select",
-                id: "user_settings.notifications.email",
-                label: "Notify by Email",
-                options: [
-                  { value: "true", text: "Yes" },
-                  { value: "false", text: "No" },
-                ],
-              },
-              {
-                type: "select",
-                id: "user_settings.notifications.sms",
-                label: "Notify by SMS",
-                options: [
-                  { value: "false", text: "No" },
-                  { value: "true", text: "Yes" },
-                ],
-              },
-              { type: "text", id: "user_profile.bio", label: "Bio", placeholder: "Updated bio", value: "Updated edge bio" },
-              { type: "text", id: "user_profile.gender", label: "Gender", placeholder: "", value: "non-binary" },
-              { type: "text", id: "user_profile.age", label: "Age", placeholder: "Numeric", value: "30", inputMode: "numeric" },
-              { type: "text", id: "user_profile.bodyType", label: "Body Type", placeholder: "", value: "fit" },
-              { type: "text", id: "user_profile.hairColor", label: "Hair Color", placeholder: "", value: "black" },
-              { type: "text", id: "user_profile.country", label: "Country", placeholder: "", value: "UK" },
-              { type: "text", id: "user_profile.coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover-new.jpg", value: "" },
-              { type: "text", id: "user_profile.backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg-new.jpg", value: "" },
-              { type: "text", id: "user_profile.socialUrls", label: "Social URLs (comma separated)", placeholder: "https://linkedin.com/in/edge", value: "" },
-              { type: "text", id: "user_profile.additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge-updated.example.com", value: "" },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "4-B",
-            "Update User Role",
-            "Updates just the user role (privilege escalation) to verify role mutation.",
-            "PUT",
-            "/users/updateUser/{userId}",
-            {
-              role: "moderator"
-            },
-            [
-              "Verify role changes from 'user' to 'moderator'",
-              "Check that other fields remain unchanged (if patch-like behavior)"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "User ID", value: "" },
-              { type: "select", id: "role", label: "New Role", options: [{ value: "moderator", text: "Moderator" }, { value: "admin", text: "Admin" }], value: "moderator" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "4-C",
-            "Update Non-Existent User",
-            "Attempts to update a user that does not exist to verify 404 handling.",
-            "PUT",
-            "/users/updateUser/{userId}",
-            {
-              displayName: "Ghost User"
-            },
-            [
-              "Ensure response status is 404 Not Found",
-              "Verify system handles invalid ID gracefully without crashing"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_update_id" },
-              { type: "text", id: "displayName", label: "Display Name", value: "Ghost User" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "5",
-            "Update User Settings",
-            "Updates only the settings payload via PUT /users/updateUserSettings/{userId}.",
-            "PUT",
-            "/users/updateUserSettings/{userId}",
-            {
-              locale: "en-US",
-              notifications: { email: true, sms: false },
-              callVideoMessage: false,
-              presencePreference: "online",
-            },
-            [
-              "Ensure only settings fields are changed (no profile mutation)",
-              "Validate boolean toggles persist correctly",
-              "Confirm presencePreference updates status in presence service",
-              "Check 404 on unknown userId",
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
-              { type: "text", id: "locale", label: "Locale", placeholder: "en-US", value: "en-US" },
-              { type: "select", id: "callVideoMessage", label: "Call Video Message", options: [ { value: "true", text: "Enabled" }, { value: "false", text: "Disabled" } ] },
-              { type: "text", id: "presencePreference", label: "Presence Preference", placeholder: "online/away/dnd", value: "online" },
-              { type: "select", id: "notifications.email", label: "Notify by Email", options: [ { value: "true", text: "Yes" }, { value: "false", text: "No" } ] },
-              { type: "select", id: "notifications.sms", label: "Notify by SMS", options: [ { value: "false", text: "No" }, { value: "true", text: "Yes" } ] },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "5-B",
-            "Update Settings Non-Existent",
-            "Attempts to update settings for a user that does not exist to verify 404 handling.",
-            "PUT",
-            "/users/updateUserSettings/{userId}",
-            {
-              locale: "fr-FR"
-            },
-            [
-              "Ensure response status is 404 Not Found",
-              "Verify system handles invalid ID gracefully"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_settings_id" },
-              { type: "text", id: "locale", label: "Locale", value: "fr-FR" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "6",
-            "Update User Profile",
-            "Updates profile fields via PUT /users/updateUserProfile/{userId} without touching settings.",
-            "PUT",
-            "/users/updateUserProfile/{userId}",
-            {
-              bio: "Updated profile bio",
-              gender: "female",
-              age: 31,
-              bodyType: "athletic",
-              hairColor: "blonde",
-              country: "CA",
-              coverImage: "https://example.com/cover-profile.jpg",
-              backgroundImages: ["https://example.com/bg1-profile.jpg"],
-              socialUrls: ["https://instagram.com/edge"],
-              additionalUrls: ["https://edge-profile.example.com"],
-            },
-            [
-              "Verify profile changes do not overwrite settings",
-              "Ensure array fields (backgroundImages, socialUrls) persist correctly",
-              "Confirm 404 on unknown userId",
-              "Check timestamps/audit entries update",
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
-              { type: "text", id: "bio", label: "Bio", placeholder: "Updated profile bio", value: "Updated profile bio" },
-              { type: "text", id: "gender", label: "Gender", placeholder: "", value: "female" },
-              { type: "text", id: "age", label: "Age", placeholder: "Numeric", value: "31", inputMode: "numeric" },
-              { type: "text", id: "bodyType", label: "Body Type", placeholder: "", value: "athletic" },
-              { type: "text", id: "hairColor", label: "Hair Color", placeholder: "", value: "blonde" },
-              { type: "text", id: "country", label: "Country", placeholder: "", value: "CA" },
-              { type: "text", id: "coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover-profile.jpg", value: "" },
-              { type: "text", id: "backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg1-profile.jpg", value: "" },
-              { type: "text", id: "socialUrls", label: "Social URLs (comma separated)", placeholder: "https://instagram.com/edge", value: "" },
-              { type: "text", id: "additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge-profile.example.com", value: "" },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "6-B",
-            "Update Profile Non-Existent",
-            "Attempts to update profile for a user that does not exist to verify 404 handling.",
-            "PUT",
-            "/users/updateUserProfile/{userId}",
-            {
-              bio: "Ghost Bio"
-            },
-            [
-              "Ensure response status is 404 Not Found",
-              "Verify system handles invalid ID gracefully"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_profile_id" },
-              { type: "text", id: "bio", label: "Bio", value: "Ghost Bio" }
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "7",
-            "Delete User",
-            "Deletes a user via DELETE /users/deleteUser/{userId}.",
-            "DELETE",
-            "/users/deleteUser/{userId}",
-            null,
-            [
-              "Use only disposable test users for delete",
-              "Confirm soft/hard delete behavior matches contract",
-              "Validate related data cleanup (sessions, profile, settings)",
-              "Check 404 for already deleted users",
-            ],
-            [
-              { type: "text", id: "userId", label: "User ID", placeholder: "userId to delete", value: "" },
-            ]
-          )}
-
-          ${createTestScenarioSection(
-            "7-B",
-            "Delete Non-Existent User",
-            "Attempts to delete a user that does not exist to verify error handling.",
-            "DELETE",
-            "/users/deleteUser/{userId}",
-            null,
-            [
-              "Ensure response status is 404 Not Found (or appropriate error)",
-              "Verify idempotent behavior if applicable"
-            ],
-            [
-              { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_delete_id" }
-            ]
-          )}
+         ${ScenarioList.map((scenario)=>{
+						console.log("--");
+						return createTestScenarioSection({
+							...scenario
+						});
+					}).join("")}
         </div>
 
         <div class="demo-section cleanup-section" id="cleanup-section">
@@ -1633,3 +1193,449 @@ apiHandler.handleRequest(apiParams);
     render();
   });
 })();
+
+// const ScenarioList = fetch()
+const ScenarioList = [
+      {
+        scenarioId: "1",
+        title: "Create User",
+        description:
+          "Creates a new user via POST /users/createUser with nested profile and settings support.",
+        apiMethod: "POST",
+        apiEndpoint: "/users/createUser",
+        requestPayload: {
+          userName: "edge_user_01",
+          displayName: "Edge Test User",
+          avatarUrl: "https://example.com/avatar.jpg",
+          role: "user",
+          isNewUser: true,
+          user_settings: {
+            locale: "en-US",
+            notifications: { email: true, sms: false },
+            callVideoMessage: true,
+            presencePreference: "online"
+          },
+          user_profile: {
+            bio: "Edge test bio",
+            gender: "non-binary",
+            age: 29,
+            bodyType: "athletic",
+            hairColor: "brown",
+            country: "US",
+            coverImage: "https://example.com/cover.jpg",
+            backgroundImages: ["https://example.com/bg1.jpg"],
+            socialUrls: ["https://twitter.com/edge"],
+            additionalUrls: ["https://edge.example.com"]
+          }
+        },
+        checklistItems: [
+          "Validate the user is created with the provided username and displayName",
+          "Ensure 409 is returned when username is already taken",
+          "Confirm nested profile/settings fields are persisted",
+          "Check default flags (role, isNewUser) and timestamps",
+          "Verify testing flag is present in POST payload"
+        ],
+        inputFields: [
+          { type: "text", id: "userName", required: true, label: "Username", placeholder: "Unique username", value: "edge_user_01" },
+          { type: "text", id: "displayName", label: "Display Name", placeholder: "Display name", value: "Edge Test User" },
+          { type: "text", id: "avatarUrl", label: "Avatar URL", placeholder: "https://example.com/avatar.jpg", value: "" },
+          {
+            type: "select",
+            id: "role",
+            label: "Role",
+            options: [
+              { value: "user", text: "User" },
+              { value: "admin", text: "Admin" },
+              { value: "moderator", text: "Moderator" }
+            ]
+          },
+          {
+            type: "select",
+            id: "isNewUser",
+            label: "Is New User",
+            options: [
+              { value: "true", text: "True" },
+              { value: "false", text: "False" }
+            ]
+          },
+          { type: "text", id: "user_settings.locale", label: "Locale", placeholder: "en-US", value: "en-US" },
+          {
+            type: "select",
+            id: "user_settings.callVideoMessage",
+            label: "Call Video Message",
+            options: [
+              { value: "true", text: "Enabled" },
+              { value: "false", text: "Disabled" }
+            ]
+          },
+          { type: "text", id: "user_settings.presencePreference", label: "Presence Preference", placeholder: "online", value: "online" },
+          {
+            type: "select",
+            id: "user_settings.notifications.email",
+            label: "Notify by Email",
+            options: [
+              { value: "true", text: "Yes" },
+              { value: "false", text: "No" }
+            ]
+          },
+          {
+            type: "select",
+            id: "user_settings.notifications.sms",
+            label: "Notify by SMS",
+            options: [
+              { value: "false", text: "No" },
+              { value: "true", text: "Yes" }
+            ]
+          },
+          { type: "text", id: "user_profile.bio", label: "Bio", placeholder: "Short bio", value: "Edge test bio" },
+          { type: "text", id: "user_profile.gender", label: "Gender", placeholder: "", value: "" },
+          { type: "text", id: "user_profile.age", label: "Age", placeholder: "Numeric", value: "29", inputMode: "numeric" },
+          { type: "text", id: "user_profile.bodyType", label: "Body Type", placeholder: "", value: "" },
+          { type: "text", id: "user_profile.hairColor", label: "Hair Color", placeholder: "", value: "" },
+          { type: "text", id: "user_profile.country", label: "Country", placeholder: "", value: "US" },
+          { type: "text", id: "user_profile.coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover.jpg", value: "" },
+          { type: "text", id: "user_profile.backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg1.jpg, https://example.com/bg2.jpg", value: "" },
+          { type: "text", id: "user_profile.socialUrls", label: "Social URLs (comma separated)", placeholder: "https://twitter.com/edge", value: "" },
+          { type: "text", id: "user_profile.additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge.example.com", value: "" }
+        ]
+      },
+      {
+        scenarioId: "1-D",
+        title: "Duplicate User",
+        description:
+          "Attempts to create a user with an existing username to verify 409 conflict.",
+        apiMethod: "POST",
+        apiEndpoint: "/users/createUser",
+        requestPayload: { userName: "edge_user_01" },
+        checklistItems: [
+          "Ensure response status is 409 Conflict",
+          "Verify error message indicates duplicate user"
+        ],
+        inputFields: [
+          { type: "text", id: "userName", required: true, label: "Existing Username", value: "edge_user_01" }
+        ]
+      },
+      {
+        scenarioId: "2",
+        title: "Get Users (list)",
+        description:
+          "Fetches users with pagination via GET /users/fetchUsers using limit and offset.",
+        apiMethod: "GET",
+        apiEndpoint: "/users/fetchUsers",
+        requestPayload: null,
+        checklistItems: [
+          "Verify pagination (limit/offset) returns expected counts",
+          "Confirm ordering is consistent and deterministic",
+          "Cross-check count matches database for the filter criteria",
+          "Ensure performance is acceptable for high offsets"
+        ],
+        inputFields: [
+          { type: "text", id: "limit", label: "Limit", placeholder: "Number of users", value: "10", inputMode: "numeric" },
+          { type: "text", id: "offset", label: "Offset", placeholder: "Records to skip", value: "0", inputMode: "numeric" }
+        ]
+      },
+      {
+        scenarioId: "3",
+        title: "Get User by ID",
+        description:
+          "Retrieves a single user via GET /users/fetchUserById/{userId} including presence status.",
+        apiMethod: "GET",
+        apiEndpoint: "/users/fetchUserById/{userId}",
+        requestPayload: null,
+        checklistItems: [
+          "Confirm the response contains user profile plus online status",
+          "Validate 404 behavior for unknown userId",
+          "Check presence fields (online/status) reflect service values",
+          "Ensure sensitive fields are not leaked"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Enter userId (uid)", value: "" }
+        ]
+      },
+      {
+        scenarioId: "3-B",
+        title: "Get Non-Existent User",
+        description:
+          "Attempts to fetch a user that does not exist to verify 404 handling.",
+        apiMethod: "GET",
+        apiEndpoint: "/users/fetchUserById/{userId}",
+        requestPayload: null,
+        checklistItems: [
+          "Ensure response status is 404 Not Found",
+          "Verify error structure contains meaningful message"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_id_99999" }
+        ]
+      },
+      {
+        scenarioId: "4",
+        title: "Update User (comprehensive)",
+        description:
+          "Updates core user fields plus nested settings/profile via PUT /users/updateUser/{userId}.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUser/{userId}",
+        requestPayload: {
+          displayName: "Updated Edge User",
+          avatarUrl: "https://example.com/avatar-new.jpg",
+          role: "moderator",
+          isNewUser: false,
+          user_settings: {
+            locale: "en-GB",
+            notifications: { email: true, sms: true },
+            callVideoMessage: false,
+            presencePreference: "away"
+          },
+          user_profile: {
+            bio: "Updated edge bio",
+            gender: "non-binary",
+            age: 30,
+            bodyType: "fit",
+            hairColor: "black",
+            country: "UK",
+            coverImage: "https://example.com/cover-new.jpg",
+            backgroundImages: ["https://example.com/bg-new.jpg"],
+            socialUrls: ["https://linkedin.com/in/edge"],
+            additionalUrls: ["https://edge-updated.example.com"]
+          }
+        },
+        checklistItems: [
+          "Provide userId path param and expected fields to change",
+          "Ensure nested settings/profile flatten correctly in service",
+          "Confirm 404 on unknown userId and 200 on success",
+          "Validate role changes respect authorization rules",
+          "Check audit fields/timestamps update"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
+          { type: "text", id: "displayName", label: "Display Name", placeholder: "Updated name", value: "Updated Edge User" },
+          { type: "text", id: "avatarUrl", label: "Avatar URL", placeholder: "https://example.com/avatar-new.jpg", value: "" },
+          {
+            type: "select",
+            id: "role",
+            label: "Role",
+            options: [
+              { value: "user", text: "User" },
+              { value: "admin", text: "Admin" },
+              { value: "moderator", text: "Moderator" }
+            ]
+          },
+          {
+            type: "select",
+            id: "isNewUser",
+            label: "Is New User",
+            options: [
+              { value: "true", text: "True" },
+              { value: "false", text: "False" }
+            ]
+          },
+          { type: "text", id: "user_settings.locale", label: "Locale", placeholder: "en-GB", value: "en-GB" },
+          {
+            type: "select",
+            id: "user_settings.callVideoMessage",
+            label: "Call Video Message",
+            options: [
+              { value: "true", text: "Enabled" },
+              { value: "false", text: "Disabled" }
+            ]
+          },
+          { type: "text", id: "user_settings.presencePreference", label: "Presence Preference", placeholder: "away", value: "away" },
+          {
+            type: "select",
+            id: "user_settings.notifications.email",
+            label: "Notify by Email",
+            options: [
+              { value: "true", text: "Yes" },
+              { value: "false", text: "No" }
+            ]
+          },
+          {
+            type: "select",
+            id: "user_settings.notifications.sms",
+            label: "Notify by SMS",
+            options: [
+              { value: "false", text: "No" },
+              { value: "true", text: "Yes" }
+            ]
+          },
+          { type: "text", id: "user_profile.bio", label: "Bio", placeholder: "Updated bio", value: "Updated edge bio" },
+          { type: "text", id: "user_profile.gender", label: "Gender", placeholder: "", value: "non-binary" },
+          { type: "text", id: "user_profile.age", label: "Age", placeholder: "Numeric", value: "30", inputMode: "numeric" },
+          { type: "text", id: "user_profile.bodyType", label: "Body Type", placeholder: "", value: "fit" },
+          { type: "text", id: "user_profile.hairColor", label: "Hair Color", placeholder: "", value: "black" },
+          { type: "text", id: "user_profile.country", label: "Country", placeholder: "", value: "UK" },
+          { type: "text", id: "user_profile.coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover-new.jpg", value: "" },
+          { type: "text", id: "user_profile.backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg-new.jpg", value: "" },
+          { type: "text", id: "user_profile.socialUrls", label: "Social URLs (comma separated)", placeholder: "https://linkedin.com/in/edge", value: "" },
+          { type: "text", id: "user_profile.additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge-updated.example.com", value: "" }
+        ]
+      },
+      {
+        scenarioId: "4-B",
+        title: "Update User Role",
+        description:
+          "Updates just the user role (privilege escalation) to verify role mutation.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUser/{userId}",
+        requestPayload: { role: "moderator" },
+        checklistItems: [
+          "Verify role changes from 'user' to 'moderator'",
+          "Check that other fields remain unchanged (if patch-like behavior)"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "User ID", value: "" },
+          { type: "select", id: "role", label: "New Role", options: [ { value: "moderator", text: "Moderator" }, { value: "admin", text: "Admin" } ], value: "moderator" }
+        ]
+      },
+      {
+        scenarioId: "4-C",
+        title: "Update Non-Existent User",
+        description:
+          "Attempts to update a user that does not exist to verify 404 handling.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUser/{userId}",
+        requestPayload: { displayName: "Ghost User" },
+        checklistItems: [
+          "Ensure response status is 404 Not Found",
+          "Verify system handles invalid ID gracefully without crashing"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_update_id" },
+          { type: "text", id: "displayName", label: "Display Name", value: "Ghost User" }
+        ]
+      },
+      {
+        scenarioId: "5",
+        title: "Update User Settings",
+        description:
+          "Updates only the settings payload via PUT /users/updateUserSettings/{userId}.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUserSettings/{userId}",
+        requestPayload: {
+          locale: "en-US",
+          notifications: { email: true, sms: false },
+          callVideoMessage: false,
+          presencePreference: "online"
+        },
+        checklistItems: [
+          "Ensure only settings fields are changed (no profile mutation)",
+          "Validate boolean toggles persist correctly",
+          "Confirm presencePreference updates status in presence service",
+          "Check 404 on unknown userId"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
+          { type: "text", id: "locale", label: "Locale", placeholder: "en-US", value: "en-US" },
+          { type: "select", id: "callVideoMessage", label: "Call Video Message", options: [ { value: "true", text: "Enabled" }, { value: "false", text: "Disabled" } ] },
+          { type: "text", id: "presencePreference", label: "Presence Preference", placeholder: "online/away/dnd", value: "online" },
+          { type: "select", id: "notifications.email", label: "Notify by Email", options: [ { value: "true", text: "Yes" }, { value: "false", text: "No" } ] },
+          { type: "select", id: "notifications.sms", label: "Notify by SMS", options: [ { value: "false", text: "No" }, { value: "true", text: "Yes" } ] }
+        ]
+      },
+      {
+        scenarioId: "5-B",
+        title: "Update Settings Non-Existent",
+        description:
+          "Attempts to update settings for a user that does not exist to verify 404 handling.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUserSettings/{userId}",
+        requestPayload: { locale: "fr-FR" },
+        checklistItems: [
+          "Ensure response status is 404 Not Found",
+          "Verify system handles invalid ID gracefully"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_settings_id" },
+          { type: "text", id: "locale", label: "Locale", value: "fr-FR" }
+        ]
+      },
+      {
+        scenarioId: "6",
+        title: "Update User Profile",
+        description:
+          "Updates profile fields via PUT /users/updateUserProfile/{userId} without touching settings.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUserProfile/{userId}",
+        requestPayload: {
+          bio: "Updated profile bio",
+          gender: "female",
+          age: 31,
+          bodyType: "athletic",
+          hairColor: "blonde",
+          country: "CA",
+          coverImage: "https://example.com/cover-profile.jpg",
+          backgroundImages: ["https://example.com/bg1-profile.jpg"],
+          socialUrls: ["https://instagram.com/edge"],
+          additionalUrls: ["https://edge-profile.example.com"]
+        },
+        checklistItems: [
+          "Verify profile changes do not overwrite settings",
+          "Ensure array fields (backgroundImages, socialUrls) persist correctly",
+          "Confirm 404 on unknown userId",
+          "Check timestamps/audit entries update"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "User ID", placeholder: "Target userId", value: "" },
+          { type: "text", id: "bio", label: "Bio", placeholder: "Updated profile bio", value: "Updated profile bio" },
+          { type: "text", id: "gender", label: "Gender", placeholder: "", value: "female" },
+          { type: "text", id: "age", label: "Age", placeholder: "Numeric", value: "31", inputMode: "numeric" },
+          { type: "text", id: "bodyType", label: "Body Type", placeholder: "", value: "athletic" },
+          { type: "text", id: "hairColor", label: "Hair Color", placeholder: "", value: "blonde" },
+          { type: "text", id: "country", label: "Country", placeholder: "", value: "CA" },
+          { type: "text", id: "coverImage", label: "Cover Image URL", placeholder: "https://example.com/cover-profile.jpg", value: "" },
+          { type: "text", id: "backgroundImages", label: "Background Images (comma separated)", placeholder: "https://example.com/bg1-profile.jpg", value: "" },
+          { type: "text", id: "socialUrls", label: "Social URLs (comma separated)", placeholder: "https://instagram.com/edge", value: "" },
+          { type: "text", id: "additionalUrls", label: "Additional URLs (comma separated)", placeholder: "https://edge-profile.example.com", value: "" }
+        ]
+      },
+      {
+        scenarioId: "6-B",
+        title: "Update Profile Non-Existent",
+        description:
+          "Attempts to update profile for a user that does not exist to verify 404 handling.",
+        apiMethod: "PUT",
+        apiEndpoint: "/users/updateUserProfile/{userId}",
+        requestPayload: { bio: "Ghost Bio" },
+        checklistItems: [
+          "Ensure response status is 404 Not Found",
+          "Verify system handles invalid ID gracefully"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_profile_id" },
+          { type: "text", id: "bio", label: "Bio", value: "Ghost Bio" }
+        ]
+      },
+      {
+        scenarioId: "7",
+        title: "Delete User",
+        description: "Deletes a user via DELETE /users/deleteUser/{userId}.",
+        apiMethod: "DELETE",
+        apiEndpoint: "/users/deleteUser/{userId}",
+        requestPayload: null,
+        checklistItems: [
+          "Use only disposable test users for delete",
+          "Confirm soft/hard delete behavior matches contract",
+          "Validate related data cleanup (sessions, profile, settings)",
+          "Check 404 for already deleted users"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", label: "User ID", placeholder: "userId to delete", value: "" }
+        ]
+      },
+      {
+        scenarioId: "7-B",
+        title: "Delete Non-Existent User",
+        description:
+          "Attempts to delete a user that does not exist to verify error handling.",
+        apiMethod: "DELETE",
+        apiEndpoint: "/users/deleteUser/{userId}",
+        requestPayload: null,
+        checklistItems: [
+          "Ensure response status is 404 Not Found (or appropriate error)",
+          "Verify idempotent behavior if applicable"
+        ],
+        inputFields: [
+          { type: "text", id: "userId", required: true, label: "Non-Existent ID", value: "non_existent_delete_id" }
+        ]
+      }
+    ];
