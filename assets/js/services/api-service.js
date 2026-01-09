@@ -247,6 +247,24 @@ window.PayloadBuilders = {
     };
   },
   /**
+   * Build payload for user-blocks section
+   * @param {Object} filterValues - Filter values object
+   * @param {Object} paginationOptions - Pagination options object
+   * @returns {Object} Payload object for API request
+   */
+  "user-blocks"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "user-blocks",
+      fromUserId: filterValues.fromUserId || undefined,
+      toUserId: filterValues.toUserId || undefined,
+      scope: filterValues.scope || undefined,
+      flag: filterValues.flag || undefined,
+      isPermanent: filterValues.isPermanent === true ? true : undefined,
+      pagination: paginationOptions
+    };
+  },
+  /**
    * Build payload for media section
    * @param {Object} filterValues - Filter values object
    * @param {Object} paginationOptions - Pagination options object
@@ -914,6 +932,39 @@ window.ApiService = {
           // Return true if item date is on or before to date
           return itemCreatedDate <= toDateFilter;
         });
+      }
+
+      // Apply user-block specific filters
+      if (filters.fromUserId) {
+        const fromFilter = String(filters.fromUserId).toLowerCase();
+        dataArray = dataArray.filter((item) =>
+          String(item.fromUserId || "").toLowerCase().includes(fromFilter)
+        );
+      }
+
+      if (filters.toUserId) {
+        const toFilter = String(filters.toUserId).toLowerCase();
+        dataArray = dataArray.filter((item) =>
+          String(item.toUserId || "").toLowerCase().includes(toFilter)
+        );
+      }
+
+      if (filters.scope) {
+        const scopeFilter = String(filters.scope).toLowerCase();
+        dataArray = dataArray.filter(
+          (item) => String(item.scope || "").toLowerCase() === scopeFilter
+        );
+      }
+
+      if (filters.flag) {
+        const flagFilter = String(filters.flag).toLowerCase();
+        dataArray = dataArray.filter(
+          (item) => String(item.flag || "").toLowerCase() === flagFilter
+        );
+      }
+
+      if (filters.isPermanent === true) {
+        dataArray = dataArray.filter((item) => item.isPermanent === true);
       }
 
       // Get pagination offset value

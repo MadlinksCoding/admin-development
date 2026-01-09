@@ -22,6 +22,10 @@ window.AdminConfig = {
       label: "Users"
     },
     {
+      slug: "user-blocks",
+      label: "UsersBlocks"
+    },
+    {
       slug: "media",
       label: "Media"
     },
@@ -243,6 +247,37 @@ window.AdminConfig = {
         name: "q",
         label: "Search",
         placeholder: "search…"
+      }
+    ],
+    "user-blocks": [
+      {
+        type: "text",
+        name: "fromUserId",
+        label: "From User ID",
+        placeholder: "e.g. 123"
+      },
+      {
+        type: "text",
+        name: "toUserId",
+        label: "To User ID",
+        placeholder: "e.g. 987"
+      },
+      {
+        type: "select",
+        name: "scope",
+        label: "Scope",
+        options: ["", "private_chat", "feed", "global", "app"]
+      },
+      {
+        type: "select",
+        name: "flag",
+        label: "Flag",
+        options: ["", "fraud", "abuse", "violence", "unacceptable_behavior", "exploitation", "hate", "harassment", "child_safety", "self_injury", "graphic_violence", "dangerous_activities", "impersonation", "security", "spam"]
+      },
+      {
+        type: "toggle",
+        name: "isPermanent",
+        label: "Permanent Only"
       }
     ],
     media: [

@@ -1,0 +1,6 @@
+/* Keep action buttons on one line and allow extra room */
+#user-blocks-table th:last-child,
+#user-blocks-table td:last-child {
+	white-space: nowrap;
+	width: 200px;
+}
