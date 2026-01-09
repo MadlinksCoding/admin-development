@@ -220,7 +220,7 @@
                 <div class="row g-3">
                   <div class="col-md-6">
                     <label class="form-label">From</label>
-                    <input type="text" class="form-control" name="blocker_id" required  value="system" readonly>
+                    <input type="text" class="form-control" name="blocker_id" required  value="system">
                   </div>
                   <div class="col-md-6">
                     <label class="form-label">To User ID</label>
@@ -276,31 +276,25 @@
 
   function serializeForm(formEl) {
     const formData = new FormData(formEl);
+    // Only send expected fields
     const data = {};
-    formData.forEach((value, key) => {
-      data[key] = value;
-    });
-
-    // Map to API expected fields
-    data.from = data.blocker_id || data.fromUserId;
-    data.to = data.blocked_id || data.toUserId;
-    data.scope = data.scope;
+    data.from = formData.get('blocker_id') || formData.get('fromUserId');
+    data.to = formData.get('blocked_id') || formData.get('toUserId');
+    data.scope = formData.get('scope');
+    data.flag = formData.get('flag');
+    data.reason = formData.get('reason');
     data.is_permanent = formEl.querySelector("[name='isPermanent']")?.checked || false;
 
     // expires_at should be Unix seconds
-    if (data.expiresAt) {
-      const ts = Math.floor(new Date(data.expiresAt).getTime() / 1000);
+    const expiresAt = formData.get('expiresAt');
+    if (expiresAt) {
+      const ts = Math.floor(new Date(expiresAt).getTime() / 1000);
       if (!Number.isNaN(ts)) data.expires_at = ts;
     }
 
     // testing: only send when checked
     const testingChecked = formEl.querySelector("[name='testing']")?.checked;
-    if (testingChecked) data.testing = true; else delete data.testing;
-
-    // Clean up form-only keys
-    delete data.expiresAt;
-    delete data.fromUserId;
-    delete data.toUserId;
+    if (testingChecked) data.testing = true;
 
     return data;
   }
