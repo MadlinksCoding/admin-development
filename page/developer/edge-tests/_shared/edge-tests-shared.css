@@ -281,7 +281,7 @@
   width: 100%;
   padding: 0.5rem;
   border: 1px solid rgba(36, 99, 235, 0.2);
-  border-radius: 0;
+  border-radius: 6px;
   font-family: inherit;
   font-size: inherit;
   background: white;
@@ -292,6 +292,22 @@
   outline: none;
   border-color: var(--bs-primary);
   box-shadow: 0 0 0 2px rgba(36, 99, 235, 0.1);
+}
+
+/* Collapse toggle icon visibility states */
+.collapse-toggle .icon-expanded,
+.collapse-toggle .icon-collapsed {
+  display: inline-block;
+  vertical-align: middle;
+}
+.collapse-toggle .icon-collapsed {
+  display: none;
+}
+.collapse-toggle.collapsed .icon-expanded {
+  display: none;
+}
+.collapse-toggle.collapsed .icon-collapsed {
+  display: inline-block;
 }
 
 /* Responsive Adjustments */
