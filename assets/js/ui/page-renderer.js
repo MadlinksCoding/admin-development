@@ -230,7 +230,10 @@
           this.attachChipHandlers(chipsWrapper);
         }
 
-        // Render table
+        // Clear previous tables only when not appending (not load more)
+        if (!shouldAppend) {
+          this.container.innerHTML = "";
+        }
         if (this.pagination.enabled) {
           // Paginated mode: create new table block for each page
           const tableHtml = window.Table.create(this.tableConfig, dataItems);
@@ -274,7 +277,7 @@
         } else {
           // Simple mode: single table, no pagination
           const tableHtml = window.Table.create(this.tableConfig, dataItems);
-          this.container.innerHTML += tableHtml;
+          this.container.innerHTML = tableHtml;
           window.Table.init();
         }
 
