@@ -256,11 +256,11 @@ window.PayloadBuilders = {
     return {
       env: window.Env.current,
       section: "user-blocks",
-      fromUserId: filterValues.fromUserId || undefined,
-      toUserId: filterValues.toUserId || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
       scope: filterValues.scope || undefined,
-      flag: filterValues.flag || undefined,
-      isPermanent: filterValues.isPermanent === true ? true : undefined,
+      limit: filterValues.limit || paginationOptions.limit || undefined,
+      nextToken: filterValues.nextToken || undefined,
       pagination: paginationOptions
     };
   },
@@ -481,6 +481,12 @@ async function localFetch(sectionName) {
  * @returns {Promise<number|null>} Total count or null if unavailable
  */
 async function getTotalCount(sectionName, filters = {}) {
+  // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
+  const baseSectionName = sectionName.split("/").pop();
+  if (baseSectionName === "user-blocks") {
+    return null;
+  }
+
   try {
     // Get page-specific API configuration
     const pageApiConfig = getPageApiConfig(sectionName);
@@ -640,8 +646,12 @@ window.ApiService = {
 
       // Try to fetch from remote API
       try {
-        // Check if this section uses GET with query parameters (kyc-shufti)
-        const usesGetMethod = sectionName === "kyc-shufti" || baseSectionName === "kyc-shufti";
+        // Check if this section uses GET with query parameters (kyc-shufti, user-blocks)
+        const usesGetMethod =
+          sectionName === "kyc-shufti" ||
+          baseSectionName === "kyc-shufti" ||
+          sectionName === "user-blocks" ||
+          baseSectionName === "user-blocks";
         
         // Declare API response variable
         let apiResponse;
@@ -650,40 +660,59 @@ window.ApiService = {
         if (usesGetMethod) {
           // Build query parameters for GET request
           const queryParams = new URLSearchParams();
-          // Add search query (maps to userId or reference based on pattern)
-          if (filters.q) {
-            // If query starts with "ref-", it's likely a reference ID
-            if (filters.q.startsWith("ref-")) {
-              queryParams.append("reference", filters.q);
-            } else {
-              // Otherwise, treat as userId
-              queryParams.append("userId", filters.q);
+          if (baseSectionName === "kyc-shufti") {
+            // KYC-specific query params
+            if (filters.q) {
+              if (filters.q.startsWith("ref-")) {
+                queryParams.append("reference", filters.q);
+              } else {
+                queryParams.append("userId", filters.q);
+              }
             }
+            if (filters.status && filters.status !== "" && filters.status !== "Any") {
+              queryParams.append("status", filters.status);
+            }
+            if (filters.from) {
+              queryParams.append("dateFrom", filters.from);
+            }
+            if (filters.to) {
+              queryParams.append("dateTo", filters.to);
+            }
+            if (pagination.limit) {
+              queryParams.append("limit", pagination.limit);
+            }
+            if (pagination.offset) {
+              queryParams.append("offset", pagination.offset);
+            }
+          } else if (baseSectionName === "user-blocks") {
+            const offsetVal = Number(pagination?.offset || 0);
+            // Clear stale tokens when starting over
+            if (offsetVal === 0 && filters.nextToken) {
+              delete filters.nextToken;
+              if (window.AdminState?.activeFilters?.[baseSectionName]) {
+                delete window.AdminState.activeFilters[baseSectionName].nextToken;
+              }
+            }
+
+            if (filters.from) queryParams.append("from", filters.from);
+            if (filters.to) queryParams.append("to", filters.to);
+            if (filters.scope) queryParams.append("scope", filters.scope);
+            const limitParam = filters.limit || pagination.limit;
+            if (limitParam) queryParams.append("limit", limitParam);
+            if (filters.nextToken) queryParams.append("nextToken", filters.nextToken);
+            queryParams.append("show_total_count", "1");
           }
-          // Add status filter (send as-is, no mapping needed)
-          if (filters.status && filters.status !== "" && filters.status !== "Any") {
-            // Send status directly to backend (already in backend format)
-            queryParams.append("status", filters.status);
+          // For user-blocks, list endpoint is /listUserBlocks under the configured base
+          let listUrl = endpointUrl;
+          if (baseSectionName === "user-blocks") {
+            listUrl = endpointUrl.endsWith("/")
+              ? `${endpointUrl}listUserBlocks`
+              : `${endpointUrl}/listUserBlocks`;
           }
-          // Add dateFrom filter
-          if (filters.from) {
-            queryParams.append("dateFrom", filters.from);
-          }
-          // Add dateTo filter
-          if (filters.to) {
-            queryParams.append("dateTo", filters.to);
-          }
-          // Add limit for pagination
-          if (pagination.limit) {
-            queryParams.append("limit", pagination.limit);
-          }
-          // Add offset for pagination
-          if (pagination.offset) {
-            queryParams.append("offset", pagination.offset);
-          }
+
           // Construct full URL with query parameters
           const queryString = queryParams.toString();
-          const fullUrl = queryString ? `${endpointUrl}?${queryString}` : endpointUrl;
+          const fullUrl = queryString ? `${listUrl}?${queryString}` : listUrl;
           // Fetch data from remote endpoint using GET
           apiResponse = await window.ApiService._fetchWithTimeout(fullUrl, {
             // Use GET method
@@ -777,6 +806,30 @@ window.ApiService = {
             total: allItems.length, // Use filtered count, not original count
             nextCursor: paginationEndIndex < allItems.length ? paginationEndIndex : null,
             prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
+          };
+        } else if (baseSectionName === "user-blocks" && (responseData.blocks || responseData.items)) {
+          const blocksArray = responseData.blocks || responseData.items || [];
+          const items = Array.isArray(blocksArray)
+            ? blocksArray.map((b) => ({
+                ...b,
+                id: b.id || b.blockId || b.sk_scope
+              }))
+            : [];
+
+          const total = responseData.totalCount ?? responseData.count ?? items.length;
+          const offsetVal = Number(pagination?.offset || 0);
+          const nextToken = responseData.nextToken || null;
+          const nextCursor = nextToken ? offsetVal + items.length : null;
+          const prevCursor = offsetVal > 0 ? Math.max(0, offsetVal - (pagination?.limit || items.length || 0)) : null;
+
+          // Persist nextToken in filters for subsequent calls
+          // Do not persist nextToken in filters anymore
+
+          responseData = {
+            items,
+            total,
+            nextCursor,
+            prevCursor
           };
         } else if (responseData.items && Array.isArray(responseData.items)) {
           // Apply client-side filtering for other sections that use POST

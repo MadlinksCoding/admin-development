@@ -252,32 +252,27 @@ window.AdminConfig = {
     "user-blocks": [
       {
         type: "text",
-        name: "fromUserId",
+        name: "from",
         label: "From User ID",
-        placeholder: "e.g. 123"
+        placeholder: "user_a"
       },
       {
         type: "text",
-        name: "toUserId",
+        name: "to",
         label: "To User ID",
-        placeholder: "e.g. 987"
+        placeholder: "user_b"
       },
       {
         type: "select",
         name: "scope",
         label: "Scope",
-        options: ["", "private_chat", "feed", "global", "app"]
+        options: ["", "feed", "private_chat", "global"]
       },
       {
-        type: "select",
-        name: "flag",
-        label: "Flag",
-        options: ["", "fraud", "abuse", "violence", "unacceptable_behavior", "exploitation", "hate", "harassment", "child_safety", "self_injury", "graphic_violence", "dangerous_activities", "impersonation", "security", "spam"]
-      },
-      {
-        type: "toggle",
-        name: "isPermanent",
-        label: "Permanent Only"
+        type: "text",
+        name: "limit",
+        label: "Limit",
+        placeholder: "20"
       }
     ],
     media: [

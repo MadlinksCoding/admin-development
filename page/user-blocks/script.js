@@ -51,8 +51,8 @@
     const withBase = (path) => (base ? `${base}${path}` : path);
     return {
       list: withBase("/listUserBlocks"),
-      unblock: withBase("/unblockUserBlock"),
-      create: withBase("/addSystemBlock")
+      unblock: withBase("/unblockUser"),
+      create: withBase("/blockUser")
     };
   }
 
@@ -281,15 +281,27 @@
       data[key] = value;
     });
 
-    // Keep both native API names and UI-friendly aliases
-    data.blocker_id = data.blocker_id || data.fromUserId;
-    data.blocked_id = data.blocked_id || data.toUserId;
-    data.fromUserId = data.fromUserId || data.blocker_id;
-    data.toUserId = data.toUserId || data.blocked_id;
+    // Map to API expected fields
+    data.from = data.blocker_id || data.fromUserId;
+    data.to = data.blocked_id || data.toUserId;
+    data.scope = data.scope;
+    data.is_permanent = formEl.querySelector("[name='isPermanent']")?.checked || false;
 
-    data.isPermanent = formEl.querySelector("[name='isPermanent']")?.checked || false;
-    data.testing = formEl.querySelector("[name='testing']")?.checked || false;
-    if (!data.expiresAt) delete data.expiresAt;
+    // expires_at should be Unix seconds
+    if (data.expiresAt) {
+      const ts = Math.floor(new Date(data.expiresAt).getTime() / 1000);
+      if (!Number.isNaN(ts)) data.expires_at = ts;
+    }
+
+    // testing: only send when checked
+    const testingChecked = formEl.querySelector("[name='testing']")?.checked;
+    if (testingChecked) data.testing = true; else delete data.testing;
+
+    // Clean up form-only keys
+    delete data.expiresAt;
+    delete data.fromUserId;
+    delete data.toUserId;
+
     return data;
   }
 
@@ -349,7 +361,11 @@
       await window.ApiService._fetchWithTimeout(routes.unblock, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blockId: row.id || row.blockId, testing: true })
+        body: JSON.stringify({
+          from: row.blocker_id || row.fromUserId,
+          to: row.blocked_id || row.toUserId,
+          scope: row.scope
+        })
       });
       alert("Block removed");
       document.body.dispatchEvent(new CustomEvent("section:refresh"));
