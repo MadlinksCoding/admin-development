@@ -199,7 +199,13 @@
         ]);
 
         const dataItems = apiResponse.items || [];
-        this.total = totalCount !== null ? totalCount : (apiResponse.total || dataItems.length);
+        this.total = totalCount !== null ? totalCount : (apiResponse.totalCount ||apiResponse.total || dataItems.length);
+
+        // Update active tab count
+        if (this.tabs.length > 0 && this.activeTab) {
+          this.tabCounts[this.activeTab] = this.total;
+          this.updateTabLabels();
+        }
 
         // Calculate pagination info
         const startIndex = this.cursor + 1;
@@ -211,12 +217,12 @@
           this.pageContent.innerHTML = "";
           this.pageContent.appendChild(this.container);
 
-          // Add tabs if configured
+          // Add tabs if configured (add to pageContent, not container)
           if (this.tabs.length > 0) {
             const tabsHtml = this.renderTabsHtml();
             const tabsWrapper = document.createElement("div");
             tabsWrapper.innerHTML = tabsHtml;
-            this.container.appendChild(tabsWrapper);
+            this.pageContent.insertBefore(tabsWrapper, this.container);
             window.Tabs.init();
             this.refreshTabCounts();
           }
@@ -256,7 +262,7 @@
             this.pageContent.appendChild(loadMoreWrap);
           }
 
-          const hasMore = apiResponse.nextCursor !== null || (this.cursor + dataItems.length < this.total);
+          const hasMore = apiResponse.hasMore !== false && (apiResponse.nextToken !== null || (this.cursor + dataItems.length < this.total));
           const loadMoreHtml = window.Table.createLoadMoreControls({ disabled: !hasMore });
           loadMoreWrap.innerHTML = loadMoreHtml;
 
@@ -264,7 +270,7 @@
           if (loadMoreBtn) {
             loadMoreBtn.onclick = () => {
               if (hasMore) {
-                this.cursor = apiResponse.nextCursor || (this.cursor + limit);
+                this.cursor = (this.cursor + limit);
                 this.render(true);
               }
             };

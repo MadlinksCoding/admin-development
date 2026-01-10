@@ -296,6 +296,7 @@ window.PayloadBuilders = {
       userId: filterValues.userId || undefined,
       from: filterValues.from || undefined,
       to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
       pagination: paginationOptions
     };
   },
@@ -483,7 +484,7 @@ async function localFetch(sectionName) {
 async function getTotalCount(sectionName, filters = {}) {
   // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
   const baseSectionName = sectionName.split("/").pop();
-  if (baseSectionName === "user-blocks" || baseSectionName === "moderation") {
+  if (baseSectionName === "user-blocks" || baseSectionName === "s") {
     return null;
   }
 
@@ -521,7 +522,7 @@ async function getTotalCount(sectionName, filters = {}) {
       if (!response.ok) return null;
       
       const data = await response.json();
-      return data.count || data.total || null;
+      return data.count || data.total || data.totalCount|| null;
     } else {
       // For mock data, apply filters and return filtered count
       // Use fetchWithTimeout directly to avoid circular dependency
@@ -702,6 +703,14 @@ window.ApiService = {
             if (filters.nextToken) queryParams.append("nextToken", filters.nextToken);
             queryParams.append("show_total_count", "1");
           }else if (baseSectionName ==="moderation") {
+            
+            // Auto-append all filters that have been set (excluding undefined/null/empty string)
+            Object.entries(filters).forEach(([key, value]) => {
+              if (value !== undefined && value !== null && value !== "") {
+              queryParams.append(key, value);
+              }
+            });
+
             queryParams.append("show_total_count", "1");
           }
           // For user-blocks, list endpoint is /listUserBlocks under the configured base

@@ -123,6 +123,7 @@
       const action = btn.getAttribute("data-action");
       const moderationId = btn.getAttribute("data-moderation-id");
       const userId = btn.getAttribute("data-user-id");
+      const reason = btn.getAttribute("data-reason");
 
       const row = btn.closest("tr");
       if (row) {
@@ -130,7 +131,7 @@
         setTimeout(() => row.classList.remove("highlight"), 2000);
       }
 
-      await showActionModal(action, moderationId, userId);
+      await showActionModal(action, moderationId, userId,reason);
     });
   }
 
@@ -651,7 +652,7 @@
   /**
    * Show action modal (approve/reject/resubmission)
    */
-  async function showActionModal(action, moderationId, userId) {
+  async function showActionModal(action, moderationId, userId,reason) {
     const modal = window.ModalViewer;
     if (!modal) return;
 
@@ -663,12 +664,19 @@
 
     const modalTitle = document.querySelector("#viewModal .modal-title");
     if (modalTitle) modalTitle.textContent = actionLabels[action] || "Confirm Action";
+      // modal.setAttribute("tabindex", "10");
 
     modal.body.innerHTML = `
       <div class="alert alert-warning">
         <p><strong>Action:</strong> ${actionLabels[action] || action}</p>
         <p><strong>Moderation ID:</strong> ${moderationId}</p>
         <p><strong>User ID:</strong> ${userId}</p>
+        ${action === 'approve' || action === 'reject' ? `
+        <div class="mb-3">
+          <label for="actionReason" class="form-label">Reason <span class="text-muted">(required)</span></label>
+          <textarea class="form-control" id="actionReason" rows="3" placeholder="Enter reason for ${action === 'approve' ? 'approval' : 'decline'}...">${reason || ''}</textarea>
+        </div>
+        ` : ''}
         <p class="mb-0">Confirm this action?</p>
       </div>
       <div class="d-grid gap-2">
@@ -681,10 +689,61 @@
     modal.modal.show();
 
     // Attach confirm handler
-    document.getElementById("confirmActionBtn")?.addEventListener("click", async () => {
-      alert(`TODO: Submit ${action} for ${moderationId}`);
-      modal.modal.hide();
-    });
+    // Attach confirm handler
+document.getElementById("confirmActionBtn")?.addEventListener("click", async () => {
+  // Get reason from textarea if present
+  let actionReason = reason;
+  if (action === 'approve' || action === 'reject') {
+    const reasonTextarea = document.getElementById("actionReason");
+    actionReason = reasonTextarea?.value.trim() || '';
+    if (!actionReason) {
+      alert("Please enter a reason for this action.");
+      return;
+    }
+  }
+
+  // Real API call, following the user-blocks pattern, using getBaseUrl
+  const baseUrl = getBaseUrl();
+  let endpoint = '', payload = {};
+  if (action === 'approve' || action === 'reject') {
+    endpoint = baseUrl + `/moderation/applyModerationAction/${moderationId}`;
+    payload = {
+      moderationId,
+      userId,
+      action,
+      reason: actionReason,
+      moderatedBy: userId || 'QA Tester',
+      moderationType: 'standard'
+    };
+  } else if (action === 'resubmission') {
+    endpoint = baseUrl + `/moderation/addNote/${moderationId}`;
+    payload = {
+      userId,
+      note: 'Resubmission required',
+      addedBy: userId || 'system'
+    };
+      setTimeout(() => modal.modal.hide(), 2000);
+
+  }
+  if (endpoint) {
+    modal.body.innerHTML = `<div class="text-center py-4">${spinner()} Submitting...</div>`;
+    try {
+      await window.ApiService._fetchWithTimeout(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      modal.body.innerHTML = `<div class="alert alert-success">Action successful!</div>`;
+      setTimeout(() => modal.modal.hide(), 1000);
+    } catch (err) {
+      modal.body.innerHTML = `<div class="alert alert-danger">${err?.message || 'API error'}</div>`;
+      setTimeout(() => modal.modal.hide(), 1000);
+    }
+  } else {
+    alert(`TODO: Submit ${action} for ${moderationId}`);
+    modal.modal.hide();
+  }
+});
   }
 
   /**
@@ -780,29 +839,28 @@
             }
             
             // Add public note if provided
+            let newNote;
             if (publicNoteText) {
-              const publicNote = {
+               newNote = {
                 text: publicNoteText,
                 addedBy: currentUser,
                 addedAt: timestamp,
                 isPublic: true,
                 publicNote: publicNoteText
               };
-              rowData.notes.push(publicNote);
             }
             
             // Add private note if provided
             if (privateNoteText) {
-              const privateNote = {
+              newNote = {
                 text: privateNoteText,
                 addedBy: currentUser,
                 addedAt: timestamp,
                 isPublic: false,
                 note: privateNoteText
               };
-              rowData.notes.push(privateNote);
             }
-            
+            rowData.notes.push(newNote);            
             // Also add to meta.history if it exists
             if (!rowData.meta) {
               rowData.meta = {};
@@ -828,6 +886,22 @@
                 timestamp: timestamp
               });
             }
+              const baseUrl = getBaseUrl();
+
+              // TODO: Save to API if not using mock data
+            const endpoint = baseUrl+ `/moderation/addNote/${rowData.moderationId}`;
+          
+            await window.ApiService._fetchWithTimeout(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                "userId": userId,
+                "note": newNote.text,
+                "addedBy": newNote.addedBy,
+              }
+                )
+            });
+
 
             // Update stored rowData in modal
             const contentModal = document.getElementById("contentRevealModal");
@@ -862,9 +936,8 @@
                 }
               });
             }
-
-            // TODO: Save to API if not using mock data
-            return rowData;
+          
+          return rowData;
           },
           "Saving note...",
           successMessage,
