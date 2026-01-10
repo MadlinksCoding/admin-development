@@ -1,0 +1,58 @@
+{
+  "fraud": {
+    "text": "Your Account is suspended due to potential fraudulent activities",
+    "action": "Contact Support"
+  },
+  "abuse": {
+    "text": "Your Account will be suspended due to reported abusive behavior",
+    "action": "Contact Support"
+  },
+  "violence": {
+    "text": "Your Account is suspended due to violence",
+    "action": "Contact Support"
+  },
+  "unacceptable_behavior": {
+    "text": "Your Account is suspended due to unacceptable behavior",
+    "action": "Contact Support"
+  },
+  "exploitation": {
+    "text": "Your Account is suspended due to exploitation - non-consensual media",
+    "action": "Contact Support"
+  },
+  "hate": {
+    "text": "Your Account is suspended due to hateful activities",
+    "action": "Contact Support"
+  },
+  "harassment": {
+    "text": "Your Account will be suspended due to harassment and criticism",
+    "action": "Contact Support"
+  },
+  "child_safety": {
+    "text": "Your Account is suspended due to child safety",
+    "action": "Contact Support"
+  },
+  "self_injury": {
+    "text": "Your Account is suspended due to self-injury or harmful behavior",
+    "action": "Contact Support"
+  },
+  "graphic_violence": {
+    "text": "Your Account is suspended due to graphic violence or threats",
+    "action": "Contact Support"
+  },
+  "dangerous_activities": {
+    "text": "Your Account is suspended due to dangerous activities",
+    "action": "Contact Support"
+  },
+  "impersonation": {
+    "text": "Your Account will be suspended due to impersonation",
+    "action": "Contact Support"
+  },
+  "security": {
+    "text": "Your Account is suspended due to site security and access",
+    "action": "Contact Support"
+  },
+  "spam": {
+    "text": "Your Account will be suspended due to spam detection",
+    "action": "Contact Support"
+  }
+}

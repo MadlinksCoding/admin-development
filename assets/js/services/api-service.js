@@ -4,7 +4,7 @@
  */
 
 // Flag to determine whether to use remote API endpoints or local JSON files
-const USE_ENDPOINTS = false;
+const USE_ENDPOINTS = true;
 // Timeout duration for fetch requests in milliseconds (20 seconds)
 const FETCH_TIMEOUT = 20000;
 
@@ -483,7 +483,7 @@ async function localFetch(sectionName) {
 async function getTotalCount(sectionName, filters = {}) {
   // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
   const baseSectionName = sectionName.split("/").pop();
-  if (baseSectionName === "user-blocks") {
+  if (baseSectionName === "user-blocks" || baseSectionName === "moderation") {
     return null;
   }
 
@@ -651,7 +651,7 @@ window.ApiService = {
           sectionName === "kyc-shufti" ||
           baseSectionName === "kyc-shufti" ||
           sectionName === "user-blocks" ||
-          baseSectionName === "user-blocks";
+          baseSectionName === "user-blocks" || sectionName=="moderation";
         
         // Declare API response variable
         let apiResponse;
@@ -701,6 +701,8 @@ window.ApiService = {
             if (limitParam) queryParams.append("limit", limitParam);
             if (filters.nextToken) queryParams.append("nextToken", filters.nextToken);
             queryParams.append("show_total_count", "1");
+          }else if (baseSectionName ==="moderation") {
+            queryParams.append("show_total_count", "1");
           }
           // For user-blocks, list endpoint is /listUserBlocks under the configured base
           let listUrl = endpointUrl;
@@ -708,6 +710,11 @@ window.ApiService = {
             listUrl = endpointUrl.endsWith("/")
               ? `${endpointUrl}listUserBlocks`
               : `${endpointUrl}/listUserBlocks`;
+          }
+          if (baseSectionName == "moderation") {
+            listUrl = endpointUrl.endsWith("/")
+              ? `${endpointUrl}fetchModerations`
+              : `${endpointUrl}/fetchModerations`;
           }
 
           // Construct full URL with query parameters

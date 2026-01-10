@@ -174,11 +174,10 @@
       actions: [
         { label: "View", className: "btn btn-sm btn-outline-primary", onClick: "handleBlockView" },
         {
-          label: "Unblock",
-          className: "btn btn-sm btn-primary",
+          label: `{(row) => row.deleted_at ? "Reblock" : "Unblock"}`,
+          className: (row) => row.deleted_at ? "btn btn-sm btn-danger" : "btn btn-sm btn-primary",
           onClick: "handleBlockUnblock",
-          confirm: "Unblock this user block?",
-          condition: (row) => !row.deleted_at
+          condition: () => true
         }
       ]
     };
@@ -350,22 +349,54 @@
   };
 
   window.handleBlockUnblock = async (row) => {
-    const routes = getRoutes();
-    try {
-      await window.ApiService._fetchWithTimeout(routes.unblock, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          from: row.blocker_id || row.fromUserId,
-          to: row.blocked_id || row.toUserId,
-          scope: row.scope
-        })
-      });
-      alert("Block removed");
-      document.body.dispatchEvent(new CustomEvent("section:refresh"));
-    } catch (e) {
-      alert(e?.message || "Failed to unblock");
+    if (!window.ModalViewer || typeof window.ModalViewer.showHtml !== "function") {
+      console.error("ModalViewer is not available");
+      return;
     }
+    // Use ModalViewer to show confirmation
+    const confirmHtml = `
+      <div class="text-center">
+        <div class="mb-3">Are you sure you want to unblock this user?</div>
+        <button id="unblockConfirmBtn" class="btn btn-danger me-2">Unblock</button>
+        <button id="unblockCancelBtn" class="btn btn-secondary">Cancel</button>
+      </div>
+    `;
+    window.ModalViewer.showHtml(confirmHtml);
+
+    // Handler for modal buttons
+    const handler = async (e) => {
+      if (e.target && e.target.id === "unblockConfirmBtn") {
+        e.preventDefault();
+        document.removeEventListener("click", handler, true);
+        const routes = getRoutes();
+        try {
+          await window.ApiService._fetchWithTimeout(routes.unblock, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: row.blocker_id || row.fromUserId,
+              to: row.blocked_id || row.toUserId,
+              scope: row.scope
+            })
+          });
+          window.ModalViewer.showHtml('<div class="text-success text-center">Block removed successfully.</div>');
+          setTimeout(() => {
+            window.ModalViewer.modal.hide();
+            document.body.dispatchEvent(new CustomEvent("section:refresh"));
+          }, 1000);
+        } catch (e) {
+          window.ModalViewer.showHtml(`<div class="text-danger text-center">${e?.message || "Failed to unblock"}</div>`);
+          setTimeout(() => {
+            window.ModalViewer.modal.hide();
+          }, 1500);
+        }
+      } else if (e.target && e.target.id === "unblockCancelBtn") {
+        e.preventDefault();
+        document.removeEventListener("click", handler, true);
+        window.ModalViewer.modal.hide();
+      }
+    };
+    document.addEventListener("click", handler, true);
   };
 
   waitForAdminShell().then(async () => {
