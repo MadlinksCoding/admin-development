@@ -280,18 +280,51 @@ apiHandler.handleRequest(apiParams);
 			`;
 		}
 
-		let requestPayloadHtml = "";
-		const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
-		if (methodNeedsBody) {
-			const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
-			requestPayloadHtml = `
-				<div class="api-params-block">
-					<strong>Request Payload (editable):</strong>
-					<textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
-					<small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
-				</div>
-			`;
-		}
+		// let requestPayloadHtml = "";
+		// const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
+		// if (methodNeedsBody) {
+		// 	const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
+		// 	requestPayloadHtml = `
+		// 		<div class="api-params-block">
+		// 			<strong>Request Payload (editable):</strong>
+		// 			<textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
+		// 			<small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
+		// 		</div>
+		// 	`;
+		// }
+
+		// In the createTestScenarioSection function, replace the requestPayloadHtml assignment with:
+let requestPayloadHtml = "";
+const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
+if (methodNeedsBody) {
+    const getUrl = opts.getBaseUrl || (() => getBaseUrl(opts.sectionKey, opts.userBaseUrlOverride));
+    const baseUrl = getUrl();
+    const fullUrl = `${baseUrl}${apiEndpoint}`;
+    const payloadWithTesting = requestPayload ? { ...requestPayload, testing: true } : { testing: true };
+    const payloadJson = JSON.stringify(payloadWithTesting, null, 2);
+    
+    // Generate JavaScript fetch example
+    const jsExample = `fetch("${fullUrl}", {
+  method: "${apiMethod}",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(${payloadJson})
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));`;
+    
+    requestPayloadHtml = `
+        <div class="api-params-block">
+            <strong>Request Payload Example (JavaScript):</strong>
+            <div class="code-example mt-2">
+                <pre><code>${jsExample}</code></pre>
+            </div>
+            <small class="text-muted d-block mt-1"><code>testing: true</code> is added automatically to the payload.</small>
+        </div>
+    `;
+}
 
 		const apiEndpointHtml = `
 			<div class="api-params-block">
@@ -446,6 +479,46 @@ apiHandler.handleRequest(apiParams);
 		});
 	}
 
+	function renderPrerequisites(prerequisites) {
+		if (!prerequisites || prerequisites.length === 0) return '';
+		const list = prerequisites.map(prereq => `<li>${prereq}</li>`).join('');
+		return `
+		 <div class="demo-section prerequisites-section" id="prerequisites-section">
+          <h3><i class="bi bi-gear"></i> Prerequisites</h3>
+          <p class="description-text">
+            Before using this edge test page, ensure the following prerequisites are met:
+          </p>
+				<h6 class="text-muted">Prerequisites</h6>
+				<ul >${list}</ul>
+				  <div class="important-note">
+            <strong>Note:</strong> All POST requests automatically include <code>testing: true</code> parameter.
+          </div>
+        </div>
+			
+		`;
+	}
+
+	function renderTerminologies(terminologies) {
+		if (!terminologies || Object.keys(terminologies).length === 0) return '';
+		const list = Object.entries(terminologies).map(([term, desc]) => 
+			`<div class="terminology-item">
+				<strong>${term}:</strong> ${desc}
+			</div>
+		`
+		).join('');
+		return `
+        <div class="demo-section terminology-section" id="terminology-section">
+		<h3><i class="bi bi-book"></i> Terminology</h3>
+			<div class="terminologies-section mb-3">
+				<h6 class="text-muted">Terminologies</h6>
+					${list}
+				</div>
+			</div>
+			</div>
+		`;
+	}
+	
+
 	window.EdgeTestsShared = {
 		waitForAdminShell,
 		defaultFormatScenarioLabel,
@@ -454,5 +527,7 @@ apiHandler.handleRequest(apiParams);
 		buildCodeUsageExample,
 		createTestScenarioSection,
 		attachIndexLinkSmoothScroll,
+		renderPrerequisites,
+		renderTerminologies,
 	};
 })();

@@ -251,13 +251,13 @@
         },
         {
           "id": "is_permanent",
-          "label": "Where should the block apply?",
+          "label": "Is this a permanent block?",
           "type": "select",
-          "required": true,
           "options": [
-            { "value": "private_chat", "text": "Private Messages (DMs)" }
+            { "value": "false", "text": "No – Temporary" },
+            { "value": "true", "text": "Yes – Permanent" }
           ],
-          "value": false
+          "value":false
         },
         {
           "id": "expires_at",
@@ -313,13 +313,13 @@
         },
         {
           "id": "is_permanent",
-          "label": "Where should the block apply?",
+          "label": "Is this a permanent block?",
           "type": "select",
-          "required": true,
           "options": [
-            { "value": "private_chat", "text": "Private Messages (DMs)" }
+            { "value": "false", "text": "No – Temporary" },
+            { "value": "true", "text": "Yes – Permanent" }
           ],
-          "value": false
+          "value":false
         },
         {
           "id": "expires_at",
@@ -657,13 +657,13 @@
         },
         {
           "id": "is_permanent",
-          "label": "Where should the block apply?",
+          "label": "Is this a permanent block?",
           "type": "select",
-          "required": true,
           "options": [
-            { "value": "private_chat", "text": "Private Messages (DMs)" }
+            { "value": "false", "text": "No – Temporary" },
+            { "value": "true", "text": "Yes – Permanent" }
           ],
-          "value": false
+          "value":false
         },
         {
           "id": "expires_at",
@@ -740,13 +740,15 @@
           "value": "global",
           "options": [{ "value": "global", "text": "Global" }]
         },
-        {
+       {
           "id": "is_permanent",
-          "label": "Where should the block apply?",
+          "label": "Is this a permanent block?",
           "type": "select",
-          "required": true,
-          "options": [{ "value": "global", "text": "Global" }],
-          "value": false
+          "options": [
+            { "value": "false", "text": "No – Temporary" },
+            { "value": "true", "text": "Yes – Permanent" }
+          ],
+          "value":false
         },
         {
           "id": "expires_at",

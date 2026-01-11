@@ -5,169 +5,190 @@
  */
 
 (function () {
-	const INDENT_SUB_SCENARIOS = false;
-	let ScenarioList = [];
-	function waitForAdminShell() {
-		return new Promise((resolveFunction) => {
-			if (window.AdminShell && window.AdminShell.pageContent) {
-				resolveFunction();
-			} else {
-				document.body.addEventListener("adminshell:ready", resolveFunction, {
-					once: true,
-				});
-			}
-		});
-	}
+  const INDENT_SUB_SCENARIOS = false;
+  let ScenarioList = [];
+  function waitForAdminShell() {
+    return new Promise((resolveFunction) => {
+      if (window.AdminShell && window.AdminShell.pageContent) {
+        resolveFunction();
+      } else {
+        document.body.addEventListener("adminshell:ready", resolveFunction, {
+          once: true,
+        });
+      }
+    });
+  }
 
-	waitForAdminShell().then(async () => {
-		if (!window.AdminShell || !window.AdminShell.pageContent) {
-			console.error("AdminShell.pageContent is still null after ready event");
-			return;
-		}
-		try {
-			const resp = await fetch('scenarios.json');
-			const json = await resp.json();
-			ScenarioList = Array.isArray(json) ? json : (json.scenarios || []);
-			console.log("scenarios_length:",ScenarioList.length )
-		} catch (e) {
-			console.warn('[Edge Tests Block] Failed to load scenarios.json:', e);
-			ScenarioList = [];
-		}
+  waitForAdminShell().then(async () => {
+    if (!window.AdminShell || !window.AdminShell.pageContent) {
+      console.error("AdminShell.pageContent is still null after ready event");
+      return;
+    }
+    try {
+      const resp = await fetch("scenarios.json");
+      const json = await resp.json();
+      ScenarioList = Array.isArray(json) ? json : json.scenarios || [];
+      console.log("scenarios_length:", ScenarioList.length);
+    } catch (e) {
+      console.warn("[Edge Tests Block] Failed to load scenarios.json:", e);
+      ScenarioList = [];
+    }
 
-		const pageContent = window.AdminShell.pageContent;
-		const { spinner, spinnerInline, spinnerSmall, errorMessage } =
-			window.AdminUtils || {};
+    const pageContent = window.AdminShell.pageContent;
+    const { spinner, spinnerInline, spinnerSmall, errorMessage } =
+      window.AdminUtils || {};
 
-		let userBaseUrlOverride = null;
+    let userBaseUrlOverride = null;
 
-		function formatScenarioLabel(id, title) {
-			return `Test Scenarios ${id}: ${title}`;
-		}
+    function formatScenarioLabel(id, title) {
+      return `Test Scenarios ${id}: ${title}`;
+    }
 
-		function getBaseUrl() {
-			let baseUrl = userBaseUrlOverride || "http://localhost:3000";
+    function getBaseUrl() {
+      let baseUrl = userBaseUrlOverride || "http://localhost:3000";
 
-			try {
-				const configScriptElement = document.getElementById("api-config");
-				if (configScriptElement) {
-					const pageConfig = JSON.parse(configScriptElement.textContent);
-					const currentEnvironment = window.Env?.current || "dev";
-					if (!userBaseUrlOverride) {
-						const sectionKey = document.body?.dataset?.section || "block";
-						const sectionConfig = pageConfig[sectionKey];
-						const blockConfig = pageConfig["block"];
-						const targetConfig = sectionConfig || blockConfig;
+      try {
+        const configScriptElement = document.getElementById("api-config");
+        if (configScriptElement) {
+          const pageConfig = JSON.parse(configScriptElement.textContent);
+          const currentEnvironment = window.Env?.current || "dev";
+          if (!userBaseUrlOverride) {
+            const sectionKey = document.body?.dataset?.section || "block";
+            const sectionConfig = pageConfig[sectionKey];
+            const blockConfig = pageConfig["block"];
+            const targetConfig = sectionConfig || blockConfig;
 
-						if (
-							targetConfig &&
-							targetConfig[currentEnvironment] &&
-							targetConfig[currentEnvironment].endpoint
-						) {
-							const endpointUrl = targetConfig[currentEnvironment].endpoint;
-							const urlMatch = endpointUrl.match(/^(https?:\/\/[^\/]+)/);
-							if (urlMatch) {
-								baseUrl = urlMatch[1];
-							}
-						} else {
-							const adminEndpoints = window.AdminEndpoints;
-							if (
-								adminEndpoints &&
-								adminEndpoints.base &&
-								adminEndpoints.base[currentEnvironment]
-							) {
-								baseUrl = adminEndpoints.base[currentEnvironment];
-							}
-						}
-					}
-				}
-			} catch (configError) {
-				console.warn(
-					"[Edge Tests Block] Could not parse API config, using default base URL:",
-					configError
-				);
-			}
+            if (
+              targetConfig &&
+              targetConfig[currentEnvironment] &&
+              targetConfig[currentEnvironment].endpoint
+            ) {
+              const endpointUrl = targetConfig[currentEnvironment].endpoint;
+              const urlMatch = endpointUrl.match(/^(https?:\/\/[^\/]+)/);
+              if (urlMatch) {
+                baseUrl = urlMatch[1];
+              }
+            } else {
+              const adminEndpoints = window.AdminEndpoints;
+              if (
+                adminEndpoints &&
+                adminEndpoints.base &&
+                adminEndpoints.base[currentEnvironment]
+              ) {
+                baseUrl = adminEndpoints.base[currentEnvironment];
+              }
+            }
+          }
+        }
+      } catch (configError) {
+        console.warn(
+          "[Edge Tests Block] Could not parse API config, using default base URL:",
+          configError
+        );
+      }
 
-			console.log("[Edge Tests Block] Using base URL:", baseUrl);
-			return baseUrl;
-		}
+      console.log("[Edge Tests Block] Using base URL:", baseUrl);
+      return baseUrl;
+    }
 
-		function createIndexNavigation() {
-			return window.EdgeTestsShared.createIndexNavigation(ScenarioList, {
-				indentSub: INDENT_SUB_SCENARIOS,
-				formatScenarioLabel,
-			});
-		}
+    function createIndexNavigation() {
+      return window.EdgeTestsShared.createIndexNavigation(ScenarioList, {
+        indentSub: INDENT_SUB_SCENARIOS,
+        formatScenarioLabel,
+      });
+    }
 
-		function createTestScenarioSection(params) {
-			return window.EdgeTestsShared.createTestScenarioSection(params, {
-				formatScenarioLabel,
-				getBaseUrl,
-				sectionKey: "block",
-			});
-		}
+    function createTestScenarioSection() {
+      return `<div class="demo-section">
+          <div class="d-flex align-items-center justify-content-between">
+                <h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+                <button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
+                  <i class="bi bi-arrows-expand"></i> Expand All
+                </button>
+              </div>
+					<p class="description-text">
+						Click "Test API Call" on any scenario below to execute the test. 
+						Results will be displayed in the response container.
+					</p>
 
-		// Shared CSS now provides collapse toggle and input styles.
+			${ScenarioList.map((scenario) => {
+        return window.EdgeTestsShared.createTestScenarioSection(scenario, {
+          getBaseUrl,
+          sectionKey: "moderation",
+        });
+      }).join("")}
+        </div>;`;
+    }
+    function renderPrerequisites(prerequisites) {
+      return window.EdgeTestsShared.renderPrerequisites(prerequisites);
+    }
 
-		function buildCodeUsageExample(
-			scenarioId,
-			method,
-			endpoint,
-			payload,
-			inputFields = []
-		) {
-			const baseUrl = getBaseUrl();
-			const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map(
-				(m) => m[1]
-			);
-			const endpointTemplate = pathParams.reduce(
-				(acc, name) => acc.replace(`{${name}}`, "${" + name + "}"),
-				endpoint
-			);
-			const pathParamDecls = pathParams
-				.map((name) => `const ${name} = "<${name}>"; // path param`)
-				.join("\n");
-			const fullUrlLine = pathParams.length
-				? `const fullUrl = \`${baseUrl}${endpointTemplate}\`;`
-				: `const fullUrl = \`${baseUrl}${endpoint}\`;`;
+    function renderTerminologies(terminologies) {
+      return window.EdgeTestsShared.renderTerminologies(terminologies);
+    }
 
-			const sampleValue = (field) => {
-				if (field.value !== undefined && field.value !== "") return field.value;
-				if (field.placeholder) return field.placeholder;
-				if (field.options && field.options.length > 0)
-					return field.options[0].value;
-				return `<${field.id}>`;
-			};
+    // Shared CSS now provides collapse toggle and input styles.
 
-			const queryFields =
-				method === "GET"
-					? inputFields.filter((f) => !pathParams.includes(f.id))
-					: [];
+    function buildCodeUsageExample(
+      scenarioId,
+      method,
+      endpoint,
+      payload,
+      inputFields = []
+    ) {
+      const baseUrl = getBaseUrl();
+      const pathParams = [...endpoint.matchAll(/\{([^}]+)\}/g)].map(
+        (m) => m[1]
+      );
+      const endpointTemplate = pathParams.reduce(
+        (acc, name) => acc.replace(`{${name}}`, "${" + name + "}"),
+        endpoint
+      );
+      const pathParamDecls = pathParams
+        .map((name) => `const ${name} = "<${name}>"; // path param`)
+        .join("\n");
+      const fullUrlLine = pathParams.length
+        ? `const fullUrl = \`${baseUrl}${endpointTemplate}\`;`
+        : `const fullUrl = \`${baseUrl}${endpoint}\`;`;
 
-			let queryParamsBlock = "{}";
-			if (queryFields.length) {
-				const qpLines = queryFields
-					.map(
-						(f) =>
-							`    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`
-					)
-					.join("\n");
-				queryParamsBlock = `{
+      const sampleValue = (field) => {
+        if (field.value !== undefined && field.value !== "") return field.value;
+        if (field.placeholder) return field.placeholder;
+        if (field.options && field.options.length > 0)
+          return field.options[0].value;
+        return `<${field.id}>`;
+      };
+
+      const queryFields =
+        method === "GET"
+          ? inputFields.filter((f) => !pathParams.includes(f.id))
+          : [];
+
+      let queryParamsBlock = "{}";
+      if (queryFields.length) {
+        const qpLines = queryFields
+          .map(
+            (f) =>
+              `    ${JSON.stringify(f.id)}: ${JSON.stringify(sampleValue(f))},`
+          )
+          .join("\n");
+        queryParamsBlock = `{
 ${qpLines}
 	}`;
-			}
+      }
 
-			const payloadWithTesting =
-				method === "POST" || method === "PUT" || method === "PATCH"
-					? payload
-						? { ...payload, testing: true }
-						: { testing: true }
-					: {};
-			const requestDataBlock =
-				method === "POST" || method === "PUT" || method === "PATCH"
-					? JSON.stringify(payloadWithTesting, null, 2)
-					: "{}";
+      const payloadWithTesting =
+        method === "POST" || method === "PUT" || method === "PATCH"
+          ? payload
+            ? { ...payload, testing: true }
+            : { testing: true }
+          : {};
+      const requestDataBlock =
+        method === "POST" || method === "PUT" || method === "PATCH"
+          ? JSON.stringify(payloadWithTesting, null, 2)
+          : "{}";
 
-			let paramExplanations = `
+      let paramExplanations = `
 				<div class="mt-3">
 					<strong>Parameter Explanations:</strong>
 					<div class="param-item">
@@ -187,17 +208,17 @@ ${qpLines}
 					</div>
 			`;
 
-			if (method === "POST" || method === "PUT" || method === "PATCH") {
-				paramExplanations += `
+      if (method === "POST" || method === "PUT" || method === "PATCH") {
+        paramExplanations += `
 					<div class="param-item">
 						<span class="param-name">requestData</span>
 						<span class="param-type">(Object)</span>
 						<div class="param-desc">Request body data. <strong>MUST include testing: true for POST requests.</strong></div>
 					</div>
 				`;
-			}
+      }
 
-			paramExplanations += `
+      paramExplanations += `
 					<div class="param-item">
 						<span class="param-name">responseCallback</span>
 						<span class="param-type">(Function)</span>
@@ -206,11 +227,11 @@ ${qpLines}
 				</div>
 			`;
 
-			const pathBlock = pathParams.length ? `${pathParamDecls}\n` : "";
+      const pathBlock = pathParams.length ? `${pathParamDecls}\n` : "";
 
-			let codeExample = "";
-			if (method === "GET") {
-				codeExample = `
+      let codeExample = "";
+      if (method === "GET") {
+        codeExample = `
 // Example: GET request using APIHandler
 const apiHandler = new APIHandler();
 ${pathBlock}${fullUrlLine}
@@ -227,8 +248,8 @@ const apiParams = {
 
 apiHandler.handleRequest(apiParams);
 				`;
-			} else {
-				codeExample = `
+      } else {
+        codeExample = `
 // Example: ${method} request using APIHandler
 const apiHandler = new APIHandler();
 ${pathBlock}${fullUrlLine}
@@ -245,9 +266,9 @@ const apiParams = {
 
 apiHandler.handleRequest(apiParams);
 				`;
-			}
+      }
 
-			return `
+      return `
 				<div class="api-params-block">
 					<div class="d-flex align-items-center justify-content-between">
 						<strong>Code Usage Example:</strong>
@@ -265,439 +286,430 @@ apiHandler.handleRequest(apiParams);
 					</div>
 				</div>
 			`;
-		}
+    }
 
-		async function testScenario(scenarioId, method, endpoint, payload) {
-			const responseContainer = document.getElementById(
-				`response-${scenarioId}`
-			);
-			if (!responseContainer) {
-				console.error(
-					`Response container not found for scenario: ${scenarioId}`
-				);
-				return;
-			}
+    async function testScenario(scenarioId, method, endpoint, payload) {
+      const responseContainer = document.getElementById(
+        `response-${scenarioId}`
+      );
+      if (!responseContainer) {
+        console.error(
+          `Response container not found for scenario: ${scenarioId}`
+        );
+        return;
+      }
 
-			responseContainer.innerHTML = spinnerInline
-				? spinnerInline("Testing API call...")
-				: '<div class="loading-state">Testing API call...</div>';
+      responseContainer.innerHTML = spinnerInline
+        ? spinnerInline("Testing API call...")
+        : '<div class="loading-state">Testing API call...</div>';
 
-			try {
-				const baseUrl = getBaseUrl();
-				const inputFields = document.querySelectorAll(
-					`#test-scenario-${scenarioId} input[data-field-id], #test-scenario-${scenarioId} select[data-field-id]`
-				);
-				const rawInputValues = {};
-				inputFields.forEach((field) => {
-					const fieldId = field.getAttribute("data-field-id");
-					const fieldType = field.getAttribute("data-field-type") || field.type;
-					let fieldValue = field.value;
+      try {
+        const baseUrl = getBaseUrl();
+        const inputFields = document.querySelectorAll(
+          `#test-scenario-${scenarioId} input[data-field-id], #test-scenario-${scenarioId} select[data-field-id]`
+        );
+        const rawInputValues = {};
+        inputFields.forEach((field) => {
+          const fieldId = field.getAttribute("data-field-id");
+          const fieldType = field.getAttribute("data-field-type") || field.type;
+          let fieldValue = field.value;
 
-					if (typeof fieldValue === "string") {
-						fieldValue = fieldValue.trim();
-					}
+          if (typeof fieldValue === "string") {
+            fieldValue = fieldValue.trim();
+          }
 
-					if (fieldType === "datetime-local" && fieldValue) {
-						const parsedDate = Date.parse(fieldValue);
-						if (!Number.isNaN(parsedDate)) {
-							fieldValue = parsedDate.toString();
-						}
-					}
-					rawInputValues[fieldId] = fieldValue;
-				});
+          if (fieldType === "datetime-local" && fieldValue) {
+            const parsedDate = Date.parse(fieldValue);
+            if (!Number.isNaN(parsedDate)) {
+              fieldValue = parsedDate.toString();
+            }
+          }
+          rawInputValues[fieldId] = fieldValue;
+        });
 
-				const missingRequired = [];
-				const inputValues = Object.fromEntries(
-					Object.entries(rawInputValues).filter(([key, value]) => {
-						const fieldElement = document.querySelector(
-							`#test-scenario-${scenarioId} [data-field-id="${key}"]`
-						);
-						const isRequired = fieldElement?.dataset?.required === "true";
-						if (
-							isRequired &&
-							(value === undefined || value === null || value === "")
-						) {
-							missingRequired.push(key);
-						}
+        const missingRequired = [];
+        const inputValues = Object.fromEntries(
+          Object.entries(rawInputValues).filter(([key, value]) => {
+            const fieldElement = document.querySelector(
+              `#test-scenario-${scenarioId} [data-field-id="${key}"]`
+            );
+            const isRequired = fieldElement?.dataset?.required === "true";
+            if (
+              isRequired &&
+              (value === undefined || value === null || value === "")
+            ) {
+              missingRequired.push(key);
+            }
 
-						return value !== "";
-					})
-				);
+            return value !== "";
+          })
+        );
 
-				if (missingRequired.length > 0) {
-					const missingLabels = missingRequired.join(", ");
-					const validationMessage = `Missing required fields: ${missingLabels}`;
-					responseContainer.innerHTML = errorMessage
-						? errorMessage(new Error(validationMessage), "Validation error")
-						: `
+        if (missingRequired.length > 0) {
+          const missingLabels = missingRequired.join(", ");
+          const validationMessage = `Missing required fields: ${missingLabels}`;
+          responseContainer.innerHTML = errorMessage
+            ? errorMessage(new Error(validationMessage), "Validation error")
+            : `
 							<div class="alert alert-warning">
 								<strong><i class="bi bi-exclamation-triangle"></i> Validation:</strong>
 								<p>${validationMessage}</p>
 							</div>
 						`;
-					return;
-				}
+          return;
+        }
 
-				// If an expiresAt datetime is provided (ms since epoch) but temporary is not,
-				// derive temporary (seconds) as the difference from now.
-				try {
-					if (
-						Object.prototype.hasOwnProperty.call(inputValues, "expiresAt") &&
-						!Object.prototype.hasOwnProperty.call(inputValues, "temporary")
-					) {
-						const expMs = parseInt(String(inputValues.expiresAt), 10);
-						if (!Number.isNaN(expMs)) {
-							const nowMs = Date.now();
-							const diffSec = Math.max(0, Math.ceil((expMs - nowMs) / 1000));
-							inputValues.temporary = String(diffSec);
-						}
-					}
-				} catch (e) {
-					console.warn(
-						"[Edge Tests Block] Could not derive temporary from expiresAt:",
-						e
-					);
-				}
+        // If an expiresAt datetime is provided (ms since epoch) but temporary is not,
+        // derive temporary (seconds) as the difference from now.
+        try {
+          if (
+            Object.prototype.hasOwnProperty.call(inputValues, "expiresAt") &&
+            !Object.prototype.hasOwnProperty.call(inputValues, "temporary")
+          ) {
+            const expMs = parseInt(String(inputValues.expiresAt), 10);
+            if (!Number.isNaN(expMs)) {
+              const nowMs = Date.now();
+              const diffSec = Math.max(0, Math.ceil((expMs - nowMs) / 1000));
+              inputValues.temporary = String(diffSec);
+            }
+          }
+        } catch (e) {
+          console.warn(
+            "[Edge Tests Block] Could not derive temporary from expiresAt:",
+            e
+          );
+        }
 
-				let finalEndpoint = endpoint;
-				const pathParamKeys = new Set();
-				Object.entries(inputValues).forEach(([fieldId, fieldValue]) => {
-					if (finalEndpoint.includes(`{${fieldId}}`)) {
-						finalEndpoint = finalEndpoint.replace(`{${fieldId}}`, fieldValue);
-						pathParamKeys.add(fieldId);
-					}
-				});
-				const fullUrl = `${baseUrl}${finalEndpoint}`;
+        let finalEndpoint = endpoint;
+        const pathParamKeys = new Set();
+        Object.entries(inputValues).forEach(([fieldId, fieldValue]) => {
+          if (finalEndpoint.includes(`{${fieldId}}`)) {
+            finalEndpoint = finalEndpoint.replace(`{${fieldId}}`, fieldValue);
+            pathParamKeys.add(fieldId);
+          }
+        });
+        const fullUrl = `${baseUrl}${finalEndpoint}`;
 
-				const methodNeedsBody =
-					method === "POST" || method === "PUT" || method === "PATCH";
+        const methodNeedsBody =
+          method === "POST" || method === "PUT" || method === "PATCH";
 
-				let editablePayload = payload;
-				if (methodNeedsBody) {
-					const payloadEditor = document.getElementById(
-						`payload-${scenarioId}`
-					);
-					if (payloadEditor) {
-						try {
-							editablePayload = payloadEditor.value
-								? JSON.parse(payloadEditor.value)
-								: {};
-						} catch (parseError) {
-							responseContainer.innerHTML = errorMessage
-								? errorMessage(parseError, "Invalid JSON in payload")
-								: `
+        let editablePayload = payload;
+        if (methodNeedsBody) {
+          const payloadEditor = document.getElementById(
+            `payload-${scenarioId}`
+          );
+          if (payloadEditor) {
+            try {
+              editablePayload = payloadEditor.value
+                ? JSON.parse(payloadEditor.value)
+                : {};
+            } catch (parseError) {
+              responseContainer.innerHTML = errorMessage
+                ? errorMessage(parseError, "Invalid JSON in payload")
+                : `
 									<div class="alert alert-warning">
 										<strong><i class="bi bi-exclamation-triangle"></i> Validation:</strong>
 										<p>Payload must be valid JSON. ${parseError.message}</p>
 									</div>
 								`;
-							return;
-						}
-					}
-				}
+              return;
+            }
+          }
+        }
 
-				const arrayFieldIds = new Set(["blocks"]);
+        const arrayFieldIds = new Set(["blocks"]);
 
-				const parseArrayValue = (raw) => {
-					if (Array.isArray(raw)) return raw;
-					if (typeof raw !== "string") return raw;
-					const trimmed = raw.trim();
-					if (!trimmed) return [];
-					if (
-						(trimmed.startsWith("[") && trimmed.endsWith("]")) ||
-						trimmed.startsWith("{")
-					) {
-						try {
-							const parsed = JSON.parse(trimmed);
-							return Array.isArray(parsed) ? parsed : parsed;
-						} catch (e) {
-							return trimmed
-								.split(",")
-								.map((v) => v.trim())
-								.filter(Boolean);
-						}
-					}
-					return trimmed
-						.split(",")
-						.map((v) => v.trim())
-						.filter(Boolean);
-				};
+        const parseArrayValue = (raw) => {
+          if (Array.isArray(raw)) return raw;
+          if (typeof raw !== "string") return raw;
+          const trimmed = raw.trim();
+          if (!trimmed) return [];
+          if (
+            (trimmed.startsWith("[") && trimmed.endsWith("]")) ||
+            trimmed.startsWith("{")
+          ) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              return Array.isArray(parsed) ? parsed : parsed;
+            } catch (e) {
+              return trimmed
+                .split(",")
+                .map((v) => v.trim())
+                .filter(Boolean);
+            }
+          }
+          return trimmed
+            .split(",")
+            .map((v) => v.trim())
+            .filter(Boolean);
+        };
 
-				const nestDotPaths = (flatObj = {}, arrayFields = new Set()) => {
-					const clone = { ...flatObj };
-					const normalize = (keyPath, value) => {
-						if (arrayFields.has(keyPath)) {
-							return parseArrayValue(value);
-						}
-						if (value === "true") return true;
-						if (value === "false") return false;
-						return value;
-					};
+        const nestDotPaths = (flatObj = {}, arrayFields = new Set()) => {
+          const clone = { ...flatObj };
+          const normalize = (keyPath, value) => {
+            if (arrayFields.has(keyPath)) {
+              return parseArrayValue(value);
+            }
+            if (value === "true") return true;
+            if (value === "false") return false;
+            return value;
+          };
 
-					Object.entries(flatObj).forEach(([key, value]) => {
-						if (!key.includes(".")) {
-							clone[key] = normalize(key, value);
-							return;
-						}
-						delete clone[key];
-						const parts = key.split(".");
-						let cursor = clone;
-						parts.forEach((part, idx) => {
-							const isLast = idx === parts.length - 1;
-							if (isLast) {
-								const fullPath = parts.join(".");
-								cursor[part] = normalize(fullPath, value);
-							} else {
-								if (
-									cursor[part] === undefined ||
-									typeof cursor[part] !== "object" ||
-									Array.isArray(cursor[part])
-								) {
-									cursor[part] = {};
-								}
-								cursor = cursor[part];
-							}
-						});
-					});
-					return clone;
-				};
+          Object.entries(flatObj).forEach(([key, value]) => {
+            if (!key.includes(".")) {
+              clone[key] = normalize(key, value);
+              return;
+            }
+            delete clone[key];
+            const parts = key.split(".");
+            let cursor = clone;
+            parts.forEach((part, idx) => {
+              const isLast = idx === parts.length - 1;
+              if (isLast) {
+                const fullPath = parts.join(".");
+                cursor[part] = normalize(fullPath, value);
+              } else {
+                if (
+                  cursor[part] === undefined ||
+                  typeof cursor[part] !== "object" ||
+                  Array.isArray(cursor[part])
+                ) {
+                  cursor[part] = {};
+                }
+                cursor = cursor[part];
+              }
+            });
+          });
+          return clone;
+        };
 
-				let requestData = {};
-				if (methodNeedsBody && editablePayload) {
-					requestData = { ...editablePayload, ...inputValues, testing: true };
-				} else if (methodNeedsBody) {
-					requestData = { ...inputValues, testing: true };
-				}
+        let requestData = {};
+        if (methodNeedsBody && editablePayload) {
+          requestData = { ...editablePayload, ...inputValues, testing: true };
+        } else if (methodNeedsBody) {
+          requestData = { ...inputValues, testing: true };
+        }
 
-				if (methodNeedsBody) {
-					requestData = nestDotPaths(requestData, arrayFieldIds);
-				}
+        if (methodNeedsBody) {
+          requestData = nestDotPaths(requestData, arrayFieldIds);
+        }
 
-				const apiHandler = new APIHandler();
-				let didRenderResponse = false;
+        const apiHandler = new APIHandler();
+        let didRenderResponse = false;
 
-				const apiParams = {
-					apiBaseUrl: fullUrl,
-					queryParams:
-						method === "GET"
-							? Object.fromEntries(
-								Object.entries(inputValues).filter(
-									([key]) => !pathParamKeys.has(key)
-								)
-							)
-							: {},
-					httpMethod: method,
-					requestData: requestData,
-					responseCallback: (data) => {
-						didRenderResponse = true;
-						const responseJson = JSON.stringify(data, null, 2);
-						responseContainer.innerHTML = `
+        const apiParams = {
+          apiBaseUrl: fullUrl,
+          queryParams:
+            method === "GET"
+              ? Object.fromEntries(
+                  Object.entries(inputValues).filter(
+                    ([key]) => !pathParamKeys.has(key)
+                  )
+                )
+              : {},
+          httpMethod: method,
+          requestData: requestData,
+          responseCallback: (data) => {
+            didRenderResponse = true;
+            const responseJson = JSON.stringify(data, null, 2);
+            responseContainer.innerHTML = `
 							<div class="alert alert-success">
 								<strong><i class="bi bi-check-circle"></i> Success (200):</strong>
 								<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${responseJson}</code></pre>
 							</div>
 						`;
-					},
-				};
+          },
+        };
 
-				const apiHandlerResponseListener = (event) => {
-					const detail = event?.detail;
-					const args = detail?.args;
-					if (
-						!args ||
-						args.apiBaseUrl !== apiParams.apiBaseUrl ||
-						args.httpMethod !== apiParams.httpMethod
-					) {
-						return;
-					}
-					if (detail.success === false) {
-						didRenderResponse = true;
-						const errorMessageText =
-							detail.error_message?.message ||
-							detail.error_message ||
-							"Request failed";
-						const statusText =
-							detail.response?.status || detail.error_message?.status
-								? `Status: ${detail.response?.status || detail.error_message?.status
-								}${detail.response?.statusText
-									? ` ${detail.response.statusText}`
-									: ""
-								}`
-								: "";
-						const responsePayload =
-							detail.data?.error ??
-							detail.data ??
-							detail.response?.data?.error ??
-							detail.response?.data ??
-							detail.response?.body ??
-							detail.response?.responseJSON ??
-							detail.response?.responseText ??
-							detail.response;
-						const responseBlock = responsePayload
-							? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${typeof responsePayload === "string"
-								? responsePayload
-								: JSON.stringify(responsePayload, null, 2)
-							}</code></pre>`
-							: "";
-						responseContainer.innerHTML = `
+        const apiHandlerResponseListener = (event) => {
+          const detail = event?.detail;
+          const args = detail?.args;
+          if (
+            !args ||
+            args.apiBaseUrl !== apiParams.apiBaseUrl ||
+            args.httpMethod !== apiParams.httpMethod
+          ) {
+            return;
+          }
+          if (detail.success === false) {
+            didRenderResponse = true;
+            const errorMessageText =
+              detail.error_message?.message ||
+              detail.error_message ||
+              "Request failed";
+            const statusText =
+              detail.response?.status || detail.error_message?.status
+                ? `Status: ${
+                    detail.response?.status || detail.error_message?.status
+                  }${
+                    detail.response?.statusText
+                      ? ` ${detail.response.statusText}`
+                      : ""
+                  }`
+                : "";
+            const responsePayload =
+              detail.data?.error ??
+              detail.data ??
+              detail.response?.data?.error ??
+              detail.response?.data ??
+              detail.response?.body ??
+              detail.response?.responseJSON ??
+              detail.response?.responseText ??
+              detail.response;
+            const responseBlock = responsePayload
+              ? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${
+                  typeof responsePayload === "string"
+                    ? responsePayload
+                    : JSON.stringify(responsePayload, null, 2)
+                }</code></pre>`
+              : "";
+            responseContainer.innerHTML = `
 							<div class="alert alert-danger">
 								<strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
 								<p>${statusText} ${errorMessageText}</p>
 								${responseBlock}
 							</div>
 						`;
-					}
-				};
-				document.addEventListener(
-					"dash-api-handler-response",
-					apiHandlerResponseListener
-				);
+          }
+        };
+        document.addEventListener(
+          "dash-api-handler-response",
+          apiHandlerResponseListener
+        );
 
-				try {
-					await apiHandler.handleRequest(apiParams);
-				} finally {
-					document.removeEventListener(
-						"dash-api-handler-response",
-						apiHandlerResponseListener
-					);
-					if (
-						!didRenderResponse &&
-						responseContainer.innerHTML.includes("Testing API call")
-					) {
-						responseContainer.innerHTML = `
+        try {
+          await apiHandler.handleRequest(apiParams);
+        } finally {
+          document.removeEventListener(
+            "dash-api-handler-response",
+            apiHandlerResponseListener
+          );
+          if (
+            !didRenderResponse &&
+            responseContainer.innerHTML.includes("Testing API call")
+          ) {
+            responseContainer.innerHTML = `
 							<div class="alert alert-danger">
 								<strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
 								<p>No response received. Please check the console or network tab.</p>
 							</div>
 						`;
-					}
-				}
-			} catch (error) {
-				const responsePayload =
-					error?.data?.error ??
-					error?.data ??
-					error?.response?.data?.error ??
-					error?.response?.data ??
-					error?.response?.body ??
-					error?.response?.responseJSON ??
-					error?.response?.responseText ??
-					error?.response;
-				const responseBlock = responsePayload
-					? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${typeof responsePayload === "string"
-						? responsePayload
-						: JSON.stringify(responsePayload, null, 2)
-					}</code></pre>`
-					: "";
-				responseContainer.innerHTML = `
+          }
+        }
+      } catch (error) {
+        const responsePayload =
+          error?.data?.error ??
+          error?.data ??
+          error?.response?.data?.error ??
+          error?.response?.data ??
+          error?.response?.body ??
+          error?.response?.responseJSON ??
+          error?.response?.responseText ??
+          error?.response;
+        const responseBlock = responsePayload
+          ? `<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${
+              typeof responsePayload === "string"
+                ? responsePayload
+                : JSON.stringify(responsePayload, null, 2)
+            }</code></pre>`
+          : "";
+        responseContainer.innerHTML = `
 					<div class="alert alert-danger">
 						<strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
-						<p>Status: ${error.status || error?.response?.status || ""}${error?.response?.statusText ? ` ${error.response.statusText}` : ""
-					} ${error.message || "Unknown error occurred"}</p>
+						<p>Status: ${error.status || error?.response?.status || ""}${
+          error?.response?.statusText ? ` ${error.response.statusText}` : ""
+        } ${error.message || "Unknown error occurred"}</p>
 						${responseBlock}
 					</div>
 				`;
-				console.error(
-					`[Edge Tests Block] Error in scenario ${scenarioId}:`,
-					error
-				);
-			}
-		}
+        console.error(
+          `[Edge Tests Block] Error in scenario ${scenarioId}:`,
+          error
+        );
+      }
+    }
 
-		async function cleanupTestData() {
-			const cleanupContainer = document.getElementById("cleanup-response");
-			if (!cleanupContainer) {
-				console.error("Cleanup container not found");
-				return;
-			}
+    async function cleanupTestData() {
+      const cleanupContainer = document.getElementById("cleanup-response");
+      if (!cleanupContainer) {
+        console.error("Cleanup container not found");
+        return;
+      }
 
-			cleanupContainer.innerHTML = spinnerInline
-				? spinnerInline("Cleaning up test data...")
-				: '<div class="loading-state">Cleaning up test data...</div>';
+      cleanupContainer.innerHTML = spinnerInline
+        ? spinnerInline("Cleaning up test data...")
+        : '<div class="loading-state">Cleaning up test data...</div>';
 
-			try {
-				const baseUrl = getBaseUrl();
-				const cleanupUrl = `${baseUrl}/user-blocks/cleanupTestBlocks`;
+      try {
+        const baseUrl = getBaseUrl();
+        const cleanupUrl = `${baseUrl}/user-blocks/cleanupTestBlocks`;
 
-				const apiHandler = new APIHandler();
+        const apiHandler = new APIHandler();
 
-				const cleanupParams = {
-					apiBaseUrl: cleanupUrl,
-					queryParams: {},
-					httpMethod: "POST",
-					requestData: {
-						testing: true,
-						deleteAll: true,
-					},
-					responseCallback: (data) => {
-						cleanupContainer.innerHTML = `
+        const cleanupParams = {
+          apiBaseUrl: cleanupUrl,
+          queryParams: {},
+          httpMethod: "POST",
+          requestData: {
+            testing: true,
+            deleteAll: true,
+          },
+          responseCallback: (data) => {
+            cleanupContainer.innerHTML = `
 							<div class="alert alert-success">
 								<strong><i class="bi bi-check-circle"></i> Cleanup Successful:</strong>
 								<pre class="bg-light p-3 rounded mt-2"><code>${JSON.stringify(
-							data,
-							null,
-							2
-						)}</code></pre>
+                  data,
+                  null,
+                  2
+                )}</code></pre>
 								<p class="mt-2">Test data has been cleaned up. Database is ready for next test run.</p>
 							</div>
 						`;
-					},
-				};
+          },
+        };
 
-				await apiHandler.handleRequest(cleanupParams);
-			} catch (error) {
-				cleanupContainer.innerHTML = `
+        await apiHandler.handleRequest(cleanupParams);
+      } catch (error) {
+        cleanupContainer.innerHTML = `
 					<div class="alert alert-danger">
 						<strong><i class="bi bi-exclamation-triangle"></i> Cleanup Error:</strong>
 						<p>${error.message || "Unknown error occurred during cleanup"}</p>
 						<p class="mt-2"><small>You may need to manually clean up test data in the database.</small></p>
 					</div>
 				`;
-				console.error("[Edge Tests Block] Cleanup error:", error);
-			}
-		}
+        console.error("[Edge Tests Block] Cleanup error:", error);
+      }
+    }
 
-		async function render() {
-			pageContent.innerHTML = spinner
-				? spinner()
-				: '<div class="loading-state">Loading...</div>';
+    async function render() {
+      pageContent.innerHTML = spinner
+        ? spinner()
+        : '<div class="loading-state">Loading...</div>';
 
-			const initialBaseUrl = getBaseUrl();
+      const initialBaseUrl = getBaseUrl();
+      // Prerequisites array for the blockUsers script (same as users script)
+      const prerequisites = [
+        "<strong>Environment Setup:</strong> Development server running (e.g., localhost:3000)",
+        "<strong>API Configuration:</strong> API endpoints configured in api-config script tag",
+        "<strong>Database Access:</strong> Access to database for manual verification",
+        "<strong>Dependencies:</strong> All required JavaScript files loaded (APIHandler, AdminShell, etc.)",
+      ];
 
-			const pageHtml = `
-				<div class="demo-section prerequisites-section" id="prerequisites-section">
-					<h3><i class="bi bi-gear"></i> Prerequisites</h3>
-					<p class="description-text">
-						Before using this edge test page, ensure the following prerequisites are met:
-					</p>
-					<ul>
-						<li><strong>Environment Setup:</strong> Development server running (e.g., localhost:3000)</li>
-						<li><strong>API Configuration:</strong> API endpoints configured in api-config script tag</li>
-						<li><strong>Database Access:</strong> Access to database for manual verification</li>
-						<li><strong>Dependencies:</strong> All required JavaScript files loaded (APIHandler, AdminShell, etc.)</li>
-					</ul>
-					<div class="important-note">
-						<strong>Note:</strong> All POST requests automatically include <code>testing: true</code> parameter.
-					</div>
-				</div>
+      // Terminologies object for the blockUsers script
+      const terminologies = {
+        Block:
+          "Restrict interactions or access between subjects (users/IP/email/app scope).",
+        Scope: "Context for a block (e.g., feed, private_chat).",
+        "Temporary vs Permanent":
+          "Temporary uses seconds duration; permanent is boolean flag.",
+        "Manual Actions": "Suspensions and warnings tracked per user.",
+        Pagination: "limit/nextToken used across list endpoints.",
+      };
 
-				<div class="demo-section terminology-section" id="terminology-section">
-					<h3><i class="bi bi-book"></i> Terminology</h3>
-					<div class="terminology-item">
-						<strong>Block:</strong> Restrict interactions or access between subjects (users/IP/email/app scope).
-					</div>
-					<div class="terminology-item">
-						<strong>Scope:</strong> Context for a block (e.g., feed, private_chat).
-					</div>
-					<div class="terminology-item">
-						<strong>Temporary vs Permanent:</strong> Temporary uses seconds duration; permanent is boolean flag.
-					</div>
-					<div class="terminology-item">
-						<strong>Manual Actions:</strong> Suspensions and warnings tracked per user.
-					</div>
-					<div class="terminology-item">
-						<strong>Pagination:</strong> limit/nextToken used across list endpoints.
-					</div>
-				</div>
+      const pageHtml = `
+				${renderPrerequisites(prerequisites)}
+				${renderTerminologies(terminologies)}
 
 				${createIndexNavigation()}
 
@@ -716,26 +728,7 @@ apiHandler.handleRequest(apiParams);
 					</div>
 				</div>
 
-				<div class="demo-section">
-					<div class="d-flex align-items-center justify-content-between">
-						<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
-						<button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
-							<i class="bi bi-arrows-expand"></i> Expand All
-						</button>
-					</div>
-					<p class="description-text">
-						Click "Test API Call" on any scenario below to execute the test. 
-						Results will be displayed in the response container.
-					</p>
-
-					${ScenarioList.map((scenario)=>{
-						console.log("--");
-						return createTestScenarioSection({
-							...scenario
-						});
-					}).join("")}
-			
-			</div>
+				${createTestScenarioSection()}
 
 				<div class="demo-section cleanup-section" id="cleanup-section">
 					<h3><i class="bi bi-trash"></i> Cleanup Method</h3>
@@ -755,148 +748,147 @@ apiHandler.handleRequest(apiParams);
 				</div>
 			`;
 
-			pageContent.innerHTML = pageHtml;
-			attachEventListeners();
-		}
+      pageContent.innerHTML = pageHtml;
+      attachEventListeners();
+    }
 
-		function attachEventListeners() {
-			const toggleAllScenariosBtn = document.getElementById(
-				"toggle-all-scenarios-btn"
-			);
+    function attachEventListeners() {
+      const toggleAllScenariosBtn = document.getElementById(
+        "toggle-all-scenarios-btn"
+      );
 
-			if (toggleAllScenariosBtn) {
-				toggleAllScenariosBtn.addEventListener("click", () => {
-					const isCollapsing =
-						toggleAllScenariosBtn.innerHTML.includes("Collapse");
-					const allBodies = document.querySelectorAll(
-						".test-scenario-card .card-body.collapse"
-					);
-					const allToggles = document.querySelectorAll(
-						".test-scenario-card .collapse-toggle"
-					);
+      if (toggleAllScenariosBtn) {
+        toggleAllScenariosBtn.addEventListener("click", () => {
+          const isCollapsing =
+            toggleAllScenariosBtn.innerHTML.includes("Collapse");
+          const allBodies = document.querySelectorAll(
+            ".test-scenario-card .card-body.collapse"
+          );
+          const allToggles = document.querySelectorAll(
+            ".test-scenario-card .collapse-toggle"
+          );
 
-					if (window.bootstrap && window.bootstrap.Collapse) {
-						allBodies.forEach((el) => {
-							const instance = window.bootstrap.Collapse.getOrCreateInstance(
-								el,
-								{
-									toggle: false,
-								}
-							);
-							if (isCollapsing) instance.hide();
-							else instance.show();
-						});
-					} else {
-						allBodies.forEach((el) => {
-							if (isCollapsing) el.classList.remove("show");
-							else el.classList.add("show");
-						});
-						allToggles.forEach((btn) => {
-							btn.setAttribute("aria-expanded", !isCollapsing);
-							if (isCollapsing) btn.classList.add("collapsed");
-							else btn.classList.remove("collapsed");
-						});
-					}
+          if (window.bootstrap && window.bootstrap.Collapse) {
+            allBodies.forEach((el) => {
+              const instance = window.bootstrap.Collapse.getOrCreateInstance(
+                el,
+                {
+                  toggle: false,
+                }
+              );
+              if (isCollapsing) instance.hide();
+              else instance.show();
+            });
+          } else {
+            allBodies.forEach((el) => {
+              if (isCollapsing) el.classList.remove("show");
+              else el.classList.add("show");
+            });
+            allToggles.forEach((btn) => {
+              btn.setAttribute("aria-expanded", !isCollapsing);
+              if (isCollapsing) btn.classList.add("collapsed");
+              else btn.classList.remove("collapsed");
+            });
+          }
 
-					if (isCollapsing) {
-						toggleAllScenariosBtn.innerHTML =
-							'<i class="bi bi-arrows-expand"></i> Expand All';
-					} else {
-						toggleAllScenariosBtn.innerHTML =
-							'<i class="bi bi-arrows-collapse"></i> Collapse All';
-					}
-				});
-			}
+          if (isCollapsing) {
+            toggleAllScenariosBtn.innerHTML =
+              '<i class="bi bi-arrows-expand"></i> Expand All';
+          } else {
+            toggleAllScenariosBtn.innerHTML =
+              '<i class="bi bi-arrows-collapse"></i> Collapse All';
+          }
+        });
+      }
 
-			const baseUrlInput = document.getElementById("baseUrlInput");
-			const baseUrlStatus = document.getElementById("baseUrlStatus");
-			const baseUrlApplyBtn = document.getElementById("baseUrlApply");
+      const baseUrlInput = document.getElementById("baseUrlInput");
+      const baseUrlStatus = document.getElementById("baseUrlStatus");
+      const baseUrlApplyBtn = document.getElementById("baseUrlApply");
 
-			if (baseUrlApplyBtn && baseUrlInput) {
-				baseUrlApplyBtn.addEventListener("click", (e) => {
-					e.preventDefault();
-					const candidate = baseUrlInput.value.trim();
-					if (candidate) {
-						userBaseUrlOverride = candidate;
-						if (baseUrlStatus) {
-							baseUrlStatus.textContent = `Base URL set to ${candidate}`;
-						}
-					} else {
-						userBaseUrlOverride = null;
-						if (baseUrlStatus) {
-							baseUrlStatus.textContent = "Base URL reset to page config";
-						}
-					}
-				});
-			}
+      if (baseUrlApplyBtn && baseUrlInput) {
+        baseUrlApplyBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const candidate = baseUrlInput.value.trim();
+          if (candidate) {
+            userBaseUrlOverride = candidate;
+            if (baseUrlStatus) {
+              baseUrlStatus.textContent = `Base URL set to ${candidate}`;
+            }
+          } else {
+            userBaseUrlOverride = null;
+            if (baseUrlStatus) {
+              baseUrlStatus.textContent = "Base URL reset to page config";
+            }
+          }
+        });
+      }
 
-			document.addEventListener("click", (event) => {
-				const testBtn = event.target.closest(".test-scenario-btn");
-				if (testBtn) {
-					const scenarioId = testBtn.getAttribute("data-scenario-id");
-					const method = testBtn.getAttribute("data-method");
-					const endpoint = testBtn.getAttribute("data-endpoint");
-					const payloadString = testBtn.getAttribute("data-payload");
-					let payload = null;
-					if (payloadString && payloadString !== "null") {
-						try {
-							payload = JSON.parse(payloadString);
-						} catch (parseError) {
-							console.error(
-								"[Edge Tests Block] Could not parse payload:",
-								parseError
-							);
-						}
-					}
-					testScenario(scenarioId, method, endpoint, payload);
-				}
+      document.addEventListener("click", (event) => {
+        const testBtn = event.target.closest(".test-scenario-btn");
+        if (testBtn) {
+          const scenarioId = testBtn.getAttribute("data-scenario-id");
+          const method = testBtn.getAttribute("data-method");
+          const endpoint = testBtn.getAttribute("data-endpoint");
+          const payloadString = testBtn.getAttribute("data-payload");
+          let payload = null;
+          if (payloadString && payloadString !== "null") {
+            try {
+              payload = JSON.parse(payloadString);
+            } catch (parseError) {
+              console.error(
+                "[Edge Tests Block] Could not parse payload:",
+                parseError
+              );
+            }
+          }
+          testScenario(scenarioId, method, endpoint, payload);
+        }
 
-				const clearBtn = event.target.closest(".clear-response-btn");
-				if (clearBtn) {
-					const scenarioId = clearBtn.getAttribute("data-scenario-id");
-					const responseEl = document.getElementById(`response-${scenarioId}`);
-					if (responseEl) {
-						responseEl.innerHTML = "";
-					}
-					return;
-				}
+        const clearBtn = event.target.closest(".clear-response-btn");
+        if (clearBtn) {
+          const scenarioId = clearBtn.getAttribute("data-scenario-id");
+          const responseEl = document.getElementById(`response-${scenarioId}`);
+          if (responseEl) {
+            responseEl.innerHTML = "";
+          }
+          return;
+        }
 
-				if (
-					event.target.id === "cleanup-btn" ||
-					event.target.closest("#cleanup-btn")
-				) {
-					if (
-						confirm(
-							"Are you sure you want to clean up test data? This action cannot be undone."
-						)
-					) {
-						cleanupTestData();
-					}
-				}
-			});
+        if (
+          event.target.id === "cleanup-btn" ||
+          event.target.closest("#cleanup-btn")
+        ) {
+          if (
+            confirm(
+              "Are you sure you want to clean up test data? This action cannot be undone."
+            )
+          ) {
+            cleanupTestData();
+          }
+        }
+      });
 
-			document.querySelectorAll(".index-link").forEach((link) => {
-				link.addEventListener("click", (e) => {
-					e.preventDefault();
-					const targetId = link.getAttribute("href").substring(1);
-					const targetElement = document.getElementById(targetId);
-					if (targetElement) {
-						targetElement.scrollIntoView({
-							behavior: "smooth",
-							block: "start",
-						});
-					}
-				});
-			});
-		}
+      document.querySelectorAll(".index-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          const targetId = link.getAttribute("href").substring(1);
+          const targetElement = document.getElementById(targetId);
+          if (targetElement) {
+            targetElement.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+    }
 
-		window.EdgeTestsBlock = {
-			testScenario: testScenario,
-			cleanupTestData: cleanupTestData,
-			getBaseUrl: getBaseUrl,
-		};
+    window.EdgeTestsBlock = {
+      testScenario: testScenario,
+      cleanupTestData: cleanupTestData,
+      getBaseUrl: getBaseUrl,
+    };
 
-		render();
-	});
+    render();
+  });
 })();
-

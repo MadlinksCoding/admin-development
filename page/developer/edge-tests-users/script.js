@@ -10,15 +10,7 @@
   let ScenarioList = [];
   // Wait for AdminShell ready event
   function waitForAdminShell() {
-    return new Promise((resolveFunction) => {
-      if (window.AdminShell && window.AdminShell.pageContent) {
-        resolveFunction();
-      } else {
-        document.body.addEventListener("adminshell:ready", resolveFunction, {
-          once: true,
-        });
-      }
-    });
+    return window.EdgeTestsShared.waitForAdminShell();
   }
 
   waitForAdminShell().then(async () => {
@@ -42,57 +34,25 @@
     let userBaseUrlOverride = null;
 
     function formatScenarioLabel(id, title) {
-      return `Test Scenarios ${id}: ${title}`;
+      return window.EdgeTestsShared.defaultFormatScenarioLabel(id, title);
     }
 
-    /**
-     * Resolve base URL from page config or override
-     */
+    function parseApiConfigBase() {
+      return window.EdgeTestsShared.getBaseUrl("users", userBaseUrlOverride);
+    }
+
     function getBaseUrl() {
-      let baseUrl = userBaseUrlOverride || "http://localhost:3000";
-
-      try {
-        const configScriptElement = document.getElementById("api-config");
-        if (configScriptElement) {
-          const pageConfig = JSON.parse(configScriptElement.textContent);
-          const currentEnvironment = window.Env?.current || "dev";
-          if (!userBaseUrlOverride) {
-            const sectionKey = document.body?.dataset?.section || "users";
-            const sectionConfig = pageConfig[sectionKey];
-            const usersConfig = pageConfig["users"];
-            const targetConfig = sectionConfig || usersConfig;
-
-            if (
-              targetConfig &&
-              targetConfig[currentEnvironment] &&
-              targetConfig[currentEnvironment].endpoint
-            ) {
-              const endpointUrl = targetConfig[currentEnvironment].endpoint;
-              const urlMatch = endpointUrl.match(/^(https?:\/\/[^\/]+)/);
-              if (urlMatch) {
-                baseUrl = urlMatch[1];
-              }
-            } else {
-              const adminEndpoints = window.AdminEndpoints;
-              if (
-                adminEndpoints &&
-                adminEndpoints.base &&
-                adminEndpoints.base[currentEnvironment]
-              ) {
-                baseUrl = adminEndpoints.base[currentEnvironment];
-              }
-            }
-          }
-        }
-      } catch (configError) {
-        console.warn(
-          "[Edge Tests Users] Could not parse API config, using default base URL:",
-          configError
-        );
-      }
-
+      let baseUrl = parseApiConfigBase();
       console.log("[Edge Tests Users] Using base URL:", baseUrl);
       return baseUrl;
+    }
+
+    function renderPrerequisites(prerequisites) {
+      return window.EdgeTestsShared.renderPrerequisites(prerequisites);
+    }
+
+    function renderTerminologies(terminologies) {
+      return window.EdgeTestsShared.renderTerminologies(terminologies);
     }
 
     /**
@@ -182,236 +142,27 @@
     /**
      * Create scenario sections
      */
-    function createTestScenarioSection(
-      {scenarioId,
-      title,
-      description,
-      apiMethod,
-      apiEndpoint,
-      requestPayload = null,
-      checklistItems = [],
-      inputFields = []}
-    ) {
-      let checklistHtml = "";
-      const displayTitle = formatScenarioLabel(scenarioId, title);
-      if (checklistItems.length > 0) {
-        const checklistItemsHtml = checklistItems
-          .map((item, index) => {
-            return `
-            <div class="checklist-item">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="checklist-${scenarioId}-${index}" />
-                <label class="form-check-label" for="checklist-${scenarioId}-${index}">${item}</label>
+    function createTestScenarioSection() {
+      return `<div class="demo-section">
+          <div class="d-flex align-items-center justify-content-between">
+                <h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+                <button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn">
+                  <i class="bi bi-arrows-expand"></i> Expand All
+                </button>
               </div>
-            </div>
-          `;
-          })
-          .join("");
-        checklistHtml = `
-          <div class="checklist-container">
-            <strong><i class="bi bi-check2-square"></i> Manual Verification Checklist:</strong>
-            <div class="mt-2">${checklistItemsHtml}</div>
-          </div>
-        `;
-      }
+					<p class="description-text">
+						Click "Test API Call" on any scenario below to execute the test. 
+						Results will be displayed in the response container.
+					</p>
 
-      let requestPayloadHtml = "";
-      const methodNeedsBody =
-        apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
-      if (methodNeedsBody) {
-        const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
-        requestPayloadHtml = `
-          <div class="api-params-block">
-            <strong>Request Payload (editable):</strong>
-            <textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
-            <small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
-          </div>
-        `;
-      }
-
-      const apiEndpointHtml = `
-        <div class="api-params-block">
-          <strong>API Endpoint:</strong>
-          <div class="mt-2">
-            <code>${apiMethod} ${apiEndpoint}</code>
-          </div>
-        </div>
-      `;
-
-      let inputFieldsHtml = "";
-      if (inputFields && inputFields.length > 0) {
-        const renderedParents = new Set();
-        const renderParentLabels = (parentPaths) => {
-          return parentPaths
-            .map((path) => {
-              if (!path || renderedParents.has(path)) return "";
-              renderedParents.add(path);
-              const indentLevel = path.split(".").length - 1;
-              const indentStyle =
-                indentLevel > 0
-                  ? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
-                  : "";
-              const labelText = path.split(".").pop();
-              return `<div class="nested-group-label" ${indentStyle}><strong>${labelText}</strong></div>`;
-            })
-            .join("");
-        };
-
-        const placeholderMatches = [...apiEndpoint.matchAll(/\{([^}]+)\}/g)];
-        const placeholderIds = new Set(placeholderMatches.map((m) => m[1]));
-
-        const renderField = (field) => {
-          const indentLevel = field.id.includes(".")
-            ? field.id.split(".").length - 1
-            : 0;
-          const indentStyle =
-            indentLevel > 0
-              ? `style="margin-left: ${indentLevel * 16}px; border-left: 2px solid #e0e0e0; padding-left: 8px;"`
-              : "";
-          const inputId = `input-${scenarioId}-${field.id.replace(/\./g, "-")}`;
-
-          const parentPaths = [];
-          const parts = field.id.split(".");
-          if (parts.length > 1) {
-            for (let i = 1; i < parts.length; i += 1) {
-              parentPaths.push(parts.slice(0, i).join("."));
-            }
-          }
-          const parentLabelsHtml = renderParentLabels(parentPaths);
-
-          if (field.type === "select") {
-            const optionsHtml = field.options
-              .map(
-                (option) =>
-                  `<option value="${option.value}">${option.text}</option>`
-              )
-              .join("");
-            return `
-            ${parentLabelsHtml}
-            <div class="test-input-group" ${indentStyle}>
-              <label for="${inputId}">${field.label}${
-              field.required ? " *" : ""
-            }:</label>
-              <select id="${inputId}" class="form-control" data-field-id="${
-              field.id
-            }" data-field-type="select" ${
-              field.required ? "required" : ""
-            } data-required="${field.required ? "true" : "false"}">
-                ${optionsHtml}
-              </select>
-            </div>
-          `;
-          } else {
-            const inputType = field.typeOverride || field.type || "text";
-            const patternAttr = field.pattern ? `pattern="${field.pattern}"` : "";
-            const inputModeAttr = field.inputMode ? `inputmode="${field.inputMode}"` : "";
-            return `
-            ${parentLabelsHtml}
-            <div class="test-input-group" ${indentStyle}>
-              <label for="${inputId}">${field.label}${
-              field.required ? " *" : ""
-            }:</label>
-              <input type="${inputType}" 
-                     id="${inputId}" 
-                     class="form-control" 
-                     data-field-id="${field.id}"
-                     data-field-type="${inputType}"
-                     data-required="${field.required ? "true" : "false"}"
-                     placeholder="${field.placeholder || ""}"
-                     value="${field.value || ""}"
-                     ${patternAttr}
-                     ${inputModeAttr}
-                     ${field.required ? "required" : ""}>
-            </div>
-          `;
-          }
-        };
-
-        const pathFields = inputFields.filter((f) => placeholderIds.has(f.id));
-        const remainingFields = inputFields.filter((f) => !placeholderIds.has(f.id));
-        const queryFields = apiMethod === "GET" ? remainingFields : [];
-        const bodyFields = apiMethod === "GET" ? [] : remainingFields;
-
-        const renderGroup = (fields, label) => {
-          if (!fields.length) return "";
-          const content = fields.map(renderField).join("");
-          return `
-            <div class="mb-3">
-              <strong>${label}</strong>
-              ${content}
-            </div>
-          `;
-        };
-
-        inputFieldsHtml = `
-          ${renderGroup(pathFields, "Path Params")}
-          ${renderGroup(queryFields, "Query Params")}
-          ${renderGroup(bodyFields, "Body Params")}
-        `;
-      }
-
-      const codeExampleHtml = buildCodeUsageExample(
-        scenarioId,
-        apiMethod,
-        apiEndpoint,
-        requestPayload,
-        inputFields
-      );
-
-      let importantNoteMessage =
-        "This is a GET request, so no request body is sent.";
-      if (apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH") {
-        importantNoteMessage =
-          "This request includes <code>testing: true</code> parameter to indicate this is a test request.";
-      } else if (apiMethod === "DELETE") {
-        importantNoteMessage =
-          "This is a DELETE request; ensure the backend supports deletion for this endpoint and that test data can be safely removed.";
-      }
-
-      return `
-        <div class="test-scenario-card card" id="test-scenario-${scenarioId}">
-          <div class="card-header">
-            <div class="d-flex align-items-center justify-content-between">
-              <h5 class="card-title mb-0">${displayTitle}</h5>
-              <button class="btn btn-sm btn-outline-secondary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="false" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
-                <i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
-                <i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
-                <span class="visually-hidden">Toggle scenario section</span>
-              </button>
-            </div>
-          </div>
-          <div id="scenario-body-${scenarioId}" class="card-body collapse">
-            <p class="description-text">${description}</p>
-            ${apiEndpointHtml}
-            ${requestPayloadHtml}
-            ${inputFieldsHtml}
-            ${codeExampleHtml}
-            <div class="important-note">
-              <strong><i class="bi bi-exclamation-triangle"></i> Important:</strong>
-              ${importantNoteMessage}
-            </div>
-            <div class="mt-3 d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1 test-scenario-btn" 
-                      data-scenario-id="${scenarioId}" 
-                      data-method="${apiMethod}" 
-                      data-endpoint="${apiEndpoint}" 
-                      data-payload='${
-                        requestPayload ? JSON.stringify(requestPayload) : "null"
-                      }'
-                      data-has-inputs="${inputFields.length > 0}">
-                <i class="bi bi-play-fill"></i> Test API Call
-              </button>
-              <button class="btn btn-outline-secondary clear-response-btn" data-scenario-id="${scenarioId}" aria-label="Clear scenario response">
-                <i class="bi bi-x-circle"></i>
-              </button>
-            </div>
-            <div id="response-${scenarioId}" class="response-container mt-3"></div>
-            ${checklistHtml}
-          </div>
-        </div>
-      `;
+			${ScenarioList.map((scenario) => {
+        return window.EdgeTestsShared.createTestScenarioSection(scenario, {
+          getBaseUrl,
+          sectionKey: "moderation",
+        });
+      }).join("")}
+        </div>;`
     }
-
     function ensureCollapseToggleStyles() {
       if (document.getElementById("edge-tests-collapse-toggle-style")) {
         return;
@@ -957,6 +708,17 @@ apiHandler.handleRequest(apiParams);
       }
     }
 
+    const terminologies = {
+      "Edge Test": "A test that verifies behavior at system boundaries and limits.",
+      "APIHandler": "JavaScript class that manages API requests, responses, and loading states.",
+      "Testing Parameter": "Special parameter (testing: true) required in all POST requests.",
+      "Query Parameters": "Parameters passed in URL for GET requests (e.g., ?limit=10).",
+      "Request Data": "Data sent in request body for POST/PUT requests.",
+      "Response Callback": "Function that handles API response after successful request.",
+      "Verification Checklist": "Manual steps to verify test results in database.",
+      "Cleanup Method": "Function that resets test data after testing is complete."
+    };
+
     async function render() {
       pageContent.innerHTML = spinner
         ? spinner()
@@ -965,51 +727,16 @@ apiHandler.handleRequest(apiParams);
       const initialBaseUrl = getBaseUrl();
       ensureCollapseToggleStyles();
       ensureEdgeTestInputStyles();
+      const prerequisites = [
+        "<strong>Environment Setup:</strong> Development server running (e.g., localhost:3000)",
+        "<strong>API Configuration:</strong> API endpoints configured in api-config script tag",
+        "<strong>Database Access:</strong> Access to database for manual verification",
+        "<strong>Dependencies:</strong> All required JavaScript files loaded (APIHandler, AdminShell, etc.)"
+      ];
 
       const pageHtml = `
-        <div class="demo-section prerequisites-section" id="prerequisites-section">
-          <h3><i class="bi bi-gear"></i> Prerequisites</h3>
-          <p class="description-text">
-            Before using this edge test page, ensure the following prerequisites are met:
-          </p>
-          <ul>
-            <li><strong>Environment Setup:</strong> Development server running (e.g., localhost:3000)</li>
-            <li><strong>API Configuration:</strong> API endpoints configured in api-config script tag</li>
-            <li><strong>Database Access:</strong> Access to database for manual verification</li>
-            <li><strong>Dependencies:</strong> All required JavaScript files loaded (APIHandler, AdminShell, etc.)</li>
-          </ul>
-          <div class="important-note">
-            <strong>Note:</strong> All POST requests automatically include <code>testing: true</code> parameter.
-          </div>
-        </div>
-
-        <div class="demo-section terminology-section" id="terminology-section">
-          <h3><i class="bi bi-book"></i> Terminology</h3>
-          <div class="terminology-item">
-            <strong>Edge Test:</strong> A test that verifies behavior at system boundaries and limits.
-          </div>
-          <div class="terminology-item">
-            <strong>APIHandler:</strong> JavaScript class that manages API requests, responses, and loading states.
-          </div>
-          <div class="terminology-item">
-            <strong>Testing Parameter:</strong> Special parameter (testing: true) required in all POST requests.
-          </div>
-          <div class="terminology-item">
-            <strong>Query Parameters:</strong> Parameters passed in URL for GET requests (e.g., ?limit=10).
-          </div>
-          <div class="terminology-item">
-            <strong>Request Data:</strong> Data sent in request body for POST/PUT requests.
-          </div>
-          <div class="terminology-item">
-            <strong>Response Callback:</strong> Function that handles API response after successful request.
-          </div>
-          <div class="terminology-item">
-            <strong>Verification Checklist:</strong> Manual steps to verify test results in database.
-          </div>
-          <div class="terminology-item">
-            <strong>Cleanup Method:</strong> Function that resets test data after testing is complete.
-          </div>
-        </div>
+        ${renderPrerequisites(prerequisites)}
+        ${renderTerminologies(terminologies)}
 
         ${createIndexNavigation()}
 
@@ -1040,13 +767,7 @@ apiHandler.handleRequest(apiParams);
             Results will be displayed in the response container.
           </p>
 
-         ${ScenarioList.map((scenario)=>{
-						console.log("--");
-						return createTestScenarioSection({
-							...scenario
-						});
-					}).join("")}
-        </div>
+         ${createTestScenarioSection()}
 
         <div class="demo-section cleanup-section" id="cleanup-section">
           <h3><i class="bi bi-trash"></i> Cleanup Method</h3>
