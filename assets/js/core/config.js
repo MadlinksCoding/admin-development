@@ -269,11 +269,17 @@ window.AdminConfig = {
         options: ["", "feed", "private_chat", "global"]
       },
       {
+        type: "select",
+        name: "is_permanent",
+        label: "is_permanent",
+        options: ["", "true", "false"]
+      },
+      {
         type: "text",
         name: "limit",
         label: "Limit",
         placeholder: "20"
-      }
+      },
     ],
     media: [
       {
@@ -333,6 +339,12 @@ window.AdminConfig = {
         type: "date",
         name: "to",
         label: "Date To"
+      },
+      {
+        type: "text",
+        name: "limit",
+        label: "Limit",
+        placeholder: "20"
       }
     ],
     stats: [],

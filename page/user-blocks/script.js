@@ -172,12 +172,18 @@
         { field: "expired", label: "Expired", formatter: (value, row) => (isExpired(row) ? "Yes" : "No") }
       ],
       actions: [
-        { label: "View", className: "btn btn-sm btn-outline-primary", onClick: "handleBlockView" },
+        { label: "View", className: "btn btn-sm btn-primary", onClick: "handleBlockView" },
         {
-          label: `{(row) => row.deleted_at ? "Reblock" : "Unblock"}`,
-          className: (row) => row.deleted_at ? "btn btn-sm btn-danger" : "btn btn-sm btn-primary",
+          label:'Unblock',
+          className: "btn btn-sm btn-primary",
           onClick: "handleBlockUnblock",
-          condition: () => true
+          condition: (row) => !row.deleted_at
+        },
+        {
+          label: 'Blocked',
+          className: "btn  btn-sm btn-outline-primary",
+          onClick: "",
+          condition: (row) => row.deleted_at
         }
       ]
     };

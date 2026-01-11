@@ -28,6 +28,8 @@
       this.container = null;
       this.activeTab = this.tabs.length > 0 ? this.tabs[0].id : null;
       this.tabCounts = {};
+      this.nextToken = null;
+      this.page = 1;
       
       // Get utilities
       this.pageContent = window.AdminShell?.pageContent;
@@ -62,6 +64,8 @@
       this.cursor = 0;
       this.total = 0;
       this.container = null;
+      this.nextToken = null;
+      this.page = 1;
     }
 
     /**
@@ -182,6 +186,10 @@
       }
 
       try {
+        if (!shouldAppend) {
+          const filters = window.AdminState.activeFilters[this.section];
+          if (filters) delete filters.nextToken;
+        }
         const activeFilters = this.getActiveFilters();
         
         // Determine pagination settings
@@ -200,6 +208,8 @@
 
         const dataItems = apiResponse.items || [];
         this.total = totalCount !== null ? totalCount : (apiResponse.totalCount ||apiResponse.total || dataItems.length);
+        this.nextToken = apiResponse.nextToken || null;
+        console.log("nextToken:", this.nextToken ,apiResponse );
 
         // Update active tab count
         if (this.tabs.length > 0 && this.activeTab) {
@@ -208,9 +218,9 @@
         }
 
         // Calculate pagination info
-        const startIndex = this.cursor + 1;
-        const endIndex = Math.min(this.cursor + dataItems.length, this.total);
-        const currentPageNumber = this.pagination.enabled ? Math.floor(this.cursor / limit) + 1 : null;
+        const startIndex = (this.page - 1) * limit + 1;
+        const endIndex = Math.min(this.page * limit, this.total);
+        const currentPageNumber = this.pagination.enabled ? this.page : null;
 
         // Initial render setup
         if (!shouldAppend) {
@@ -270,7 +280,15 @@
           if (loadMoreBtn) {
             loadMoreBtn.onclick = () => {
               if (hasMore) {
-                this.cursor = (this.cursor + limit);
+                if (this.nextToken) {
+                  const filters = window.AdminState.activeFilters[this.section] || {};
+                  filters.nextToken = this.nextToken;
+                  window.AdminState.activeFilters[this.section] = filters;
+                  this.nextToken = null;
+                } else {
+                  this.cursor += limit;
+                }
+                this.page++;
                 this.render(true);
               }
             };

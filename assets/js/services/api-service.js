@@ -259,6 +259,7 @@ window.PayloadBuilders = {
       from: filterValues.from || undefined,
       to: filterValues.to || undefined,
       scope: filterValues.scope || undefined,
+      is_permanent: filterValues.is_permanent || undefined,
       limit: filterValues.limit || paginationOptions.limit || undefined,
       nextToken: filterValues.nextToken || undefined,
       pagination: paginationOptions
@@ -661,58 +662,44 @@ window.ApiService = {
         if (usesGetMethod) {
           // Build query parameters for GET request
           const queryParams = new URLSearchParams();
-          if (baseSectionName === "kyc-shufti") {
-            // KYC-specific query params
-            if (filters.q) {
-              if (filters.q.startsWith("ref-")) {
-                queryParams.append("reference", filters.q);
-              } else {
-                queryParams.append("userId", filters.q);
-              }
-            }
-            if (filters.status && filters.status !== "" && filters.status !== "Any") {
-              queryParams.append("status", filters.status);
-            }
-            if (filters.from) {
-              queryParams.append("dateFrom", filters.from);
-            }
-            if (filters.to) {
-              queryParams.append("dateTo", filters.to);
-            }
-            if (pagination.limit) {
-              queryParams.append("limit", pagination.limit);
-            }
-            if (pagination.offset) {
-              queryParams.append("offset", pagination.offset);
-            }
-          } else if (baseSectionName === "user-blocks") {
-            const offsetVal = Number(pagination?.offset || 0);
-            // Clear stale tokens when starting over
-            if (offsetVal === 0 && filters.nextToken) {
-              delete filters.nextToken;
-              if (window.AdminState?.activeFilters?.[baseSectionName]) {
-                delete window.AdminState.activeFilters[baseSectionName].nextToken;
-              }
-            }
+          
+              if (baseSectionName === "kyc-shufti") {
+                // KYC-specific query params
+                if (filters.q) {
+                  if (filters.q.startsWith("ref-")) {
+                    queryParams.append("reference", filters.q);
+                  } else {
+                    queryParams.append("userId", filters.q);
+                  }
+                }
+                if (filters.status && filters.status !== "" && filters.status !== "Any") {
+                  queryParams.append("status", filters.status);
+                }
+                if (filters.from) {
+                  queryParams.append("dateFrom", filters.from);
+                }
+                if (filters.to) {
+                  queryParams.append("dateTo", filters.to);
+                }
+                if (pagination.limit) {
+                  queryParams.append("limit", pagination.limit);
+                }
+                if (filters.nextToken) {
+                  queryParams.append("nextToken", filters.nextToken);
+                } else if (pagination.offset !== undefined) {
+                  queryParams.append("offset", pagination.offset);
+                }
+              } else if (["user-blocks","moderation"].includes(baseSectionName)) {
+                
+                // Auto-append all filters that have been set (excluding undefined/null/empty string)
+                Object.entries(filters).forEach(([key, value]) => {
+                  if (value !== undefined && value !== null && value !== "") {
+                  queryParams.append(key, value);
+                  }
+                });
 
-            if (filters.from) queryParams.append("from", filters.from);
-            if (filters.to) queryParams.append("to", filters.to);
-            if (filters.scope) queryParams.append("scope", filters.scope);
-            const limitParam = filters.limit || pagination.limit;
-            if (limitParam) queryParams.append("limit", limitParam);
-            if (filters.nextToken) queryParams.append("nextToken", filters.nextToken);
-            queryParams.append("show_total_count", "1");
-          }else if (baseSectionName ==="moderation") {
-            
-            // Auto-append all filters that have been set (excluding undefined/null/empty string)
-            Object.entries(filters).forEach(([key, value]) => {
-              if (value !== undefined && value !== null && value !== "") {
-              queryParams.append(key, value);
+                queryParams.append("show_total_count", "1");
               }
-            });
-
-            queryParams.append("show_total_count", "1");
-          }
           // For user-blocks, list endpoint is /listUserBlocks under the configured base
           let listUrl = endpointUrl;
           if (baseSectionName === "user-blocks") {
@@ -820,34 +807,11 @@ window.ApiService = {
           responseData = {
             items: allItems.slice(paginationOffset, paginationEndIndex),
             total: allItems.length, // Use filtered count, not original count
+            nextToken: responseData.nextToken,
             nextCursor: paginationEndIndex < allItems.length ? paginationEndIndex : null,
             prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
           };
-        } else if (baseSectionName === "user-blocks" && (responseData.blocks || responseData.items)) {
-          const blocksArray = responseData.blocks || responseData.items || [];
-          const items = Array.isArray(blocksArray)
-            ? blocksArray.map((b) => ({
-                ...b,
-                id: b.id || b.blockId || b.sk_scope
-              }))
-            : [];
-
-          const total = responseData.totalCount ?? responseData.count ?? items.length;
-          const offsetVal = Number(pagination?.offset || 0);
-          const nextToken = responseData.nextToken || null;
-          const nextCursor = nextToken ? offsetVal + items.length : null;
-          const prevCursor = offsetVal > 0 ? Math.max(0, offsetVal - (pagination?.limit || items.length || 0)) : null;
-
-          // Persist nextToken in filters for subsequent calls
-          // Do not persist nextToken in filters anymore
-
-          responseData = {
-            items,
-            total,
-            nextCursor,
-            prevCursor
-          };
-        } else if (responseData.items && Array.isArray(responseData.items)) {
+        }  else if (responseData.items && Array.isArray(responseData.items)) {
           // Apply client-side filtering for other sections that use POST
           // Create filtered array starting with response items
           let filteredItems = responseData.items;
