@@ -80,7 +80,7 @@ When the environment changes, the page automatically refreshes and uses the appr
   "moderation": {
     "prod": { "endpoint": "" },
     "stage": { "endpoint": "" },
-    "dev": { "endpoint": "http://localhost:3000/moderation/status/pending" }
+    "dev": { "endpoint": "http://localhost:3000/moderation/fetchModerations" }
   }
 }
 </script>
@@ -88,7 +88,7 @@ When the environment changes, the page automatically refreshes and uses the appr
 
 **Result**: 
 - **PROD/STAGE**: Uses mock data from `page/moderation/data.json`
-- **DEV**: Uses live API at `http://localhost:3000/moderation/status/pending`
+- **DEV**: Uses live API at `http://localhost:3000/moderation/fetchModerations`
 
 ### Example 4: Orders - Prod Live, Others Mock
 
