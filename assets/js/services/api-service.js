@@ -4,7 +4,7 @@
  */
 
 // Flag to determine whether to use remote API endpoints or local JSON files
-const USE_ENDPOINTS = true;
+const USE_ENDPOINTS = false;
 // Timeout duration for fetch requests in milliseconds (20 seconds)
 const FETCH_TIMEOUT = 20000;
 
@@ -649,11 +649,7 @@ window.ApiService = {
       // Try to fetch from remote API
       try {
         // Check if this section uses GET with query parameters (kyc-shufti, user-blocks)
-        const usesGetMethod =
-          sectionName === "kyc-shufti" ||
-          baseSectionName === "kyc-shufti" ||
-          sectionName === "user-blocks" ||
-          baseSectionName === "user-blocks" || sectionName=="moderation";
+        var usesGetMethod = true;
         
         // Declare API response variable
         let apiResponse;
