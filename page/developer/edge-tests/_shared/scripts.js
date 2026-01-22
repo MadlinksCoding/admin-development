@@ -801,7 +801,16 @@ apiHandler.handleRequest(apiParams);
 
 		waitForAdminShell().then(async () => {
 			try {
-				const scenariosUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'scenarios.json';
+				let path = window.location.pathname;
+				// If path ends with a file (has dot), remove it
+				if (path.split('/').pop().includes('.')) {
+					path = path.substring(0, path.lastIndexOf('/'));
+				}
+				// Ensure trailing slash
+				if (!path.endsWith('/')) {
+					path += '/';
+				}
+				const scenariosUrl = window.location.origin + path + 'scenarios.json';
 				const resp = await fetch(scenariosUrl);
 				const json = await resp.json();
 				ScenarioList = Array.isArray(json) ? json : (json.scenarios || []);
