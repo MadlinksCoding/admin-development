@@ -6,6 +6,8 @@
 <html lang="en">
   <!-- Document head section -->
   <head>
+    <!-- Base URL for resolving relative paths -->
+    <base href="/" />
     <!-- Character encoding declaration -->
     <meta charset="utf-8" />
     <!-- Viewport meta tag for responsive design -->
@@ -23,20 +25,20 @@
       rel="stylesheet"
     />
     <!-- Main application stylesheet -->
-    <link href="../../../assets/css/main.css" rel="stylesheet" />
+    <link href="assets/css/main.css" rel="stylesheet" />
     <!-- Component stylesheets -->
-    <link href="../../../assets/css/table.css" rel="stylesheet" />
-    <link href="../../../assets/css/tabs.css" rel="stylesheet" />
-    <link href="../../../assets/css/badge.css" rel="stylesheet" />
-    <link href="../../../assets/css/spinner.css" rel="stylesheet" />
-    <link href="../../../assets/css/filter-chips.css" rel="stylesheet" />
-    <link href="../../../assets/css/carousel.css" rel="stylesheet" />
-    <link href="../../../assets/css/notice.css" rel="stylesheet" />
-    <link href="../../../assets/css/notes-panel.css" rel="stylesheet" />
+    <link href="assets/css/table.css" rel="stylesheet" />
+    <link href="assets/css/tabs.css" rel="stylesheet" />
+    <link href="assets/css/badge.css" rel="stylesheet" />
+    <link href="assets/css/spinner.css" rel="stylesheet" />
+    <link href="assets/css/filter-chips.css" rel="stylesheet" />
+    <link href="assets/css/carousel.css" rel="stylesheet" />
+    <link href="assets/css/notice.css" rel="stylesheet" />
+    <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <!-- Page-specific stylesheet -->
-    <link href="./style.css" rel="stylesheet" />
+    <link href="page/developer/edge-tests-blockUsers/style.css" rel="stylesheet" />
     <!-- Shared Edge Tests stylesheet -->
-    <link href="../edge-tests/_shared/edge-tests-shared.css" rel="stylesheet" />
+    <link href="page/developer/edge-tests/_shared/edge-tests-shared.css" rel="stylesheet" />
     <!-- API Configuration: Configure API endpoints per environment. Set endpoint to use real API, or leave empty to use dummy data. Example: "endpoint": "https://api.example.com/developer/edge-tests-block" -->
     <script type="application/json" id="api-config">
       {
@@ -102,29 +104,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core JavaScript modules -->
     <!-- Utility functions -->
-    <script src="../../../assets/js/core/utils.js"></script>
+    <script src="assets/js/core/utils.js"></script>
     <!-- State management -->
-    <script src="../../../assets/js/core/state.js"></script>
+    <script src="assets/js/core/state.js"></script>
     <!-- Configuration data -->
-    <script src="../../../assets/js/core/config.js"></script>
+    <script src="assets/js/core/config.js"></script>
     <!-- Services -->
     <!-- API service for data fetching -->
-    <script src="../../../assets/js/services/api-service.js"></script>
+    <script src="assets/js/services/api-service.js"></script>
     <!-- UI Components -->
     <!-- Sidebar navigation component -->
-    <script src="../../../assets/js/ui/sidebar.js"></script>
+    <script src="assets/js/ui/sidebar.js"></script>
     <!-- Tabs component -->
-    <script src="../../../assets/js/ui/tabs.js"></script>
+    <script src="assets/js/ui/tabs.js"></script>
     <!-- API Handler - Used for all API requests -->
     <!-- This is the main API handler class that manages requests, responses, and popups -->
-    <script src="../../../apiHandler.js"></script>
+    <script src="page/developer/apiHandler.js"></script>
     <!-- Main -->
     <!-- Main admin panel orchestrator -->
-    <script src="../../../assets/js/admin.js"></script>
+    <script src="assets/js/admin.js"></script>
     <!-- Page-specific -->
     <!-- Page-specific JavaScript logic -->
     <!-- Shared Edge Tests utilities -->
-    <script src="../edge-tests/_shared/scripts.js"></script>
-<script src="script.js" defer></script>
+    <script src="page/developer/edge-tests/_shared/scripts.js"></script>
+<script src="page/developer/edge-tests-blockUsers/script.js" defer></script>
   </body>
 </html>
