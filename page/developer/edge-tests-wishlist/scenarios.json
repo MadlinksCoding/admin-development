@@ -1,0 +1,63 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Add to Wishlist",
+      "description": "Adds an item to the user's wishlist.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/wishlist/add",
+      "requestPayload": {
+        "userId": "user-123",
+        "productId": "prod-1",
+        "notes": "Birthday gift idea"
+      },
+      "checklistItems": [
+        "Verify wishlist record created",
+        "Check userId and productId",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Wishlist by User",
+      "description": "Retrieves wishlist items for a user.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/wishlist/user/{userId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter User ID",
+        "Verify response contains wishlist items"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Remove from Wishlist",
+      "description": "Removes an item from the wishlist.",
+      "apiMethod": "DELETE",
+      "apiEndpoint": "/wishlist/remove/{itemId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter Item ID",
+        "Verify item removed from database"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "itemId",
+          "label": "Item ID",
+          "placeholder": "Enter Wishlist Item ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

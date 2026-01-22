@@ -1,0 +1,106 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Order",
+      "description": "This test demonstrates how to create a new order using a POST request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/orders/create",
+      "requestPayload": {
+        "userId": "user-123",
+        "items": [
+          { "productId": "prod-1", "quantity": 1, "price": 99.99 }
+        ],
+        "total": 99.99,
+        "status": "pending"
+      },
+      "checklistItems": [
+        "Go to database and verify new order record",
+        "Check that 'userId' matches",
+        "Check that 'total' is correct",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Orders by Status",
+      "description": "Retrieves orders filtered by status.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/orders/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select a status",
+        "Verify response items"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "pending", "text": "Pending" },
+            { "value": "processing", "text": "Processing" },
+            { "value": "completed", "text": "Completed" },
+            { "value": "cancelled", "text": "Cancelled" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Order by ID",
+      "description": "Retrieves a specific order by ID.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/orders/{orderId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter Order ID",
+        "Verify response"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "orderId",
+          "label": "Order ID",
+          "placeholder": "Enter Order ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Order Status",
+      "description": "Updates an order's status.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/orders/update/{orderId}",
+      "requestPayload": {
+        "status": "processing"
+      },
+      "checklistItems": [
+        "Enter Order ID",
+        "Select new status",
+        "Verify update in database"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "orderId",
+          "label": "Order ID",
+          "placeholder": "Enter Order ID",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "id": "status",
+          "label": "New Status",
+          "options": [
+            { "value": "processing", "text": "Processing" },
+            { "value": "completed", "text": "Completed" },
+            { "value": "cancelled", "text": "Cancelled" }
+          ]
+        }
+      ]
+    }
+  ]
+}

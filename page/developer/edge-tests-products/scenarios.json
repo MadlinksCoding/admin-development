@@ -1,0 +1,120 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Product",
+      "description": "This test demonstrates how to create a new product using a POST request. The request includes testing: true to indicate this is a test request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/products/create",
+      "requestPayload": {
+        "name": "Test Product",
+        "description": "This is a test product created by the edge test page",
+        "price": 99.99,
+        "category": "electronics",
+        "status": "active"
+      },
+      "checklistItems": [
+        "Go to database and verify new product record was created",
+        "Check that 'name' field matches 'Test Product'",
+        "Check that 'price' field is 99.99",
+        "Check that 'status' field is 'active'",
+        "Verify 'testing' flag was set to true in the request",
+        "Check timestamp fields (createdAt, updatedAt)"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Products by Category",
+      "description": "This test demonstrates how to retrieve products filtered by category using a GET request with select dropdown.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/products/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select a category from the dropdown above",
+        "Click 'Test API Call' to execute the request",
+        "Verify API response contains only products with selected category",
+        "Check that all returned products have the correct category",
+        "Verify product count matches database count for that category"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "category",
+          "label": "Category",
+          "options": [
+            { "value": "", "text": "Select category..." },
+            { "value": "electronics", "text": "Electronics" },
+            { "value": "clothing", "text": "Clothing" },
+            { "value": "books", "text": "Books" },
+            { "value": "food", "text": "Food" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Product by ID",
+      "description": "This test demonstrates how to retrieve a specific product by ID using a GET request with product ID input field.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/products/{productId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter a product ID in the input field above",
+        "Click 'Test API Call' to execute the request",
+        "Verify API response contains the product with specified ID",
+        "Check that response includes correct product ID",
+        "Verify all product fields are present in response"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "productId",
+          "label": "Product ID",
+          "placeholder": "Enter product ID (e.g., prod-123)",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Product with Inputs",
+      "description": "This test demonstrates how to update an existing product using a PUT request with product ID input and status select dropdown.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/products/update/{productId}",
+      "requestPayload": {
+        "name": "Updated Product Name",
+        "price": 149.99
+      },
+      "checklistItems": [
+        "Enter a product ID in the input field",
+        "Select a status from the dropdown",
+        "Click 'Test API Call' to execute the request",
+        "Go to database and find the updated product",
+        "Verify 'status' field was updated to selected value",
+        "Check that 'price' field was updated",
+        "Check that 'updatedAt' timestamp was updated",
+        "Verify 'testing' flag was included in the request"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "productId",
+          "label": "Product ID",
+          "placeholder": "Enter product ID (e.g., prod-123)",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" },
+            { "value": "draft", "text": "Draft" }
+          ]
+        }
+      ]
+    }
+  ]
+}

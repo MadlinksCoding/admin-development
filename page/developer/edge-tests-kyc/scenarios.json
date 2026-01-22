@@ -1,0 +1,78 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Submit KYC Document",
+      "description": "Submits a KYC document for a user.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/kyc/submit",
+      "requestPayload": {
+        "userId": "user-123",
+        "documentType": "passport",
+        "documentNumber": "AB123456",
+        "frontImage": "https://example.com/front.jpg"
+      },
+      "checklistItems": [
+        "Verify KYC record created",
+        "Check status is pending",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get KYC Status",
+      "description": "Retrieves KYC status for a user.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/kyc/status/{userId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter User ID",
+        "Verify current status returned"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Update KYC Status (Admin)",
+      "description": "Updates the status of a KYC submission (e.g. approve/reject).",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/kyc/update/{kycId}",
+      "requestPayload": {
+        "status": "approved",
+        "notes": "Verified successfully"
+      },
+      "checklistItems": [
+        "Enter KYC ID",
+        "Select new status",
+        "Verify update in database"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "kycId",
+          "label": "KYC ID",
+          "placeholder": "Enter KYC ID",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "approved", "text": "Approve" },
+            { "value": "rejected", "text": "Reject" },
+            { "value": "pending", "text": "Pending" }
+          ]
+        }
+      ]
+    }
+  ]
+}

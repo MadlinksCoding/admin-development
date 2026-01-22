@@ -1,0 +1,65 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Transaction",
+      "description": "Records a new transaction (e.g., payment).",
+      "apiMethod": "POST",
+      "apiEndpoint": "/transactions/create",
+      "requestPayload": {
+        "userId": "user-123",
+        "amount": 50.00,
+        "currency": "USD",
+        "type": "payment",
+        "status": "completed"
+      },
+      "checklistItems": [
+        "Verify transaction record created",
+        "Check amount and currency",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Transaction by ID",
+      "description": "Retrieves a transaction by ID.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/transactions/{transactionId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter Transaction ID",
+        "Verify response details"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "transactionId",
+          "label": "Transaction ID",
+          "placeholder": "Enter Transaction ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Transactions by User",
+      "description": "Retrieves transactions for a specific user.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/transactions/user/{userId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter User ID",
+        "Verify response list"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

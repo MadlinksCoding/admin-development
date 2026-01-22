@@ -1,0 +1,101 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Demo Item",
+      "description": "This test demonstrates how to create a new demo item using a POST request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/demo/create",
+      "requestPayload": {
+        "name": "Demo Item 1",
+        "type": "example",
+        "description": "A test item for demonstration",
+        "isActive": true
+      },
+      "checklistItems": [
+        "Go to database and verify new record",
+        "Check that 'name' matches",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Demo Items by User ID",
+      "description": "Retrieves demo items for a user.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/demo/user/{userId}/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter User ID",
+        "Check response content"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Demo Items by Status",
+      "description": "Retrieves demo items by status.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/demo/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select status",
+        "Verify response items have selected status"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Demo Item",
+      "description": "Updates a demo item.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/demo/update/{demoId}",
+      "requestPayload": {
+        "name": "Updated Name",
+        "description": "Updated description"
+      },
+      "checklistItems": [
+        "Enter Demo ID",
+        "Verify updates in database"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "demoId",
+          "label": "Demo ID",
+          "placeholder": "Enter Demo ID",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Coupon",
+      "description": "This test demonstrates how to create a new coupon using a POST request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/coupon/create",
+      "requestPayload": {
+        "code": "TEST-CODE-123",
+        "description": "Test coupon created by edge test",
+        "discountType": "percentage",
+        "discountValue": 10,
+        "status": "active"
+      },
+      "checklistItems": [
+        "Go to database and verify new coupon record was created",
+        "Check that 'code' field matches 'TEST-CODE-123'",
+        "Check that 'discountValue' is 10",
+        "Check that 'status' field is 'active'",
+        "Verify 'testing' flag was set to true",
+        "Check timestamp fields"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Coupons by Status",
+      "description": "This test retrieves coupons filtered by status.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/coupon/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select a status from the dropdown",
+        "Click 'Test API Call'",
+        "Verify API response contains only coupons with selected status",
+        "Check that returned coupons have correct status"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" },
+            { "value": "expired", "text": "Expired" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Coupon by ID",
+      "description": "This test retrieves a specific coupon by ID.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/coupon/{couponId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter a coupon ID",
+        "Click 'Test API Call'",
+        "Verify response contains the specified coupon",
+        "Check all fields are present"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "couponId",
+          "label": "Coupon ID",
+          "placeholder": "Enter coupon ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Coupon",
+      "description": "This test updates an existing coupon.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/coupon/update/{couponId}",
+      "requestPayload": {
+        "description": "Updated description",
+        "discountValue": 15
+      },
+      "checklistItems": [
+        "Enter a coupon ID",
+        "Click 'Test API Call'",
+        "Go to database and verify updates",
+        "Check description and discountValue are updated"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "couponId",
+          "label": "Coupon ID",
+          "placeholder": "Enter coupon ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Cart Item",
+      "description": "This test demonstrates how to create a new cart item using a POST request. The request includes testing: true to indicate this is a test request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/cart/create",
+      "requestPayload": {
+        "userId": "user-123",
+        "productId": "prod-1",
+        "quantity": 2,
+        "status": "active"
+      },
+      "checklistItems": [
+        "Go to database and verify new cart record was created",
+        "Check that 'userId' field matches 'user-123'",
+        "Check that 'quantity' field is 2",
+        "Check that 'status' field is 'active'",
+        "Verify 'testing' flag was set to true in the request",
+        "Check timestamp fields (createdAt, updatedAt)"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Cart Items by User ID",
+      "description": "This test demonstrates how to retrieve cart items for a specific user using a GET request with user ID input field.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/cart/user/{userId}/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter a user ID in the input field above",
+        "Click 'Test API Call' to execute the request",
+        "Verify API response contains cart items for the specified user",
+        "Check that response includes correct user ID",
+        "Verify item count matches database count for that user"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter user ID (e.g., user-123)",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Cart Items by Status",
+      "description": "This test demonstrates how to retrieve cart items filtered by status using a GET request with select dropdown.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/cart/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select a status from the dropdown above",
+        "Click 'Test API Call' to execute the request",
+        "Verify API response contains only cart items with selected status",
+        "Check that all returned items have the correct status",
+        "Verify item count matches database count for that status"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" },
+            { "value": "pending", "text": "Pending" },
+            { "value": "completed", "text": "Completed" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Cart Item with Inputs",
+      "description": "This test demonstrates how to update an existing cart item using a PUT request with user ID input and status select dropdown.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/cart/update/{userId}",
+      "requestPayload": {
+        "quantity": 3
+      },
+      "checklistItems": [
+        "Enter a user ID in the input field",
+        "Select a status from the dropdown",
+        "Click 'Test API Call' to execute the request",
+        "Go to database and find the updated cart item",
+        "Verify 'status' field was updated to selected value",
+        "Check that 'price' field was updated",
+        "Check that 'updatedAt' timestamp was updated",
+        "Verify 'testing' flag was included in the request"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter user ID (e.g., user-123)",
+          "value": ""
+        },
+        {
+          "type": "select",
+          "id": "status",
+          "label": "Status",
+          "options": [
+            { "value": "", "text": "Select status..." },
+            { "value": "active", "text": "Active" },
+            { "value": "inactive", "text": "Inactive" },
+            { "value": "draft", "text": "Draft" }
+          ]
+        }
+      ]
+    }
+  ]
+}

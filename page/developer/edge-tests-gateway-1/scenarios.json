@@ -1,0 +1,46 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Process Payment (Gateway 1)",
+      "description": "Processes a payment via Gateway 1.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/gateway1/process",
+      "requestPayload": {
+        "amount": 100.00,
+        "currency": "USD",
+        "source": "tok_visa",
+        "description": "Test charge"
+      },
+      "checklistItems": [
+        "Verify charge created in Gateway 1 dashboard (mock)",
+        "Check response for success status",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Refund Transaction (Gateway 1)",
+      "description": "Refunds a transaction via Gateway 1.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/gateway1/refund",
+      "requestPayload": {
+        "chargeId": "ch_12345",
+        "amount": 50.00
+      },
+      "checklistItems": [
+        "Verify refund processed",
+        "Check refund amount"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "chargeId",
+          "label": "Charge ID",
+          "placeholder": "Enter Charge ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

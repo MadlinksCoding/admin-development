@@ -1,0 +1,97 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Media Item",
+      "description": "This test demonstrates how to create a new media item (metadata) using a POST request.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/media/create",
+      "requestPayload": {
+        "filename": "test-image.jpg",
+        "type": "image/jpeg",
+        "url": "https://example.com/test-image.jpg",
+        "altText": "Test image description",
+        "status": "active"
+      },
+      "checklistItems": [
+        "Go to database and verify new media record was created",
+        "Check that 'filename' matches",
+        "Check that 'type' matches",
+        "Verify 'testing' flag was set to true"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Media by Type",
+      "description": "This test retrieves media items filtered by type.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/media/list",
+      "requestPayload": null,
+      "checklistItems": [
+        "Select a media type from the dropdown",
+        "Click 'Test API Call'",
+        "Verify API response contains only media of selected type"
+      ],
+      "inputFields": [
+        {
+          "type": "select",
+          "id": "type",
+          "label": "Media Type",
+          "options": [
+            { "value": "", "text": "Select type..." },
+            { "value": "image", "text": "Image" },
+            { "value": "video", "text": "Video" },
+            { "value": "document", "text": "Document" }
+          ]
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Get Media by ID",
+      "description": "This test retrieves a specific media item by ID.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/media/{mediaId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter a media ID",
+        "Click 'Test API Call'",
+        "Verify response contains the specified media item"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "mediaId",
+          "label": "Media ID",
+          "placeholder": "Enter media ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "4",
+      "title": "Test Scenario 4: Update Media Metadata",
+      "description": "This test updates metadata for an existing media item.",
+      "apiMethod": "PUT",
+      "apiEndpoint": "/media/update/{mediaId}",
+      "requestPayload": {
+        "altText": "Updated alt text",
+        "status": "archived"
+      },
+      "checklistItems": [
+        "Enter a media ID",
+        "Click 'Test API Call'",
+        "Go to database and verify updates"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "mediaId",
+          "label": "Media ID",
+          "placeholder": "Enter media ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

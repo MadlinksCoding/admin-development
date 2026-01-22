@@ -1,0 +1,77 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Subscription Plan",
+      "description": "Creates a new subscription plan.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/subscriptions/plans/create",
+      "requestPayload": {
+        "name": "Gold Plan",
+        "price": 19.99,
+        "interval": "month",
+        "description": "Premium access"
+      },
+      "checklistItems": [
+        "Verify plan created in database",
+        "Check plan details"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Subscribe User to Plan",
+      "description": "Subscribes a user to a plan.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/subscriptions/subscribe",
+      "requestPayload": {
+        "userId": "user-123",
+        "planId": "plan-1",
+        "paymentMethodId": "pm-123"
+      },
+      "checklistItems": [
+        "Verify subscription record created",
+        "Check status is active"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        },
+        {
+          "type": "text",
+          "id": "planId",
+          "label": "Plan ID",
+          "placeholder": "Enter Plan ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Cancel Subscription",
+      "description": "Cancels a user's subscription.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/subscriptions/cancel",
+      "requestPayload": {
+        "subscriptionId": "sub-123",
+        "reason": "Too expensive"
+      },
+      "checklistItems": [
+        "Verify subscription status changed to cancelled",
+        "Check cancellation reason stored"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "subscriptionId",
+          "label": "Subscription ID",
+          "placeholder": "Enter Subscription ID",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "scenarios": [
+    {
+      "scenarioId": "1",
+      "title": "Test Scenario 1: Create Referral Code",
+      "description": "Creates a new referral code for a user.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/referrals/create",
+      "requestPayload": {
+        "userId": "user-123",
+        "code": "REF-123",
+        "bonusAmount": 5.00
+      },
+      "checklistItems": [
+        "Verify referral code created",
+        "Check userId and code",
+        "Verify 'testing' flag"
+      ]
+    },
+    {
+      "scenarioId": "2",
+      "title": "Test Scenario 2: Get Referrals by User",
+      "description": "Retrieves referral history for a user.",
+      "apiMethod": "GET",
+      "apiEndpoint": "/referrals/user/{userId}",
+      "requestPayload": null,
+      "checklistItems": [
+        "Enter User ID",
+        "Verify response contains referral history"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "userId",
+          "label": "User ID",
+          "placeholder": "Enter User ID",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "scenarioId": "3",
+      "title": "Test Scenario 3: Validate Referral Code",
+      "description": "Validates if a referral code is active and usable.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/referrals/validate",
+      "requestPayload": {
+        "code": "REF-123"
+      },
+      "checklistItems": [
+        "Enter referral code",
+        "Verify response indicates validity"
+      ],
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "code",
+          "label": "Referral Code",
+          "placeholder": "Enter Code",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

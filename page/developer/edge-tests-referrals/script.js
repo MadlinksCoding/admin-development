@@ -1,35 +1,30 @@
 /**
  * Edge Tests - Referrals Class
- * Edge testing functionality for referrals
+ *
+ * Config-driven edge test page for Referrals functionality.
+ * Uses shared logic from window.EdgeTestsShared.
  */
-
 (function () {
-  // Wait for AdminShell ready event
-  function waitForAdminShell() {
-    return new Promise((resolveFunction) => {
-      // Check if AdminShell is already ready
-      if (window.AdminShell && window.AdminShell.pageContent) {
-        // AdminShell is already ready
-        resolveFunction();
-      } else {
-        // Listen for AdminShell ready event
-        document.body.addEventListener("adminshell:ready", resolveFunction, { once: true });
-      }
-    });
-  }
+  const config = {
+    section: "referrals",
+    prerequisites: [
+      "<strong>Environment Setup:</strong> Development server running (e.g., XAMPP, localhost:3000)",
+      "<strong>API Configuration:</strong> API endpoints configured in api-config script tag",
+      "<strong>Database Access:</strong> Access to database for manual verification",
+      "<strong>Dependencies:</strong> All required JavaScript files loaded (APIHandler, AdminShell, etc.)",
+    ],
+    terminologies: {
+      "Edge Test": "A test that verifies behavior at system boundaries and limits.",
+      APIHandler: "JavaScript class that manages API requests, responses, and loading states.",
+      "Testing Parameter": "Special parameter (testing: true) required in all POST requests.",
+      "Query Parameters": "Parameters passed in URL for GET requests (e.g., ?per_page=10).",
+      "Request Data": "Data sent in request body for POST/PUT requests.",
+      "Response Callback": "Function that handles API response after successful request.",
+      "Verification Checklist": "Manual steps to verify test results in database.",
+      "Cleanup Method": "Function that resets test data after testing is complete.",
+    },
+    cleanupEndpoint: "/referrals/cleanup",
+  };
 
-  // Wait for AdminShell to be available before proceeding
-  waitForAdminShell().then(() => {
-    // Get page content container element
-    const pageContent = window.AdminShell.pageContent;
-    // Set initial content
-    pageContent.innerHTML = `
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Referrals Class Edge Tests</h5>
-        <p class="card-text">Edge tests for referrals functionality will be added here.</p>
-      </div>
-    </div>
-  `;
-  });
+  window.EdgeTestsShared.initPage(config);
 })();
