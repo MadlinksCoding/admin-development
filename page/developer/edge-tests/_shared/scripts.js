@@ -280,31 +280,16 @@ apiHandler.handleRequest(apiParams);
 			`;
 		}
 
-		// let requestPayloadHtml = "";
-		// const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
-		// if (methodNeedsBody) {
-		// 	const payloadJson = JSON.stringify(requestPayload || {}, null, 2);
-		// 	requestPayloadHtml = `
-		// 		<div class="api-params-block">
-		// 			<strong>Request Payload (editable):</strong>
-		// 			<textarea class="form-control mt-2" id="payload-${scenarioId}" rows="8" style="font-family: inherit;">${payloadJson}</textarea>
-		// 			<small class="text-muted d-block mt-1">Payload must be valid JSON. <code>testing: true</code> is added automatically.</small>
-		// 		</div>
-		// 	`;
-		// }
-
-		// In the createTestScenarioSection function, replace the requestPayloadHtml assignment with:
-let requestPayloadHtml = "";
-const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
-if (methodNeedsBody) {
-    const getUrl = opts.getBaseUrl || (() => getBaseUrl(opts.sectionKey, opts.userBaseUrlOverride));
-    const baseUrl = getUrl();
-    const fullUrl = `${baseUrl}${apiEndpoint}`;
-    const payloadWithTesting = requestPayload ? { ...requestPayload, testing: true } : { testing: true };
-    const payloadJson = JSON.stringify(payloadWithTesting, null, 2);
-    
-    // Generate JavaScript fetch example
-    const jsExample = `fetch("${fullUrl}", {
+		let requestPayloadHtml = "";
+		const methodNeedsBody = apiMethod === "POST" || apiMethod === "PUT" || apiMethod === "PATCH";
+		if (methodNeedsBody) {
+			const getUrl = opts.getBaseUrl || (() => getBaseUrl(opts.sectionKey, opts.userBaseUrlOverride));
+			const baseUrl = getUrl();
+			const fullUrl = `${baseUrl}${apiEndpoint}`;
+			const payloadWithTesting = requestPayload ? { ...requestPayload, testing: true } : { testing: true };
+			const payloadJson = JSON.stringify(payloadWithTesting, null, 2);
+			
+			const jsExample = `fetch("${fullUrl}", {
   method: "${apiMethod}",
   headers: {
     "Content-Type": "application/json"
@@ -314,17 +299,17 @@ if (methodNeedsBody) {
 .then(response => response.json())
 .then(data => console.log(data))
 .catch(error => console.error('Error:', error));`;
-    
-    requestPayloadHtml = `
-        <div class="api-params-block">
-            <strong>Request Payload Example (JavaScript):</strong>
-            <div class="code-example mt-2">
-                <pre><code>${jsExample}</code></pre>
-            </div>
-            <small class="text-muted d-block mt-1"><code>testing: true</code> is added automatically to the payload.</small>
-        </div>
-    `;
-}
+			
+			requestPayloadHtml = `
+				<div class="api-params-block">
+					<strong>Request Payload Example (JavaScript):</strong>
+					<div class="code-example mt-2">
+						<pre><code>${jsExample}</code></pre>
+					</div>
+					<small class="text-muted d-block mt-1"><code>testing: true</code> is added automatically to the payload.</small>
+				</div>
+			`;
+		}
 
 		const apiEndpointHtml = `
 			<div class="api-params-block">
@@ -517,7 +502,313 @@ if (methodNeedsBody) {
 			</div>
 		`;
 	}
-	
+
+	function collectAndValidateInputs(scenarioId) {
+		const inputFields = document.querySelectorAll(
+			`#test-scenario-${scenarioId} input[data-field-id], #test-scenario-${scenarioId} select[data-field-id]`
+		);
+		const rawInputValues = {};
+		inputFields.forEach((field) => {
+			const fieldId = field.getAttribute("data-field-id");
+			const fieldType = field.getAttribute("data-field-type") || field.type;
+			let fieldValue = field.value;
+
+			if (typeof fieldValue === "string") fieldValue = fieldValue.trim();
+
+			if (fieldType === "datetime-local" && fieldValue) {
+				const parsedDate = Date.parse(fieldValue);
+				if (!Number.isNaN(parsedDate)) fieldValue = parsedDate.toString();
+			}
+			rawInputValues[fieldId] = fieldValue;
+		});
+
+		const missingRequired = [];
+		const inputValues = Object.fromEntries(
+			Object.entries(rawInputValues).filter(([key, value]) => {
+				const fieldElement = document.querySelector(`#test-scenario-${scenarioId} [data-field-id="${key}"]`);
+				const isRequired = fieldElement?.dataset?.required === "true";
+				if (isRequired && (value === undefined || value === null || value === "")) missingRequired.push(key);
+				return value !== "";
+			})
+		);
+
+		if (missingRequired.length > 0) throw new Error(`Missing required fields: ${missingRequired.join(", ")}`);
+		return inputValues;
+	}
+
+	function buildRequestData(scenarioId, method, payload, inputValues, pathParamKeys, arrayFieldIdsSet) {
+		const methodNeedsBody = method === "POST" || method === "PUT" || method === "PATCH";
+		let editablePayload = payload;
+		if (methodNeedsBody) {
+			const payloadEditor = document.getElementById(`payload-${scenarioId}`);
+			if (payloadEditor) {
+				try { editablePayload = payloadEditor.value ? JSON.parse(payloadEditor.value) : {}; }
+				catch (e) { throw new Error(`Payload must be valid JSON. ${e.message}`); }
+			}
+		}
+
+		const parseArrayValue = (raw) => {
+			if (Array.isArray(raw)) return raw;
+			if (typeof raw !== "string") return raw;
+			const trimmed = raw.trim();
+			if (!trimmed) return [];
+			if ((trimmed.startsWith("[") && trimmed.endsWith("]")) || trimmed.startsWith("{")) {
+				try { const parsed = JSON.parse(trimmed); return Array.isArray(parsed) ? parsed : parsed; }
+				catch (e) { return trimmed.split(",").map((v) => v.trim()).filter(Boolean); }
+			}
+			return trimmed.split(",").map((v) => v.trim()).filter(Boolean);
+		};
+
+		const nestDotPaths = (flatObj = {}, arrayFields = new Set()) => {
+			const clone = { ...flatObj };
+			const normalize = (keyPath, value) => {
+				if (arrayFields.has(keyPath)) return parseArrayValue(value);
+				if (value === "true") return true;
+				if (value === "false") return false;
+				return value;
+			};
+			Object.entries(flatObj).forEach(([key, value]) => {
+				if (!key.includes(".")) { clone[key] = normalize(key, value); return; }
+				delete clone[key];
+				const parts = key.split(".");
+				let cursor = clone;
+				parts.forEach((part, idx) => {
+					if (idx === parts.length - 1) cursor[part] = normalize(parts.join("."), value);
+					else {
+						if (!cursor[part] || typeof cursor[part] !== "object" || Array.isArray(cursor[part])) cursor[part] = {};
+						cursor = cursor[part];
+					}
+				});
+			});
+			return clone;
+		};
+
+		let requestData = {};
+		if (methodNeedsBody) requestData = { ...(editablePayload || {}), ...inputValues, testing: true };
+
+		if (methodNeedsBody) requestData = nestDotPaths(requestData, arrayFieldIdsSet);
+
+		const queryParams = method === "GET"
+			? Object.fromEntries(Object.entries(inputValues).filter(([key]) => !pathParamKeys.has(key)))
+			: {};
+
+		return { requestData, queryParams };
+	}
+
+	function initPage(config) {
+		const {
+			section,
+			prerequisites = [],
+			terminologies = {},
+			cleanupEndpoint = null,
+			arrayFieldIds = [],
+			indentSubScenarios = false,
+		} = config;
+
+		const arrayFieldIdsSet = new Set(arrayFieldIds);
+		let ScenarioList = [];
+		let userBaseUrlOverride = null;
+
+		const { spinner, spinnerInline, errorMessage } = window.AdminUtils || {};
+
+		async function testScenario(scenarioId, method, endpoint, payload) {
+			const responseContainer = document.getElementById(`response-${scenarioId}`);
+			if (!responseContainer) return;
+
+			responseContainer.innerHTML = spinnerInline ? spinnerInline("Testing API call...") : '<div class="loading-state">Testing API call...</div>';
+
+			try {
+				const baseUrl = getBaseUrl(section, userBaseUrlOverride);
+				const inputValues = collectAndValidateInputs(scenarioId);
+				let finalEndpoint = endpoint;
+				const pathParamKeys = new Set();
+				Object.entries(inputValues).forEach(([fieldId, fieldValue]) => {
+					if (finalEndpoint.includes(`{${fieldId}}`)) {
+						finalEndpoint = finalEndpoint.replace(`{${fieldId}}`, fieldValue);
+						pathParamKeys.add(fieldId);
+					}
+				});
+
+				const { requestData, queryParams } = buildRequestData(scenarioId, method, payload, inputValues, pathParamKeys, arrayFieldIdsSet);
+				const apiHandler = new APIHandler();
+				let didRenderResponse = false;
+
+				const apiParams = {
+					apiBaseUrl: `${baseUrl}${finalEndpoint}`,
+					queryParams,
+					httpMethod: method,
+					requestData,
+					responseCallback: (data) => {
+						didRenderResponse = true;
+						responseContainer.innerHTML = `
+							<div class="alert alert-success">
+								<strong><i class="bi bi-check-circle"></i> Success (200):</strong>
+								<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${JSON.stringify(data, null, 2)}</code></pre>
+							</div>
+						`;
+					},
+				};
+
+				const apiHandlerResponseListener = (event) => {
+					const detail = event?.detail;
+					const args = detail?.args;
+					if (!args || args.apiBaseUrl !== apiParams.apiBaseUrl || args.httpMethod !== apiParams.httpMethod) return;
+					
+					if (detail.success === false) {
+						didRenderResponse = true;
+						const msg = detail.error_message?.message || detail.error_message || "Request failed";
+						const status = detail.response?.status || detail.error_message?.status ? `Status: ${detail.response?.status || detail.error_message?.status}` : "";
+						const responsePayload = detail.data?.error ?? detail.data ?? detail.response?.data?.error ?? detail.response?.data ?? detail.response;
+						responseContainer.innerHTML = `
+							<div class="alert alert-danger">
+								<strong><i class="bi bi-exclamation-triangle"></i> Error:</strong>
+								<p>${status} ${msg}</p>
+								<pre class="bg-light p-3 rounded mt-2" style="max-height: 400px; overflow: auto;"><code>${typeof responsePayload === "string" ? responsePayload : JSON.stringify(responsePayload, null, 2)}</code></pre>
+							</div>
+						`;
+					}
+				};
+
+				document.addEventListener("dash-api-handler-response", apiHandlerResponseListener);
+				try { await apiHandler.handleRequest(apiParams); } finally {
+					document.removeEventListener("dash-api-handler-response", apiHandlerResponseListener);
+					if (!didRenderResponse && responseContainer.innerHTML.includes("Testing API call")) {
+						responseContainer.innerHTML = '<div class="alert alert-danger"><strong>Error:</strong><p>No response received.</p></div>';
+					}
+				}
+			} catch (err) {
+				responseContainer.innerHTML = errorMessage ? errorMessage(err, "Error") : `<div class="alert alert-danger"><strong>Error:</strong><p>${err.message}</p></div>`;
+			}
+		}
+
+		async function cleanupTestData() {
+			const cleanupContainer = document.getElementById("cleanup-response");
+			if (!cleanupContainer) return;
+			cleanupContainer.innerHTML = spinnerInline ? spinnerInline("Cleaning up test data...") : "Cleaning up...";
+			try {
+				const baseUrl = getBaseUrl(section, userBaseUrlOverride);
+				const apiHandler = new APIHandler();
+				await apiHandler.handleRequest({
+					apiBaseUrl: `${baseUrl}${cleanupEndpoint}`,
+					queryParams: {},
+					httpMethod: "POST",
+					requestData: { testing: true, deleteAll: true },
+					responseCallback: (data) => {
+						cleanupContainer.innerHTML = `
+							<div class="alert alert-success">
+								<strong><i class="bi bi-check-circle"></i> Cleanup Successful:</strong>
+								<pre class="bg-light p-3 rounded mt-2"><code>${JSON.stringify(data, null, 2)}</code></pre>
+							</div>
+						`;
+					},
+				});
+			} catch (error) {
+				cleanupContainer.innerHTML = `<div class="alert alert-danger"><strong>Cleanup Error:</strong><p>${error.message}</p></div>`;
+			}
+		}
+
+		function attachEventListeners() {
+			const toggleBtn = document.getElementById("toggle-all-scenarios-btn");
+			if (toggleBtn) {
+				toggleBtn.addEventListener("click", () => {
+					const isCollapsing = toggleBtn.innerHTML.includes("Collapse");
+					const allBodies = document.querySelectorAll(".test-scenario-card .card-body.collapse");
+					if (window.bootstrap && window.bootstrap.Collapse) {
+						allBodies.forEach((el) => {
+							const instance = window.bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+							if (isCollapsing) instance.hide(); else instance.show();
+						});
+					} else {
+						allBodies.forEach((el) => { if (isCollapsing) el.classList.remove("show"); else el.classList.add("show"); });
+					}
+					toggleBtn.innerHTML = isCollapsing ? '<i class="bi bi-arrows-expand"></i> Expand All' : '<i class="bi bi-arrows-collapse"></i> Collapse All';
+				});
+			}
+
+			const baseUrlInput = document.getElementById("baseUrlInput");
+			const applyBtn = document.getElementById("baseUrlApply");
+			if (applyBtn && baseUrlInput) {
+				applyBtn.addEventListener("click", (e) => {
+					e.preventDefault();
+					userBaseUrlOverride = baseUrlInput.value.trim() || null;
+					const status = document.getElementById("baseUrlStatus");
+					if (status) status.textContent = userBaseUrlOverride ? `Base URL set to ${userBaseUrlOverride}` : "Base URL reset to page config";
+				});
+			}
+
+			document.addEventListener("click", (event) => {
+				const testBtn = event.target.closest(".test-scenario-btn");
+				if (testBtn) {
+					const id = testBtn.getAttribute("data-scenario-id");
+					const method = testBtn.getAttribute("data-method");
+					const endpoint = testBtn.getAttribute("data-endpoint");
+					const payloadStr = testBtn.getAttribute("data-payload");
+					let payload = null;
+					try { if (payloadStr && payloadStr !== "null") payload = JSON.parse(payloadStr); } catch (e) { console.error("Payload parse error", e); }
+					testScenario(id, method, endpoint, payload);
+				}
+
+				const clearBtn = event.target.closest(".clear-response-btn");
+				if (clearBtn) {
+					const id = clearBtn.getAttribute("data-scenario-id");
+					const respEl = document.getElementById(`response-${id}`);
+					if (respEl) respEl.innerHTML = "";
+				}
+
+				if (event.target.id === "cleanup-btn" || event.target.closest("#cleanup-btn")) {
+					if (confirm("Are you sure you want to clean up test data?")) cleanupTestData();
+				}
+			});
+			attachIndexLinkSmoothScroll();
+		}
+
+		async function render() {
+			const pageContent = window.AdminShell.pageContent;
+			pageContent.innerHTML = spinner ? spinner() : "Loading...";
+			const initialBaseUrl = getBaseUrl(section);
+
+			pageContent.innerHTML = `
+				${renderPrerequisites(prerequisites)}
+				${renderTerminologies(terminologies)}
+				${createIndexNavigation(ScenarioList, { indentSub: indentSubScenarios })}
+				<div class="demo-section" id="base-url-section">
+					<h3><i class="bi bi-link-45deg"></i> API Base URL</h3>
+					<div class="test-input-group">
+						<label for="baseUrlInput">Base URL:</label>
+						<div class="d-flex gap-2">
+							<input type="url" id="baseUrlInput" class="form-control" value="${initialBaseUrl}" />
+							<button class="btn btn-outline-primary" id="baseUrlApply">Apply</button>
+						</div>
+						<small id="baseUrlStatus" class="text-muted"></small>
+					</div>
+				</div>
+				<div class="demo-section">
+					<div class="d-flex align-items-center justify-content-between">
+						<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
+						<button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn"><i class="bi bi-arrows-expand"></i> Expand All</button>
+					</div>
+					${ScenarioList.map((s) => createTestScenarioSection(s, { sectionKey: section, getBaseUrl: () => getBaseUrl(section, userBaseUrlOverride) })).join("")}
+				</div>
+				${cleanupEndpoint ? `
+				<div class="demo-section cleanup-section" id="cleanup-section">
+					<h3><i class="bi bi-trash"></i> Cleanup Method</h3>
+					<button class="btn btn-danger" id="cleanup-btn"><i class="bi bi-trash"></i> Run Cleanup</button>
+					<div id="cleanup-response" class="response-container mt-3"></div>
+				</div>` : ""}
+			`;
+			attachEventListeners();
+		}
+
+		waitForAdminShell().then(async () => {
+			try {
+				const scenariosUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + 'scenarios.json';
+				const resp = await fetch(scenariosUrl);
+				const json = await resp.json();
+				ScenarioList = Array.isArray(json) ? json : (json.scenarios || []);
+				render();
+			} catch (e) { console.error(`[Edge Tests ${section}] Failed to load scenarios.json`, e); }
+		});
+	}
 
 	window.EdgeTestsShared = {
 		waitForAdminShell,
@@ -529,5 +820,7 @@ if (methodNeedsBody) {
 		attachIndexLinkSmoothScroll,
 		renderPrerequisites,
 		renderTerminologies,
+		initPage,
 	};
 })();
+
