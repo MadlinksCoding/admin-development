@@ -345,7 +345,7 @@ Group and comment script tags by their purpose:
 <script src="../../assets/js/admin.js"></script>
 <!-- Page-specific -->
 <!-- Page-specific JavaScript logic -->
-<script src="./script.js"></script>
+<script src="./script.js" defer></script>
 ```
 
 ### 4. Inline Element Comments

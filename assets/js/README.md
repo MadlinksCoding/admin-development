@@ -119,7 +119,7 @@ Scripts must be loaded in this order:
 <script src="../../assets/js/admin.js"></script>
 
 <!-- Page-specific -->
-<script src="./script.js"></script>
+<script src="./script.js" defer></script>
 ```
 
 ## Page Script Pattern
