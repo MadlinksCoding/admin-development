@@ -63,11 +63,19 @@ async function fetchWithTimeout(url, fetchOptions = {}, timeoutMilliseconds = FE
 
   // Try to fetch the resource
   try {
+    // Build headers - default to JSON if body is present
+    const headers = { ...(fetchOptions.headers || {}) };
+    if (fetchOptions.body && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
     // Default cache control to prevent browser caching
     // Only add if cache option is not explicitly provided in fetchOptions
     const finalFetchOptions = {
       // Spread fetch options first
       ...fetchOptions,
+      // Use built headers
+      headers,
       // Add cache control if not already specified (prevents browser caching)
       ...(fetchOptions.cache === undefined ? { cache: 'no-store' } : {}),
       // Add abort signal for timeout control
@@ -483,50 +491,81 @@ async function localFetch(sectionName) {
  * @returns {Promise<number|null>} Total count or null if unavailable
  */
 async function getTotalCount(sectionName, filters = {}) {
-  // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
-  const baseSectionName = sectionName.split("/").pop();
-  if (baseSectionName === "user-blocks" || baseSectionName === "s") {
+  // Use adapter for request building and response transformation
+  const adapter = window.ApiAdapters.get(sectionName);
+  const countRequest = adapter.buildCountRequest(filters);
+  
+  // If adapter signals no dedicated count endpoint (e.g., combined with list)
+  if (!countRequest) {
     return null;
   }
 
   try {
-    // Get page-specific API configuration
-    const pageApiConfig = getPageApiConfig(sectionName);
+    // Resolve configuration (consistent with get() logic)
+    const sectionNameParts = sectionName.split("/");
+    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
+    const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
     const currentEnvironment = window.Env?.current || "dev";
     
-    if (!pageApiConfig || !pageApiConfig[currentEnvironment]) {
-      return null;
-    }
+    const shouldUseEndpoint =
+      pageApiConfig &&
+      pageApiConfig[currentEnvironment] &&
+      pageApiConfig[currentEnvironment].endpoint &&
+      pageApiConfig[currentEnvironment].endpoint.trim() !== "";
 
-    const endpoint = pageApiConfig[currentEnvironment].endpoint?.trim();
-    const shouldUseEndpoint = USE_ENDPOINTS || (endpoint && endpoint !== "");
+    if (USE_ENDPOINTS || shouldUseEndpoint) {
+      // --- REMOTE API LOGIC ---
+      let endpointUrl;
+      const globalBase = (window.AdminEndpoints?.base || {})[currentEnvironment] || "";
+      
+      if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
+          const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
+          
+          if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
+             endpointUrl = configEndpoint;
+          } else {
+             const cleanBase = globalBase.endsWith('/') ? globalBase.slice(0, -1) : globalBase;
+             const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
+             endpointUrl = cleanBase + cleanPath;
+          }
+      } else {
+          const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
+          endpointUrl = globalBase + routePath;
+      }
 
-    if (shouldUseEndpoint && endpoint) {
-      // Try to fetch from /count endpoint
-      const countUrl = endpoint.endsWith('/') 
-        ? endpoint.slice(0, -1) + '/count'
-        : endpoint + '/count';
-      
-      // Build query string from filters
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value != null && value !== '') {
-          queryParams.append(key, value);
-        }
-      });
-      
-      const urlWithParams = queryParams.toString() 
-        ? `${countUrl}?${queryParams.toString()}`
-        : countUrl;
+      // Append suffix from adapter (usually "count")
+      if (countRequest.endpointSuffix) {
+          endpointUrl = endpointUrl.endsWith('/') 
+              ? endpointUrl + countRequest.endpointSuffix 
+              : endpointUrl + '/' + countRequest.endpointSuffix;
+      }
 
-      const response = await fetchWithTimeout(urlWithParams, { method: 'GET' });
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      return data.count || data.total || data.totalCount|| null;
+      // Build Full URL with Query Params
+      let fullUrl = endpointUrl;
+      if (countRequest.params) {
+          const qs = countRequest.params.toString();
+          if (qs) {
+            fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
+          }
+      }
+
+      try {
+          const fetchOptions = {
+              method: countRequest.method || 'GET',
+              headers: { "Content-Type": "application/json", ...(countRequest.headers || {}) },
+              body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
+          };
+
+          const response = await fetchWithTimeout(fullUrl, fetchOptions);
+          const responseData = await response.json();
+          
+          return adapter.transformCountResponse(responseData);
+      } catch (err) {
+        console.warn(`[ApiService] Count request failed for ${fullUrl}:`, err);
+        return null;
+      }
     } else {
-      // For mock data, apply filters and return filtered count
-      // Use fetchWithTimeout directly to avoid circular dependency
+      // --- LOCAL MOCK DATA LOGIC ---
       const currentPathname = window.location.pathname;
       const basePath = currentPathname.substring(0, currentPathname.indexOf("/page/") + 1) || "";
       const dataFileUrl = `${basePath}page/${sectionName}/data.json`;
@@ -539,34 +578,26 @@ async function getTotalCount(sectionName, filters = {}) {
         if (!fetchResponse.ok) return null;
         let fullData = await fetchResponse.json();
         
-        console.log('[getTotalCount] Total items before filter:', fullData.length, 'filters:', filters);
-        
         if (!Array.isArray(fullData)) return null;
         
-        // Apply status filter if provided (same logic as in get function)
+        // Mock filtering (re-using transformation logic where possible)
+        // For now keep explicit filtering as it matches mock data structure
         if (filters.status && filters.status !== "" && filters.status !== "Any") {
-          console.log('[getTotalCount] Applying status filter:', filters.status);
-          const originalLength = fullData.length;
           fullData = fullData.filter(
-            (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
+            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
           );
-          console.log('[getTotalCount] After status filter:', fullData.length, 'items (was', originalLength, ')');
-        } else {
-          console.log('[getTotalCount] No status filter to apply');
         }
         
-        // Apply other filters if needed (category, type, etc.)
-        // Add more filter logic here if needed for accurate counts
+        // Add more mock filters here if needed
         
-        console.log('[getTotalCount] Returning count:', fullData.length);
         return fullData.length;
       } catch (error) {
-        console.warn(`[ApiService] Failed to fetch mock data for count:`, error);
+        console.warn(`[ApiService] Mock data count failed for ${sectionName}:`, error);
         return null;
       }
     }
   } catch (error) {
-    console.warn(`[ApiService] Failed to fetch total count for ${sectionName}:`, error);
+    console.warn(`[ApiService] getTotalCount failed for ${sectionName}:`, error);
     return null;
   }
 }
@@ -595,425 +626,200 @@ window.ApiService = {
    * @returns {Promise<Object>} Response object with items, total, nextCursor, prevCursor
    */
   async get(sectionName, { filters = {}, pagination = { limit: 50, offset: 0 } } = {}) {
-    // Extract base section name from path (e.g., "developer/scylla-db" -> "scylla-db") by splitting by "/" and getting the last part
-    const sectionNameParts = sectionName.split("/");
-    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
-    // Get payload builder function for section (try full path first, then base name, then default)
-    const payloadBuilderFunction =
-      window.PayloadBuilders && window.PayloadBuilders[sectionName]
-        ? window.PayloadBuilders[sectionName]
-        : window.PayloadBuilders && window.PayloadBuilders[baseSectionName]
-        ? window.PayloadBuilders[baseSectionName]
-        : window.PayloadBuilders.default;
+    // Adapter Pattern: Delegate request building to specific adapter
+    const adapter = window.ApiAdapters.get(sectionName);
+    console.log("[ApiService] GET - Section:", sectionName, "Adapter:", adapter.constructor.name);
 
-    // Build payload using builder function
-    const requestPayload = payloadBuilderFunction(filters, pagination);
-    // Log payload and filters for debugging
-    console.log("[ApiService] GET - Section:", sectionName, "Filters:", filters, "Payload:", requestPayload);
-
-    // Simulate network latency for realistic behavior
+    // Simulate network latency
     await new Promise((resolveFunction) => setTimeout(resolveFunction, 450));
 
-    // Get page-specific API configuration from HTML (check if config script tag exists first, will throw error if missing)
     if (!hasApiConfigScript()) {
       throw new Error(
         `API configuration script tag (#api-config) is missing for section: ${sectionName}. Please add <script type="application/json" id="api-config"> to the page HTML.`
       );
     }
+    
+    // Config Resolution (Preserved)
     // Try full section name first, then base section name
-    // getPageApiConfig returns null if section not found in config (but script tag exists)
+    const sectionNameParts = sectionName.split("/");
+    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
     const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
-    // Get current environment
+    
     const currentEnvironment = window.Env.current;
-    // Check if current environment should use real endpoint (must be non-empty string)
+    
     const shouldUseEndpoint =
       pageApiConfig &&
       pageApiConfig[currentEnvironment] &&
       pageApiConfig[currentEnvironment].endpoint &&
       pageApiConfig[currentEnvironment].endpoint.trim() !== "";
 
-    // Check if using remote API endpoints (global flag or page-specific config)
     if (USE_ENDPOINTS || shouldUseEndpoint) {
-      // Get endpoint URL from page config or global config
-      let endpointUrl;
-      if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
-        // Use page-specific endpoint
-        endpointUrl = pageApiConfig[currentEnvironment].endpoint;
-      } else {
-        // Use global endpoint configuration
-        const baseUrl = (window.AdminEndpoints?.base || {})[window.Env.current] || "";
-        const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
-        endpointUrl = baseUrl + routePath;
-      }
-
-      // Try to fetch from remote API
-      try {
-        // Check if this section uses GET with query parameters (kyc-shufti, user-blocks)
-        var usesGetMethod = true;
-        
-        // Declare API response variable
-        let apiResponse;
-        
-        // Check if using GET method
-        if (usesGetMethod) {
-          // Build query parameters for GET request
-          const queryParams = new URLSearchParams();
+       // --- REMOTE API LOGIC ---
+       let endpointUrl;
+       const globalBase = (window.AdminEndpoints?.base || {})[window.Env.current] || "";
+       
+       if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
+          const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
           
-              if (baseSectionName === "kyc-shufti") {
-                // KYC-specific query params
-                if (filters.q) {
-                  if (filters.q.startsWith("ref-")) {
-                    queryParams.append("reference", filters.q);
-                  } else {
-                    queryParams.append("userId", filters.q);
-                  }
-                }
-                if (filters.status && filters.status !== "" && filters.status !== "Any") {
-                  queryParams.append("status", filters.status);
-                }
-                if (filters.from) {
-                  queryParams.append("dateFrom", filters.from);
-                }
-                if (filters.to) {
-                  queryParams.append("dateTo", filters.to);
-                }
-                if (pagination.limit) {
-                  queryParams.append("limit", pagination.limit);
-                }
-                if (filters.nextToken) {
-                  queryParams.append("nextToken", filters.nextToken);
-                } else if (pagination.offset !== undefined) {
-                  queryParams.append("offset", pagination.offset);
-                }
-              } else if (["user-blocks","moderation"].includes(baseSectionName)) {
-                
-                // Auto-append all filters that have been set (excluding undefined/null/empty string)
-                Object.entries(filters).forEach(([key, value]) => {
-                  if (value !== undefined && value !== null && value !== "") {
-                  queryParams.append(key, value);
-                  }
-                });
-
-                queryParams.append("show_total_count", "1");
-              }
-          // For user-blocks, list endpoint is /listUserBlocks under the configured base
-          let listUrl = endpointUrl;
-          if (baseSectionName === "user-blocks") {
-            listUrl = endpointUrl.endsWith("/")
-              ? `${endpointUrl}listUserBlocks`
-              : `${endpointUrl}/listUserBlocks`;
-          }
-          if (baseSectionName == "moderation") {
-            listUrl = endpointUrl.endsWith("/")
-              ? `${endpointUrl}fetchModerations`
-              : `${endpointUrl}/fetchModerations`;
-          }
-
-          // Construct full URL with query parameters
-          const queryString = queryParams.toString();
-          const fullUrl = queryString ? `${listUrl}?${queryString}` : listUrl;
-          // Fetch data from remote endpoint using GET
-          apiResponse = await window.ApiService._fetchWithTimeout(fullUrl, {
-            // Use GET method
-            method: "GET"
-          });
-        } else {
-          // Fetch data from remote endpoint using POST
-          apiResponse = await window.ApiService._fetchWithTimeout(endpointUrl, {
-            // Use POST method
-            method: "POST",
-            // Set content type header
-            headers: { "Content-Type": "application/json" },
-            // Stringify payload as request body
-            body: JSON.stringify(requestPayload)
-          });
-        }
-        // Parse JSON response
-        let responseData = await apiResponse.json();
-        
-        // Transform backend response format for kyc-shufti section
-        // Backend returns: { count, sessions, filters, timestamp }
-        // Frontend expects: { items, total, nextCursor, prevCursor }
-        // Backend field mapping: reference -> referenceId, userEmail -> email, userCountry -> country, created_at -> createdAt
-        if (usesGetMethod && responseData.sessions && Array.isArray(responseData.sessions)) {
-          // Transform sessions to items - map backend field names to frontend field names
-          // Keep status values as-is from backend (e.g., "verification.accepted", "verification.declined")
-          let allItems = responseData.sessions.map((session) => {
-            // Map backend fields to frontend expected fields
-            return {
-              ...session,
-              // Map reference to referenceId
-              referenceId: session.reference,
-              // Map userEmail to email
-              email: session.userEmail,
-              // Map userCountry to country
-              country: session.userCountry,
-              // Map created_at to createdAt
-              createdAt: session.created_at,
-              // Map appLocale to locale
-              locale: session.appLocale,
-              // Map verificationMode to mode
-              mode: session.verificationMode,
-              // Keep status and lastEvent as-is from backend (no normalization)
-              status: session.status,
-              lastEvent: session.lastEvent || session.status,
-              // Keep original fields for backward compatibility
-              reference: session.reference,
-              userEmail: session.userEmail,
-              userCountry: session.userCountry,
-              created_at: session.created_at,
-              appLocale: session.appLocale,
-              verificationMode: session.verificationMode
-            };
-          });
-          
-          // Apply client-side filtering for unsupported filters (email, country) BEFORE pagination
-          // Apply email filter if provided (client-side)
-          if (filters.email) {
-            // Convert email to lowercase for case-insensitive search
-            const emailFilter = filters.email.toLowerCase();
-            // Filter array by email (check both userEmail and email fields)
-            allItems = allItems.filter((dataItem) => {
-              // Get email from mapped field or original field
-              const itemEmail = (dataItem.email || dataItem.userEmail || "").toLowerCase();
-              // Return true if email contains filter value
-              return itemEmail.includes(emailFilter);
-            });
-          }
-          
-          // Apply country filter if provided (client-side)
-          if (filters.country) {
-            // Convert country to uppercase for case-insensitive search
-            const countryFilter = filters.country.toUpperCase();
-            // Filter array by country (check both userCountry and country fields)
-            allItems = allItems.filter((dataItem) => {
-              // Get country from mapped field or original field
-              const itemCountry = (dataItem.country || dataItem.userCountry || dataItem.data?.country || "").toUpperCase();
-              // Return true if country matches filter value
-              return itemCountry.includes(countryFilter);
-            });
-          }
-          
-          // Apply pagination (client-side since backend returns all)
-          const paginationOffset = Number(pagination?.offset || 0);
-          const paginationLimit = Number(pagination?.limit || 50);
-          const paginationEndIndex = Math.min(paginationOffset + paginationLimit, allItems.length);
-          
-          // Create transformed response with filtered and paginated items
-          responseData = {
-            items: allItems.slice(paginationOffset, paginationEndIndex),
-            total: allItems.length, // Use filtered count, not original count
-            nextToken: responseData.nextToken,
-            nextCursor: paginationEndIndex < allItems.length ? paginationEndIndex : null,
-            prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
-          };
-        }  else if (responseData.items && Array.isArray(responseData.items)) {
-          // Apply client-side filtering for other sections that use POST
-          // Create filtered array starting with response items
-          let filteredItems = responseData.items;
-          
-          // Apply email filter if provided (client-side)
-          if (filters.email) {
-            // Convert email to lowercase for case-insensitive search
-            const emailFilter = filters.email.toLowerCase();
-            // Filter array by email
-            filteredItems = filteredItems.filter((dataItem) => {
-              // Get email and convert to lowercase
-              const itemEmail = (dataItem.email || "").toLowerCase();
-              // Return true if email contains filter value
-              return itemEmail.includes(emailFilter);
-            });
-          }
-          
-          // Apply country filter if provided (client-side)
-          if (filters.country) {
-            // Convert country to uppercase for case-insensitive search
-            const countryFilter = filters.country.toUpperCase();
-            // Filter array by country
-            filteredItems = filteredItems.filter((dataItem) => {
-              // Get country from dataItem or nested data object
-              const itemCountry = (dataItem.country || dataItem.data?.country || "").toUpperCase();
-              // Return true if country matches filter value
-              return itemCountry.includes(countryFilter);
-            });
-          }
-          
-          // Update response with filtered items
-          responseData.items = filteredItems;
-          // Update total count if it was provided
-          if (typeof responseData.total === "number") {
-            responseData.total = filteredItems.length;
-          }
-        }
-        
-        // Return response data
-        return responseData;
-      } catch (apiError) {
-        // Enhance error message with endpoint information
-        if (apiError.isHttpError) {
-          // Check for 404 not found
-          if (apiError.status === 404) {
-            // Set message for missing endpoint
-            apiError.message = `Endpoint not found: ${endpointUrl}`;
-          } else if (apiError.status >= 500) {
-            // Set message for server errors
-            apiError.message = `Internal server error (${apiError.status}): ${
-              apiError.statusText || "Server Error"
-            }`;
+          // Check if endpoint is absolute (starts with http:// or https://)
+          if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
+             // Use absolute URL as-is
+             endpointUrl = configEndpoint;
           } else {
-            // Set message for other HTTP errors
-            apiError.message = `API error (${apiError.status}): ${
-              apiError.statusText || "Request Failed"
-            }`;
+             // Relative path - merge with global base
+             const cleanBase = globalBase.endsWith('/') ? globalBase.slice(0, -1) : globalBase;
+             const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
+             endpointUrl = cleanBase + cleanPath;
+          }
+       } else {
+          // Use global endpoint configuration with default route
+          const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
+          endpointUrl = globalBase + routePath;
+       }
+
+       // Build Request via Adapter
+       const requestConfig = adapter.buildRequest(filters, pagination);
+       
+       // Handle Endpoint Suffix (e.g., /listUserBlocks)
+       if (requestConfig.endpointSuffix) {
+           endpointUrl = endpointUrl.endsWith('/') 
+               ? endpointUrl + requestConfig.endpointSuffix 
+               : endpointUrl + '/' + requestConfig.endpointSuffix;
+       }
+
+       // Build Full URL with Query Params
+       let fullUrl = endpointUrl;
+       if (requestConfig.params) {
+           const qs = requestConfig.params.toString();
+           fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
+       }
+
+       try {
+           const fetchOptions = {
+               method: requestConfig.method,
+               headers: { "Content-Type": "application/json", ...(requestConfig.headers || {}) },
+               body: requestConfig.data ? JSON.stringify(requestConfig.data) : undefined
+           };
+
+           // Use internal fetch with timeout
+           const apiResponse = await window.ApiService._fetchWithTimeout(fullUrl, fetchOptions);
+           const responseData = await apiResponse.json();
+           
+           // Transform Response via Adapter
+           return adapter.transformResponse(responseData, filters, pagination);
+
+       } catch (apiError) {
+        // Enhanced Error Handling
+        if (apiError.isHttpError) {
+          if (apiError.status === 404) {
+            apiError.message = `Endpoint not found: ${fullUrl}`;
+          } else if (apiError.status >= 500) {
+            apiError.message = `Internal server error (${apiError.status}): ${apiError.statusText || "Server Error"}`;
+          } else {
+            apiError.message = `API error (${apiError.status}): ${apiError.statusText || "Request Failed"}`;
           }
         } else if (apiError.isTimeout) {
-          // Set message for timeout errors
-          apiError.message = `Request timed out after ${
-            apiError.timeout / 1000
-          } seconds: ${endpointUrl}`;
+          apiError.message = `Request timed out after ${apiError.timeout / 1000} seconds: ${fullUrl}`;
         } else if (apiError.isNetworkError) {
-          // Set message for network errors
-          apiError.message = `Network error: Unable to connect to ${endpointUrl}`;
+          apiError.message = `Network error: Unable to connect to ${fullUrl}`;
         }
-        // Re-throw enhanced error
         throw apiError;
-      }
-    } else {
-      // Fetch data array from local JSON file
-      let dataArray = await localFetch(sectionName);
+       }
 
-      // Apply search query filter if provided
-      if (filters.q) {
-        // Convert query to lowercase for case-insensitive search
+    } else {
+       // --- LOCAL MOCK DATA LOGIC (Fallback) ---
+       let dataArray = await localFetch(sectionName);
+
+       // Apply standard filters matching original implementation
+       if (filters.q) {
         const searchQuery = filters.q.toLowerCase();
-        // Filter array by search query
         dataArray = dataArray.filter((dataItem) => {
-          // Get user ID and convert to lowercase
           const itemUserId = (dataItem.userId || "").toLowerCase();
-          // Get reference ID and convert to lowercase
           const itemReferenceId = (dataItem.referenceId || "").toLowerCase();
-          // Return true if query matches user ID or reference ID
           return itemUserId.includes(searchQuery) || itemReferenceId.includes(searchQuery);
         });
-      }
+       }
 
-      // Apply email filter if provided
-      if (filters.email) {
-        // Convert email to lowercase for case-insensitive search
+       if (filters.email) {
         const emailFilter = filters.email.toLowerCase();
-        // Filter array by email
         dataArray = dataArray.filter((dataItem) => {
-          // Get email and convert to lowercase
           const itemEmail = (dataItem.email || "").toLowerCase();
-          // Return true if email contains filter value
           return itemEmail.includes(emailFilter);
         });
-      }
+       }
 
-      // Apply country filter if provided
-      if (filters.country) {
-        // Convert country to uppercase for case-insensitive search
+       if (filters.country) {
         const countryFilter = filters.country.toUpperCase();
-        // Filter array by country
         dataArray = dataArray.filter((dataItem) => {
-          // Get country from dataItem or nested data object
           const itemCountry = (dataItem.country || dataItem.data?.country || "").toUpperCase();
-          // Return true if country matches filter value
           return itemCountry.includes(countryFilter);
         });
-      }
+       }
 
-      // Apply status filter if provided and not empty/Any
-      if (filters.status && filters.status !== "" && filters.status !== "Any") {
-        console.log('[ApiService] Applying status filter:', filters.status, 'to', dataArray.length, 'items');
-        // Filter array by status (exact match, case-insensitive)
+       // Status Filter
+       if (filters.status && filters.status !== "" && filters.status !== "Any") {
         dataArray = dataArray.filter(
           (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
         );
-        console.log('[ApiService] After status filter:', dataArray.length, 'items remaining');
-      } else {
-        console.log('[ApiService] No status filter applied. filters.status =', filters.status);
-      }
+       }
 
-      // Apply from date filter if provided
-      if (filters.from) {
-        // Create date object from filter value
+       if (filters.from) {
         const fromDateFilter = new Date(filters.from);
-        // Filter array by from date
         dataArray = dataArray.filter((dataItem) => {
-          // Create date object from item created date
           const itemCreatedDate = new Date(dataItem.createdAt);
-          // Return true if item date is on or after from date
           return itemCreatedDate >= fromDateFilter;
         });
-      }
+       }
 
-      // Apply to date filter if provided
-      if (filters.to) {
-        // Create date object from filter value
+       if (filters.to) {
         const toDateFilter = new Date(filters.to);
-        // Set time to end of day (23:59:59.999)
         toDateFilter.setHours(23, 59, 59, 999);
-        // Filter array by to date
         dataArray = dataArray.filter((dataItem) => {
-          // Create date object from item created date
           const itemCreatedDate = new Date(dataItem.createdAt);
-          // Return true if item date is on or before to date
           return itemCreatedDate <= toDateFilter;
         });
-      }
+       }
 
-      // Apply user-block specific filters
-      if (filters.fromUserId) {
+       // UserBlocks Specifics
+       if (filters.fromUserId) {
         const fromFilter = String(filters.fromUserId).toLowerCase();
         dataArray = dataArray.filter((item) =>
           String(item.fromUserId || "").toLowerCase().includes(fromFilter)
         );
-      }
-
-      if (filters.toUserId) {
+       }
+       if (filters.toUserId) {
         const toFilter = String(filters.toUserId).toLowerCase();
         dataArray = dataArray.filter((item) =>
           String(item.toUserId || "").toLowerCase().includes(toFilter)
         );
-      }
-
-      if (filters.scope) {
+       }
+       if (filters.scope) {
         const scopeFilter = String(filters.scope).toLowerCase();
         dataArray = dataArray.filter(
           (item) => String(item.scope || "").toLowerCase() === scopeFilter
         );
-      }
-
-      if (filters.flag) {
+       }
+       if (filters.flag) {
         const flagFilter = String(filters.flag).toLowerCase();
         dataArray = dataArray.filter(
           (item) => String(item.flag || "").toLowerCase() === flagFilter
         );
-      }
-
-      if (filters.isPermanent === true) {
+       }
+       if (filters.isPermanent === true) {
         dataArray = dataArray.filter((item) => item.isPermanent === true);
-      }
+       }
 
-      // Get pagination offset value
-      const paginationOffset = Number(pagination?.offset || 0);
-      // Get pagination limit value
-      const paginationLimit = Number(pagination?.limit || 50);
-      // Calculate end index for pagination
-      const paginationEndIndex = Math.min(paginationOffset + paginationLimit, dataArray.length);
+       // Pagination
+       const paginationOffset = Number(pagination?.offset || 0);
+       const paginationLimit = Number(pagination?.limit || 50);
+       const paginationEndIndex = Math.min(paginationOffset + paginationLimit, dataArray.length);
 
-      // Return paginated response object
-      return {
-        // Return sliced array for current page
+       return {
         items: dataArray.slice(paginationOffset, paginationEndIndex),
-        // Return total count of all items
         total: dataArray.length,
-        // Return next cursor if more items exist, null otherwise
         nextCursor: paginationEndIndex < dataArray.length ? paginationEndIndex : null,
-        // Return previous cursor if not on first page, null otherwise
         prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
-      };
+       };
     }
   }
 };

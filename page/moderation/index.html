@@ -44,10 +44,10 @@
       {
         "moderation": {
           "prod": {
-            "endpoint": "http://209.38.24.155:3000/moderation"
+            "endpoint": "moderation"
           },
           "stage": {
-            "endpoint": "http://localhost:3000/moderation"
+            "endpoint": "moderation"
           },
           "dev": {
             "endpoint": ""
@@ -151,6 +151,7 @@
     <script src="assets/js/core/config.js"></script>
     <!-- Services -->
     <!-- API service for data fetching -->
+    <script src="assets/js/services/api-adapters.js"></script>
     <script src="assets/js/services/api-service.js"></script>
     <!-- Utilities -->
     <!-- Processing utility -->
@@ -183,8 +184,8 @@
     <script src="assets/js/admin.js"></script>
     <!-- Page-specific -->
     <!-- Page-specific handlers -->
-    <script src="./handlers.js"></script>
+    <script src="page/moderation/handlers.js" defer></script>
     <!-- Page-specific JavaScript logic -->
 <script src="page/moderation/script.js" defer></script>
   </body>
-</html>
+</html>nb

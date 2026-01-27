@@ -246,7 +246,29 @@ window.AdminConfig = {
         type: "text",
         name: "q",
         label: "Search",
-        placeholder: "search…"
+        placeholder: "ID, Username, Email…"
+      },
+      {
+        type: "select",
+        name: "role",
+        label: "Role",
+        options: ["", "admin", "moderator", "user"]
+      },
+      {
+        type: "text",
+        name: "uid",
+        label: "Public UID",
+        placeholder: "Enter internal UID"
+      },
+      {
+        type: "date",
+        name: "active_from",
+        label: "Last Active From"
+      },
+      {
+        type: "date",
+        name: "active_to",
+        label: "Last Active To"
       }
     ],
     "user-blocks": [
@@ -565,3 +587,27 @@ window.AdminConfig = {
     }
   }
 };
+
+/**
+ * API Endpoints Configuration
+ * Global base URLs and section routes
+ */
+window.AdminEndpoints = {
+  base: {
+    prod: "http://209.38.24.155:3000",
+    stage: "http://localhost:3000",
+    dev: ""
+  },
+  routes: {
+    // Define specific overrides here. Default is /<slug>
+    "kyc-shufti": "/kyc-shufti",
+    "user-blocks": "/user-blocks",
+    "moderation": "/moderation",
+    "users": "/users",
+    "media": "/media",
+    "products": "/products",
+    "orders": "/orders",
+    "subscriptions": "/subscriptions"
+  }
+};
+// http://209.38.24.155:3000/moderation
