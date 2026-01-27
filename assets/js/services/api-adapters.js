@@ -44,6 +44,42 @@
         }
 
         /**
+         * Build the count request configuration
+         * @param {Object} filters - Filter values
+         * @returns {Object|null} Request configuration or null if not supported
+         */
+        buildCountRequest(filters) {
+            // Default: GET with filters as query params
+            const params = new URLSearchParams();
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    // Skip nextToken as it doesn't affect total count
+                    if (key === 'nextToken') return;
+                    params.append(key, value);
+                }
+            });
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "count"
+            };
+        }
+
+        /**
+         * Transform the count response into a number
+         * @param {Object} response - Raw API response
+         * @returns {number|null} Standardized count
+         */
+        transformCountResponse(response) {
+            if (!response) return null;
+            // Handle common count response patterns
+            if (typeof response === 'number') return response;
+            return response.count !== undefined ? response.count : 
+                   (response.totalCount !== undefined ? response.totalCount : 
+                   (response.total !== undefined ? response.total : null));
+        }
+
+        /**
          * Transform the API response into standard format
          * @param {Object} response - Raw API response
          * @returns {Object} Standardized response { items, total, nextToken, ... }

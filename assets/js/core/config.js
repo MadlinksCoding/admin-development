@@ -579,6 +579,13 @@ window.AdminEndpoints = {
   routes: {
     // Define specific overrides here. Default is /<slug>
     "kyc-shufti": "/kyc-shufti",
-    "user-blocks": "/user-blocks"
+    "user-blocks": "/user-blocks",
+    "moderation": "/moderation",
+    "users": "/users",
+    "media": "/media",
+    "products": "/products",
+    "orders": "/orders",
+    "subscriptions": "/subscriptions"
   }
 };
+// http://209.38.24.155:3000/moderation

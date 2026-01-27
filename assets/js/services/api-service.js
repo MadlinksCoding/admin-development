@@ -483,50 +483,81 @@ async function localFetch(sectionName) {
  * @returns {Promise<number|null>} Total count or null if unavailable
  */
 async function getTotalCount(sectionName, filters = {}) {
-  // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
-  const baseSectionName = sectionName.split("/").pop();
-  if (baseSectionName === "user-blocks" || baseSectionName === "s") {
+  // Use adapter for request building and response transformation
+  const adapter = window.ApiAdapters.get(sectionName);
+  const countRequest = adapter.buildCountRequest(filters);
+  
+  // If adapter signals no dedicated count endpoint (e.g., combined with list)
+  if (!countRequest) {
     return null;
   }
 
   try {
-    // Get page-specific API configuration
-    const pageApiConfig = getPageApiConfig(sectionName);
+    // Resolve configuration (consistent with get() logic)
+    const sectionNameParts = sectionName.split("/");
+    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
+    const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
     const currentEnvironment = window.Env?.current || "dev";
     
-    if (!pageApiConfig || !pageApiConfig[currentEnvironment]) {
-      return null;
-    }
+    const shouldUseEndpoint =
+      pageApiConfig &&
+      pageApiConfig[currentEnvironment] &&
+      pageApiConfig[currentEnvironment].endpoint &&
+      pageApiConfig[currentEnvironment].endpoint.trim() !== "";
 
-    const endpoint = pageApiConfig[currentEnvironment].endpoint?.trim();
-    const shouldUseEndpoint = USE_ENDPOINTS || (endpoint && endpoint !== "");
+    if (USE_ENDPOINTS || shouldUseEndpoint) {
+      // --- REMOTE API LOGIC ---
+      let endpointUrl;
+      const globalBase = (window.AdminEndpoints?.base || {})[currentEnvironment] || "";
+      
+      if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
+          const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
+          
+          if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
+             endpointUrl = configEndpoint;
+          } else {
+             const cleanBase = globalBase.endsWith('/') ? globalBase.slice(0, -1) : globalBase;
+             const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
+             endpointUrl = cleanBase + cleanPath;
+          }
+      } else {
+          const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
+          endpointUrl = globalBase + routePath;
+      }
 
-    if (shouldUseEndpoint && endpoint) {
-      // Try to fetch from /count endpoint
-      const countUrl = endpoint.endsWith('/') 
-        ? endpoint.slice(0, -1) + '/count'
-        : endpoint + '/count';
-      
-      // Build query string from filters
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value != null && value !== '') {
-          queryParams.append(key, value);
-        }
-      });
-      
-      const urlWithParams = queryParams.toString() 
-        ? `${countUrl}?${queryParams.toString()}`
-        : countUrl;
+      // Append suffix from adapter (usually "count")
+      if (countRequest.endpointSuffix) {
+          endpointUrl = endpointUrl.endsWith('/') 
+              ? endpointUrl + countRequest.endpointSuffix 
+              : endpointUrl + '/' + countRequest.endpointSuffix;
+      }
 
-      const response = await fetchWithTimeout(urlWithParams, { method: 'GET' });
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      return data.count || data.total || data.totalCount|| null;
+      // Build Full URL with Query Params
+      let fullUrl = endpointUrl;
+      if (countRequest.params) {
+          const qs = countRequest.params.toString();
+          if (qs) {
+            fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
+          }
+      }
+
+      try {
+          const fetchOptions = {
+              method: countRequest.method || 'GET',
+              headers: countRequest.data ? { "Content-Type": "application/json" } : {},
+              body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
+          };
+
+          const response = await fetchWithTimeout(fullUrl, fetchOptions);
+          const responseData = await response.json();
+          
+          return adapter.transformCountResponse(responseData);
+      } catch (err) {
+        console.warn(`[ApiService] Count request failed for ${fullUrl}:`, err);
+        return null;
+      }
     } else {
-      // For mock data, apply filters and return filtered count
-      // Use fetchWithTimeout directly to avoid circular dependency
+      // --- LOCAL MOCK DATA LOGIC ---
       const currentPathname = window.location.pathname;
       const basePath = currentPathname.substring(0, currentPathname.indexOf("/page/") + 1) || "";
       const dataFileUrl = `${basePath}page/${sectionName}/data.json`;
@@ -539,34 +570,26 @@ async function getTotalCount(sectionName, filters = {}) {
         if (!fetchResponse.ok) return null;
         let fullData = await fetchResponse.json();
         
-        console.log('[getTotalCount] Total items before filter:', fullData.length, 'filters:', filters);
-        
         if (!Array.isArray(fullData)) return null;
         
-        // Apply status filter if provided (same logic as in get function)
+        // Mock filtering (re-using transformation logic where possible)
+        // For now keep explicit filtering as it matches mock data structure
         if (filters.status && filters.status !== "" && filters.status !== "Any") {
-          console.log('[getTotalCount] Applying status filter:', filters.status);
-          const originalLength = fullData.length;
           fullData = fullData.filter(
-            (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
+            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
           );
-          console.log('[getTotalCount] After status filter:', fullData.length, 'items (was', originalLength, ')');
-        } else {
-          console.log('[getTotalCount] No status filter to apply');
         }
         
-        // Apply other filters if needed (category, type, etc.)
-        // Add more filter logic here if needed for accurate counts
+        // Add more mock filters here if needed
         
-        console.log('[getTotalCount] Returning count:', fullData.length);
         return fullData.length;
       } catch (error) {
-        console.warn(`[ApiService] Failed to fetch mock data for count:`, error);
+        console.warn(`[ApiService] Mock data count failed for ${sectionName}:`, error);
         return null;
       }
     }
   } catch (error) {
-    console.warn(`[ApiService] Failed to fetch total count for ${sectionName}:`, error);
+    console.warn(`[ApiService] getTotalCount failed for ${sectionName}:`, error);
     return null;
   }
 }

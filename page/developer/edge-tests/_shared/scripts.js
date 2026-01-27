@@ -23,7 +23,8 @@
 	}
 
 	function getBaseUrl(sectionKey, userBaseUrlOverride = null) {
-		let baseUrl = userBaseUrlOverride || "http://localhost:3000";
+		if (userBaseUrlOverride) return userBaseUrlOverride;
+		let baseUrl = "http://localhost:3000";
 		try {
 			const configScriptElement = document.getElementById("api-config");
 			if (configScriptElement) {
@@ -727,12 +728,28 @@ apiHandler.handleRequest(apiParams);
 
 			const baseUrlInput = document.getElementById("baseUrlInput");
 			const applyBtn = document.getElementById("baseUrlApply");
+
 			if (applyBtn && baseUrlInput) {
 				applyBtn.addEventListener("click", (e) => {
 					e.preventDefault();
+					const oldBaseUrl = getBaseUrl(section, userBaseUrlOverride);
 					userBaseUrlOverride = baseUrlInput.value.trim() || null;
+					const newBaseUrl = getBaseUrl(section, userBaseUrlOverride);
+
 					const status = document.getElementById("baseUrlStatus");
-					if (status) status.textContent = userBaseUrlOverride ? `Base URL set to ${userBaseUrlOverride}` : "Base URL reset to page config";
+					if (status) {
+						status.textContent = userBaseUrlOverride ? `Base URL set to ${userBaseUrlOverride}` : "Base URL reset to page config";
+						status.classList.add("text-success");
+						setTimeout(() => status.classList.remove("fw-bold"), 2000);
+					}
+
+					// Update visual code blocks
+					document.querySelectorAll(".code-example pre code").forEach(code => {
+						const content = code.textContent;
+						const escapedOld = oldBaseUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+						const regex = new RegExp(escapedOld, 'g');
+						code.textContent = content.replace(regex, newBaseUrl);
+					});
 				});
 			}
 
