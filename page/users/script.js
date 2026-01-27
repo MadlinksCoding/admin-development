@@ -314,20 +314,26 @@
     function attachSettingsSubmitHandler(user, bsOffcanvas) {
       document.getElementById('userSettingsForm').onsubmit = async (ev) => {
         ev.preventDefault();
-        const raw = Object.fromEntries(new FormData(ev.target));
-        const payload = {
-          displayName: user.displayName,
-          avatarUrl: user.avatar,
-          role: user.role,
-          isNewUser: false,
-          user_settings: {
-            locale: raw.locale,
-            callVideoMessage: ev.target.callVideoMessage.checked,
-            notifications: (user.user_settings && typeof user.user_settings.notifications === 'object' && user.user_settings.notifications !== null) 
-              ? user.user_settings.notifications 
-              : { email: true, sms: false },
-            presencePreference: user.user_settings?.presencePreference || "online"
-          },
+        
+        try {
+          const raw = Object.fromEntries(new FormData(ev.target));
+          
+          // Reconstruct notifications object safely
+          const currentNotifications = (user.user_settings && typeof user.user_settings.notifications === 'object' && user.user_settings.notifications !== null)
+            ? user.user_settings.notifications
+            : { email: true, sms: false };
+
+          const payload = {
+            displayName: raw.displayName || user.displayName || user.display_name,
+            avatarUrl: user.avatar || user.avatarUrl || user.avatar_url,
+            role: raw.role || user.role,
+            isNewUser: false,
+            user_settings: {
+              locale: raw.locale,
+              callVideoMessage: ev.target.callVideoMessage.checked,
+              notifications: { ...currentNotifications }, // Ensure it's a fresh object
+              presencePreference: user.user_settings?.presencePreference || "online"
+            },
             user_profile: {
               bio: raw.bio,
               gender: raw.gender,
@@ -340,17 +346,29 @@
               socialUrls: raw.socialUrls ? raw.socialUrls.split(',').map(s => s.trim()).filter(Boolean) : [],
               additionalUrls: raw.additionalUrls ? raw.additionalUrls.split(',').map(s => s.trim()).filter(Boolean) : []
             }
-        };
+          };
 
-        await window.Processing.process(async () => {
-          const url = await resolveEndpoint("users", "updateUser", user.uid);
-          const res = await window.ApiService._fetchWithTimeout(url, { method: "PUT", body: JSON.stringify(payload) });
-          const result = await res.json();
-          if (!result.success) throw new Error(result.message || "Update failed");
-          
-          bsOffcanvas.hide();
-          document.body.dispatchEvent(new CustomEvent('section:refresh'));
-        }, "Saving changes...", "User updated successfully!");
+          // Debug log for troubleshooting backend type errors
+          console.log("[Users] Update Payload:", payload);
+
+          await window.Processing.process(async () => {
+            const url = await resolveEndpoint("users", "updateUser", user.uid);
+            const res = await window.ApiService._fetchWithTimeout(url, { 
+              method: "PUT", 
+              body: JSON.stringify(payload) 
+            });
+            const result = await res.json();
+            if (!result.success) throw new Error(result.message || "Update failed");
+            
+            bsOffcanvas.hide();
+            document.body.dispatchEvent(new CustomEvent('section:refresh'));
+          }, "Saving changes...", "User updated successfully!");
+
+        } catch (err) {
+          console.error("[Users] Save Error:", err);
+          // Error notice is already handled by Processing.process if called, 
+          // but we catch here to prevent "Uncaught (in promise)" console errors.
+        }
       };
     }
 
