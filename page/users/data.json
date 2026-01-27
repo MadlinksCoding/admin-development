@@ -1,12 +1,172 @@
 [
   {
-    "id": 1,
-    "username": "alice",
-    "email": "alice@example.com"
+    "uid": "user_alice_01",
+    "publicUid": "UID-ALICE-101",
+    "username": "alice_admin",
+    "userName": "alice_admin",
+    "display_name": "Alice Anderson",
+    "displayName": "Alice Anderson",
+    "email": "alice@antigravity.ai",
+    "role": "admin",
+    "status": "online",
+    "avatar_url": "https://i.pravatar.cc/150?u=alice",
+    "avatarUrl": "https://i.pravatar.cc/150?u=alice",
+    "avatar": "https://i.pravatar.cc/150?u=alice",
+    "last_activity": "2024-01-27T15:30:00Z",
+    "isNewUser": false,
+    "user_settings": {
+      "locale": "en-US",
+      "notifications": { "email": true, "sms": true },
+      "callVideoMessage": true,
+      "presencePreference": "online"
+    },
+    "user_profile": {
+      "bio": "Lead System Administrator. Passionate about security and automation.",
+      "gender": "female",
+      "age": 34,
+      "bodyType": "slim",
+      "hairColor": "blonde",
+      "country": "United States",
+      "coverImage": "https://picsum.photos/id/1015/800/200",
+      "backgroundImages": ["https://picsum.photos/id/1018/400/300", "https://picsum.photos/id/1019/400/300"],
+      "socialUrls": ["https://twitter.com/alice_admin", "https://github.com/alice"],
+      "additionalUrls": ["https://alice.dev"]
+    }
   },
   {
-    "id": 2,
-    "username": "bob",
-    "email": "bob@example.com"
+    "uid": "user_bob_02",
+    "publicUid": "UID-BOB-202",
+    "username": "bob_mod",
+    "userName": "bob_mod",
+    "display_name": "Bob Burnquist",
+    "displayName": "Bob Burnquist",
+    "email": "bob@antigravity.ai",
+    "role": "moderator",
+    "status": "away",
+    "avatar_url": "https://i.pravatar.cc/150?u=bob",
+    "avatarUrl": "https://i.pravatar.cc/150?u=bob",
+    "avatar": "https://i.pravatar.cc/150?u=bob",
+    "last_activity": "2024-01-27T10:15:00Z",
+    "isNewUser": false,
+    "user_settings": {
+      "locale": "en-GB",
+      "notifications": { "email": true, "sms": false },
+      "callVideoMessage": true,
+      "presencePreference": "away"
+    },
+    "user_profile": {
+      "bio": "Content Moderator. Here to keep the community safe and friendly.",
+      "gender": "male",
+      "age": 28,
+      "bodyType": "athletic",
+      "hairColor": "brown",
+      "country": "United Kingdom",
+      "coverImage": "https://picsum.photos/id/1016/800/200",
+      "backgroundImages": ["https://picsum.photos/id/1020/400/300"],
+      "socialUrls": ["https://linkedin.com/in/bobmod"],
+      "additionalUrls": []
+    }
+  },
+  {
+    "uid": "user_charlie_03",
+    "publicUid": "UID-CHARLIE-303",
+    "username": "charlie_runner",
+    "userName": "charlie_runner",
+    "display_name": "Charlie Chaplin",
+    "displayName": "Charlie Chaplin",
+    "email": "charlie@example.com",
+    "role": "user",
+    "status": "offline",
+    "avatar_url": "https://i.pravatar.cc/150?u=charlie",
+    "avatarUrl": "https://i.pravatar.cc/150?u=charlie",
+    "avatar": "https://i.pravatar.cc/150?u=charlie",
+    "last_activity": "2024-01-26T22:00:00Z",
+    "isNewUser": true,
+    "user_settings": {
+      "locale": "fr-FR",
+      "notifications": { "email": false, "sms": false },
+      "callVideoMessage": false,
+      "presencePreference": "offline"
+    },
+    "user_profile": {
+      "bio": "I love running and vintage fashion.",
+      "gender": "male",
+      "age": 45,
+      "bodyType": "average",
+      "hairColor": "black",
+      "country": "France",
+      "coverImage": "https://picsum.photos/id/1011/800/200",
+      "backgroundImages": [],
+      "socialUrls": [],
+      "additionalUrls": ["https://charlie.run"]
+    }
+  },
+  {
+    "uid": "user_diana_04",
+    "publicUid": "UID-DIANA-404",
+    "username": "diana_dream",
+    "userName": "diana_dream",
+    "display_name": "Diana Prince",
+    "displayName": "Diana Prince",
+    "email": "diana@themyscira.com",
+    "role": "user",
+    "status": "online",
+    "avatar_url": "https://i.pravatar.cc/150?u=diana",
+    "avatarUrl": "https://i.pravatar.cc/150?u=diana",
+    "avatar": "https://i.pravatar.cc/150?u=diana",
+    "last_activity": "2024-01-27T18:00:00Z",
+    "isNewUser": false,
+    "user_settings": {
+      "locale": "en-US",
+      "notifications": { "email": true, "sms": true },
+      "callVideoMessage": true,
+      "presencePreference": "online"
+    },
+    "user_profile": {
+      "bio": "Digital Artist and Traveler. Exploring the world one pixel at a time.",
+      "gender": "female",
+      "age": 27,
+      "bodyType": "curvy",
+      "hairColor": "red",
+      "country": "Greece",
+      "coverImage": "https://picsum.photos/id/1022/800/200",
+      "backgroundImages": ["https://picsum.photos/id/1021/400/300", "https://picsum.photos/id/1023/400/300", "https://picsum.photos/id/1024/400/300"],
+      "socialUrls": ["https://instagram.com/diana_art"],
+      "additionalUrls": ["https://diana.artstation.com"]
+    }
+  },
+  {
+    "uid": "user_ethan_05",
+    "publicUid": "UID-ETHAN-505",
+    "username": "ethan_hunt",
+    "userName": "ethan_hunt",
+    "display_name": "Ethan Hunt",
+    "displayName": "Ethan Hunt",
+    "email": "ethan@impossible.com",
+    "role": "user",
+    "status": "dnd",
+    "avatar_url": "https://i.pravatar.cc/150?u=ethan",
+    "avatarUrl": "https://i.pravatar.cc/150?u=ethan",
+    "avatar": "https://i.pravatar.cc/150?u=ethan",
+    "last_activity": "2024-01-27T14:50:00Z",
+    "isNewUser": false,
+    "user_settings": {
+      "locale": "en-US",
+      "notifications": { "email": true, "sms": true },
+      "callVideoMessage": false,
+      "presencePreference": "dnd"
+    },
+    "user_profile": {
+      "bio": "Risk management specialist. Always on a mission.",
+      "gender": "male",
+      "age": 42,
+      "bodyType": "fit",
+      "hairColor": "dark brown",
+      "country": "United States",
+      "coverImage": "https://picsum.photos/id/1025/800/200",
+      "backgroundImages": ["https://picsum.photos/id/1026/400/300"],
+      "socialUrls": [],
+      "additionalUrls": []
+    }
   }
 ]

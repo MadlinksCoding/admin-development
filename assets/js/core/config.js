@@ -246,7 +246,29 @@ window.AdminConfig = {
         type: "text",
         name: "q",
         label: "Search",
-        placeholder: "search…"
+        placeholder: "ID, Username, Email…"
+      },
+      {
+        type: "select",
+        name: "role",
+        label: "Role",
+        options: ["", "admin", "moderator", "user"]
+      },
+      {
+        type: "text",
+        name: "uid",
+        label: "Public UID",
+        placeholder: "Enter internal UID"
+      },
+      {
+        type: "date",
+        name: "active_from",
+        label: "Last Active From"
+      },
+      {
+        type: "date",
+        name: "active_to",
+        label: "Last Active To"
       }
     ],
     "user-blocks": [

@@ -257,11 +257,36 @@
 
      /**
      * User Adapter
-     * Standard POST but specific payload keys
+     * Handles GET requests to /fetchUsers and specific field mapping
      */
     class UsersAdapter extends BaseAdapter {
-        // Uses standard BaseAdapter buildPayload but sets section='users'
-        // Logic already handled by base buildPayload using this.section
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            
+            // Map standard filters
+            if (filters.q) params.append("q", filters.q);
+            if (filters.role) params.append("role", filters.role);
+            if (filters.status) params.append("status", filters.status);
+            
+            // PostgreSQL offset-based pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset !== undefined) params.append("offset", pagination.offset);
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "fetchUsers"
+            };
+        }
+
+        transformResponse(responseData) {
+            // Backend returns: { users: [...], count: 13 }
+            return {
+                items: responseData.users || [],
+                total: responseData.count || (responseData.users ? responseData.users.length : 0),
+                // items are already in correct format (uid, username, etc.)
+            };
+        }
     }
 
     /**

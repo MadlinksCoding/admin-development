@@ -63,11 +63,19 @@ async function fetchWithTimeout(url, fetchOptions = {}, timeoutMilliseconds = FE
 
   // Try to fetch the resource
   try {
+    // Build headers - default to JSON if body is present
+    const headers = { ...(fetchOptions.headers || {}) };
+    if (fetchOptions.body && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
     // Default cache control to prevent browser caching
     // Only add if cache option is not explicitly provided in fetchOptions
     const finalFetchOptions = {
       // Spread fetch options first
       ...fetchOptions,
+      // Use built headers
+      headers,
       // Add cache control if not already specified (prevents browser caching)
       ...(fetchOptions.cache === undefined ? { cache: 'no-store' } : {}),
       // Add abort signal for timeout control
@@ -544,7 +552,7 @@ async function getTotalCount(sectionName, filters = {}) {
       try {
           const fetchOptions = {
               method: countRequest.method || 'GET',
-              headers: countRequest.data ? { "Content-Type": "application/json" } : {},
+              headers: { "Content-Type": "application/json", ...(countRequest.headers || {}) },
               body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
           };
 
@@ -689,7 +697,7 @@ window.ApiService = {
        try {
            const fetchOptions = {
                method: requestConfig.method,
-               headers: requestConfig.data ? { "Content-Type": "application/json" } : {},
+               headers: { "Content-Type": "application/json", ...(requestConfig.headers || {}) },
                body: requestConfig.data ? JSON.stringify(requestConfig.data) : undefined
            };
 

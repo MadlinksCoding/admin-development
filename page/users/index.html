@@ -96,6 +96,14 @@
             >
               <i class="bi bi-x-circle"></i> Reset
             </button>
+            <!-- Create User button -->
+            <button
+              id="createUserBtn"
+              class="btn btn-primary btn-sm"
+              onclick="handleCreateUser()"
+            >
+              <i class="bi bi-plus-circle"></i> Create User
+            </button>
             <!-- Refresh button - reloads page data -->
             <button
               class="btn btn-primary btn-sm"
@@ -124,6 +132,33 @@
       </main>
     </div>
 
+    <!-- User Profile Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="userProfileOffcanvas" aria-labelledby="userProfileOffcanvasLabel">
+      <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="userProfileOffcanvasLabel">User Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body" id="userProfileOffcanvasBody">
+        <div class="text-center py-5">
+           <div class="spinner-border text-primary"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Settings Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="userSettingsOffcanvas" aria-labelledby="userSettingsOffcanvasLabel">
+      <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="userSettingsOffcanvasLabel">User Settings</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body" id="userSettingsOffcanvasBody">
+        <!-- Content loaded dynamically -->
+        <div class="text-center py-5">
+           <div class="spinner-border text-primary"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Bootstrap JavaScript bundle from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core JavaScript modules -->
@@ -137,6 +172,9 @@
     <!-- API service for data fetching -->
     <script src="assets/js/services/api-adapters.js"></script>
     <script src="assets/js/services/api-service.js"></script>
+    <!-- Utilities -->
+    <script src="assets/js/utils/moderation-utils.js"></script>
+    <script src="assets/js/utils/processing.js"></script>
     <!-- UI Components -->
     <!-- Sidebar navigation component -->
     <script src="assets/js/ui/sidebar.js"></script>
@@ -152,6 +190,8 @@
     <script src="assets/js/ui/tabs.js"></script>
     <!-- Table component -->
     <script src="assets/js/ui/table.js"></script>
+    <!-- Page renderer utility -->
+    <script src="assets/js/ui/page-renderer.js"></script>
     <!-- Main -->
     <!-- Main admin panel orchestrator -->
     <script src="assets/js/admin.js"></script>
