@@ -21,20 +21,6 @@
       id: "media-table",
       columns: [
         { 
-          field: "asset_url", 
-          label: "Preview",
-          formatter: (value, row) => {
-            if (row.media_type === 'image') {
-              return `<img src="${value}" class="rounded border" width="40" height="40" style="object-fit: cover;" onerror="this.src='assets/img/placeholder.png'">`;
-            } else if (row.media_type === 'video') {
-              return `<div class="rounded border bg-dark d-flex align-items-center justify-content-center" width="40" height="40" style="width:40px; height:40px;"><i class="bi bi-play-fill text-white"></i></div>`;
-            } else if (row.media_type === 'audio') {
-              return `<div class="rounded border bg-light d-flex align-items-center justify-content-center" width="40" height="40" style="width:40px; height:40px;"><i class="bi bi-music-note"></i></div>`;
-            }
-            return `<div class="rounded border bg-light d-flex align-items-center justify-content-center" width="40" height="40" style="width:40px; height:40px;"><i class="bi bi-file-earmark"></i></div>`;
-          }
-        },
-        { 
           field: "title", 
           label: "Title", 
           sortable: true,
@@ -94,6 +80,25 @@
           formatter: (value) => `<code class="small">${value || '-'}</code>`
         },
         { 
+          field: "file_size", 
+          label: "Size", 
+          sortable: true,
+          formatter: (value) => {
+            if (!value) return '-';
+            const size = parseInt(value);
+            if (size < 1024) return `${size} B`;
+            if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+            if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+            return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+          }
+        },
+        { 
+          field: "updated_at", 
+          label: "Updated", 
+          sortable: true,
+          formatter: (value) => value ? new Date(value).toLocaleDateString() : '-'
+        },
+        { 
           field: "created_at", 
           label: "Created", 
           sortable: true,
@@ -107,9 +112,9 @@
           onClick: "handleMediaView"
         },
         {
-          label: "Edit",
+          label: "Data",
           className: "btn btn-sm btn-primary",
-          onClick: "handleMediaEdit"
+          onClick: "handleMediaData"
         }
       ]
     };
@@ -118,7 +123,103 @@
     window.PageRenderer.init({
       section: SECTION,
       tableConfig: MEDIA_TABLE_CONFIG,
-      pagination: { enabled: true, pageSize: 10 }
+      pagination: { enabled: true, pageSize: 10 },
+      filters: [
+        {
+          name: "title",
+          label: "Title",
+          type: "text",
+          placeholder: "Search by title..."
+        },
+        {
+          name: "media_type",
+          label: "Media Type",
+          type: "select",
+          options: [
+            { value: "", label: "All Types" },
+            { value: "image", label: "Image" },
+            { value: "video", label: "Video" },
+            { value: "audio", label: "Audio" },
+            { value: "file", label: "File" },
+            { value: "gallery", label: "Gallery" }
+          ]
+        },
+        {
+          name: "status",
+          label: "Status",
+          type: "select",
+          options: [
+            { value: "", label: "All Statuses" },
+            { value: "published", label: "Published" },
+            { value: "scheduled", label: "Scheduled" },
+            { value: "draft", label: "Draft" },
+            { value: "pending", label: "Pending" }
+          ]
+        },
+        {
+          name: "visibility",
+          label: "Visibility",
+          type: "select",
+          options: [
+            { value: "", label: "All Visibility" },
+            { value: "public", label: "Public" },
+            { value: "subscribers", label: "Subscribers" },
+            { value: "purchasers", label: "Purchasers" },
+            { value: "private", label: "Private" },
+            { value: "unlisted", label: "Unlisted" }
+          ]
+        },
+        {
+          name: "file_extension",
+          label: "File Extension",
+          type: "text",
+          placeholder: "e.g., jpg, mp4, pdf..."
+        },
+        {
+          name: "file_name",
+          label: "File Name",
+          type: "text",
+          placeholder: "Search by filename..."
+        },
+        {
+          name: "description",
+          label: "Description",
+          type: "text",
+          placeholder: "Search in description..."
+        },
+        {
+          name: "featured",
+          label: "Featured Only",
+          type: "check"
+        },
+        {
+          name: "coming_soon",
+          label: "Coming Soon Only",
+          type: "check"
+        },
+        {
+          name: "created_from",
+          label: "Created From",
+          type: "date"
+        },
+        {
+          name: "created_to",
+          label: "Created To",
+          type: "date"
+        },
+        {
+          name: "file_size_min",
+          label: "Min File Size (KB)",
+          type: "number",
+          placeholder: "0"
+        },
+        {
+          name: "file_size_max",
+          label: "Max File Size (KB)",
+          type: "number",
+          placeholder: "1000000"
+        }
+      ]
     });
 
     /**
@@ -167,102 +268,51 @@
             <p class="small mb-0">${rowData.description || 'No description provided.'}</p>
           </div>
         </div>
-        <div class="mt-4 pt-3 border-top">
-          <h6 class="small fw-bold mb-2">Meta Data</h6>
-          <pre class="bg-dark text-light p-2 rounded small" style="max-height: 200px; overflow: auto;">${JSON.stringify(rowData, null, 2)}</pre>
+        <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+          <button type="button" class="btn btn-outline-danger btn-sm" onclick="handleMediaDelete('${rowData.media_id}')">Delete</button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          </div>
         </div>
       `;
       modal.modal.show();
     };
+    window.handleMediaData = (rowData) => {
+      const offcanvasEl = document.getElementById('mediaDataOffcanvas');
+      const offcanvasBody = document.getElementById('mediaDataOffcanvasBody');
+      const offcanvasTitle = document.getElementById('mediaDataOffcanvasLabel');
 
-    // 2. Edit Media
-    window.handleMediaEdit = (rowData) => {
-      const modal = window.ModalViewer;
-      modal.init();
-      
-      const titleEl = document.querySelector("#viewModal .modal-title");
-      if (titleEl) titleEl.textContent = `Edit Media: ${rowData.title}`;
+      offcanvasTitle.textContent = `Media Data: ${rowData.title || rowData.media_id || 'Unknown'}`;
 
-      modal.body.innerHTML = `
-        <form id="editMediaForm">
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label small fw-bold">Title</label>
-              <input type="text" class="form-control form-control-sm" name="title" value="${rowData.title || ''}" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-bold">Visibility</label>
-              <select class="form-select form-select-sm" name="visibility">
-                <option value="public" ${rowData.visibility === 'public' ? 'selected' : ''}>Public</option>
-                <option value="subscribers" ${rowData.visibility === 'subscribers' ? 'selected' : ''}>Subscribers</option>
-                <option value="purchasers" ${rowData.visibility === 'purchasers' ? 'selected' : ''}>Purchasers</option>
-                <option value="private" ${rowData.visibility === 'private' ? 'selected' : ''}>Private</option>
-                <option value="unlisted" ${rowData.visibility === 'unlisted' ? 'selected' : ''}>Unlisted</option>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label small fw-bold">Status</label>
-              <select class="form-select form-select-sm" name="status">
-                <option value="published" ${rowData.status === 'published' ? 'selected' : ''}>Published</option>
-                <option value="scheduled" ${rowData.status === 'scheduled' ? 'selected' : ''}>Scheduled</option>
-                <option value="draft" ${rowData.status === 'draft' ? 'selected' : ''}>Draft</option>
-              </select>
-            </div>
-            <div class="col-12">
-              <label class="form-label small fw-bold">Description</label>
-              <textarea class="form-control form-control-sm" name="description" rows="3">${rowData.description || ''}</textarea>
-            </div>
-            <div class="col-md-6">
-               <div class="form-check form-switch mt-2">
-                 <input class="form-check-input" type="checkbox" name="featured" ${rowData.featured ? 'checked' : ''}>
-                 <label class="form-check-label small">Featured</label>
-               </div>
-            </div>
-            <div class="col-md-6">
-               <div class="form-check form-switch mt-2">
-                 <input class="form-check-input" type="checkbox" name="coming_soon" ${rowData.coming_soon ? 'checked' : ''}>
-                 <label class="form-check-label small">Coming Soon</label>
-               </div>
-            </div>
-          </div>
-          <div class="mt-4 pt-3 border-top d-flex justify-content-between">
-            <button type="button" class="btn btn-outline-danger btn-sm" onclick="handleMediaDelete('${rowData.media_id}')">Delete Item</button>
-            <div class="d-flex gap-2">
-              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary btn-sm px-4">Save Changes</button>
-            </div>
-          </div>
-        </form>
+      offcanvasBody.innerHTML = `
+        <div class="mb-3">
+          <h6>Full JSON Data</h6>
+          <pre class="bg-light p-3 rounded small" style="max-height: 600px; overflow: auto;">${JSON.stringify(rowData, null, 2)}</pre>
+        </div>
       `;
-      modal.modal.show();
 
-      document.getElementById("editMediaForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const updates = Object.fromEntries(formData);
-        updates.featured = formData.has('featured');
-        updates.coming_soon = formData.has('coming_soon');
-
-        await window.Processing.process(async () => {
-          const url = await resolveEndpoint("media", "updateMediaItem", rowData.media_id);
-          const res = await window.ApiService._fetchWithTimeout(url, { 
-            method: "PUT", 
-            body: JSON.stringify(updates),
-            headers: { 'x-actor-user-id': 'admin-user' }
-          });
-          const result = await res.json();
-          if (!result.success) throw new Error(result.message || "Update failed");
-          
-          modal.modal.hide();
-          document.body.dispatchEvent(new CustomEvent('section:refresh'));
-        }, "Saving changes...", "Media updated successfully!");
-      };
+      const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+      bsOffcanvas.show();
     };
 
     // 3. Delete Media
     window.handleMediaDelete = (mediaId) => {
+      // Handle both string and object inputs
+      if (typeof mediaId === 'object' && mediaId.media_id) {
+        mediaId = mediaId.media_id;
+      }
+      
       const modal = window.ModalViewer;
       modal.init();
+      
+      // Ensure modal is properly reset
+      try {
+        if (modal.modal && typeof modal.modal.hide === 'function') {
+          modal.modal.hide();
+        }
+      } catch (e) {
+        // Ignore hide errors
+      }
 
       const titleEl = document.querySelector("#viewModal .modal-title");
       if (titleEl) titleEl.textContent = "Confirm Delete";
@@ -278,22 +328,72 @@
           </div>
         </div>
       `;
-      modal.modal.show();
+      
+      // Small delay to ensure proper cleanup
+      setTimeout(() => {
+        modal.modal.show();
+      }, 50);
 
-      document.getElementById("confirmDeleteBtn").onclick = async () => {
-        await window.Processing.process(async () => {
-          const url = await resolveEndpoint("media", "deleteMediaItem", mediaId);
-          const res = await window.ApiService._fetchWithTimeout(url, { 
-            method: "DELETE",
-            headers: { 'x-actor-user-id': 'admin-user' }
-          });
-          const result = await res.json();
-          if (!result.success) throw new Error(result.message || "Deletion failed");
+      // Remove any existing handler
+      const existingBtn = document.getElementById("confirmDeleteBtn");
+      if (existingBtn) {
+        existingBtn.onclick = null;
+      }
 
-          modal.modal.hide();
-          document.body.dispatchEvent(new CustomEvent('section:refresh'));
-        }, "Deleting...", "Media deleted.");
-      };
+      // Attach handler with timeout to ensure modal is shown
+      setTimeout(() => {
+        const confirmBtn = document.getElementById("confirmDeleteBtn");
+        if (confirmBtn) {
+          // Flag to prevent action when modal is closing
+          let isModalClosing = false;
+          
+          // Function to clean up all event listeners
+          const cleanup = () => {
+            isModalClosing = false;
+            confirmBtn.onclick = null;
+            // Remove event listeners
+            modal.modal._element.removeEventListener('hide.bs.modal', handleHide);
+            modal.modal._element.removeEventListener('hidden.bs.modal', handleHidden);
+          };
+          
+          // Event handlers
+          const handleHide = () => {
+            isModalClosing = true;
+          };
+          
+          const handleHidden = () => {
+            cleanup();
+            // Force remove any lingering backdrop or modal overlays
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+          };
+          
+          // Listen for modal hide events (one-time cleanup)
+          modal.modal._element.addEventListener('hide.bs.modal', handleHide);
+          modal.modal._element.addEventListener('hidden.bs.modal', handleHidden);
+          
+          confirmBtn.onclick = async () => {
+            // Check if modal is closing
+            if (isModalClosing || !modal.modal._isShown) return;
+            
+            await window.Processing.process(async () => {
+              const url = await resolveEndpoint("media", "deleteMediaItem", mediaId);
+              const res = await window.ApiService._fetchWithTimeout(url, { 
+                method: "DELETE",
+                headers: { 'x-actor-user-id': 'admin-user' }
+              });
+              const result = await res.json();
+              if (!result.success) throw new Error(result.message || "Deletion failed");
+
+              modal.modal.hide();
+              document.body.dispatchEvent(new CustomEvent('section:refresh'));
+            }, "Deleting...", "Media deleted.");
+          };
+        }
+      }, 100);
     };
 
     /**
@@ -302,7 +402,7 @@
 
     function renderMediaPreview(media) {
       if (media.media_type === 'image') {
-        return `<img src="${media.asset_url}" class="img-fluid rounded border" style="max-height: 300px;">`;
+        return `<img src="${media.asset_url}" class="img-fluid rounded border" style="max-height: 300px;" onerror="this.outerHTML='<div class=\\'py-5 text-center text-muted\\'><i class=\\'bi bi-image\\' style=\\'font-size: 4rem;\\'></i><p>Image unavailable</p></div>';" />`;
       } else if (media.media_type === 'video') {
         return `<video src="${media.asset_url}" controls class="img-fluid rounded border" style="max-height: 300px; width: 100%;"></video>`;
       } else if (media.media_type === 'audio') {
@@ -317,9 +417,7 @@
       const config = pageApiConfig[section]?.[currentEnv];
       let baseUrl = config?.endpoint?.match(/^https?:\/\/[^\/]+/)?.[0] || "";
       if (!baseUrl) baseUrl = (window.AdminEndpoints?.base || {})[currentEnv] || "";
-      // If still empty (e.g. dev with no endpoint), return default path
-      const base = baseUrl || "";
-      return `${base}/media/${action}${id ? '/' + id : ''}`;
+      return `${baseUrl}/${section}/${action}${id ? '/' + id : ''}`;
     }
   });
 })();

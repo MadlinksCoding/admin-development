@@ -335,6 +335,53 @@
     }
 
 
+    /**
+     * Media Adapter
+     * Handles GET requests to /fetchMediaItems and specific field mapping
+     */
+    class MediaAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+
+            // Map standard filters to query parameters
+            if (filters.title) params.append("title", filters.title);
+            if (filters.media_type) params.append("media_type", filters.media_type);
+            if (filters.status) params.append("status", filters.status);
+            if (filters.visibility) params.append("visibility", filters.visibility);
+            if (filters.owner_user_id) params.append("owner_user_id", filters.owner_user_id);
+            if (filters.featured !== undefined) params.append("featured", filters.featured);
+            if (filters.coming_soon !== undefined) params.append("coming_soon", filters.coming_soon);
+            if (filters.created_from) params.append("created_from", filters.created_from);
+            if (filters.created_to) params.append("created_to", filters.created_to);
+            if (filters.file_size_min) params.append("file_size_min", filters.file_size_min);
+            if (filters.file_size_max) params.append("file_size_max", filters.file_size_max);
+            if (filters.file_extension) params.append("file_extension", filters.file_extension);
+            if (filters.file_name) params.append("file_name", filters.file_name);
+            if (filters.description) params.append("description", filters.description);
+
+            // Pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset !== undefined) params.append("offset", pagination.offset);
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "fetchMediaItems"
+            };
+        }
+
+        transformResponse(responseData) {
+            // Backend returns: { items: [...], count: number, limit: number, offset: number, nextCursor?: string }
+            return {
+                items: responseData.items || [],
+                total: responseData.count || (responseData.items ? responseData.items.length : 0),
+                nextCursor: responseData.nextCursor,
+                prevCursor: responseData.prevCursor
+            };
+        }
+    }
+
+
     // Registry of all adapters
     const registry = {
         'default': BaseAdapter,
@@ -343,7 +390,8 @@
         'moderation': ModerationAdapter,
         'products': ProductsAdapter,
         'orders': OrdersAdapter,
-        'users': UsersAdapter
+        'users': UsersAdapter,
+        'media': MediaAdapter
     };
 
     /**

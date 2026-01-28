@@ -37,15 +37,15 @@
     <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <!-- Page-specific stylesheet -->
     <link href="page/media/style.css" rel="stylesheet" />
-    <!-- API Configuration: Configure API endpoints per environment. Set endpoint to use real API, or leave empty to use dummy data. Example: "endpoint": "https://api.example.com/media" -->
+    <!-- API Configuration: Configure API endpoints per environment. Set endpoint to use real API, or leave empty to use dummy data. Example: "endpoint": "https://api.example.com/users" -->
     <script type="application/json" id="api-config">
       {
         "media": {
           "prod": {
-            "endpoint": ""
+            "endpoint": "/media"
           },
           "stage": {
-            "endpoint": ""
+            "endpoint": "/media"
           },
           "dev": {
             "endpoint": ""
@@ -122,6 +122,17 @@
           </div>
         </div>
       </main>
+    </div>
+
+    <!-- Media Data Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mediaDataOffcanvas" aria-labelledby="mediaDataOffcanvasLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mediaDataOffcanvasLabel">Media Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body" id="mediaDataOffcanvasBody">
+        <!-- Content will be loaded here -->
+      </div>
     </div>
 
     <!-- Bootstrap JavaScript bundle from CDN -->
