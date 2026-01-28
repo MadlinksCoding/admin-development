@@ -1,1 +1,34 @@
-/* Page-specific styles for Media */
+/* Media Page Styles */
+
+.media-preview-container {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.media-preview-container img, 
+.media-preview-container video {
+  max-width: 100%;
+  max-height: 400px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+#media-table td {
+  vertical-align: middle;
+}
+
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+code {
+  color: #d63384;
+  background-color: #f8f9fa;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
