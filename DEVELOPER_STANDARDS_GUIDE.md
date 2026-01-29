@@ -445,6 +445,24 @@ When rendering tabs manually (if needed), include counts:
 
 ---
 
+## 14. API Call Standards
+
+### ✅ DO: Use ApiService for All Data Fetching
+
+**Any API calls MUST go through `window.ApiService` in the pages.** This ensures consistency in error handling, environment configuration, and data transformation.
+
+- Use `window.ApiService.get(sectionName, options)` for standard data fetching
+- Use `window.ApiService.getTotalCount(sectionName, filters)` for getting item counts
+- Let the `ApiService` handle relative paths and environment-specific base URLs
+
+### ❌ DON'T: Use Direct fetch() or XMLHttpRequest
+
+- **NEVER** use the native `fetch()` API directly in page scripts
+- **NEVER** use `axios`, `jQuery.ajax()`, or other external libraries for core API calls
+- **NEVER** bypass the standard API configuration pattern
+
+---
+
 ## Development Workflow
 
 1. **Copy demo page structure** - Don't start from scratch
@@ -478,7 +496,7 @@ When rendering tabs manually (if needed), include counts:
 
 ---
 
-## 14. Reference Implementation Checklist
+## 15. Reference Implementation Checklist
 
 - [ ] Page has all 4 files (HTML, JS, CSS, JSON)
 - [ ] HTML includes API config script tag
