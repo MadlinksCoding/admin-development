@@ -49,12 +49,50 @@ function getPageApiConfig(sectionName) {
 }
 
 /**
- * Fetch with timeout and error handling
- * @param {string} url - URL to fetch from
- * @param {Object} fetchOptions - Fetch API options object
- * @param {number} timeoutMilliseconds - Timeout in milliseconds (default: 20000)
- * @returns {Promise<Response>} Fetch response object
+ * Internal helper to resolve endpoint URL
  */
+function resolveUrl(sectionName, pathSuffix = "") {
+  if (!hasApiConfigScript()) return "";
+  
+  const sectionNameParts = sectionName.split("/");
+  const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
+  const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
+  const currentEnvironment = window.Env?.current || "dev";
+  
+  let baseUrl = (window.AdminEndpoints?.base || {})[currentEnvironment] || "";
+  let endpointUrl = "";
+
+  const shouldUseEndpoint =
+    pageApiConfig &&
+    pageApiConfig[currentEnvironment] &&
+    pageApiConfig[currentEnvironment].endpoint &&
+    pageApiConfig[currentEnvironment].endpoint.trim() !== "";
+
+  if (shouldUseEndpoint) {
+    const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
+    if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
+      endpointUrl = configEndpoint;
+    } else {
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+      const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
+      endpointUrl = cleanBase + cleanPath;
+    }
+  } else if (USE_ENDPOINTS) {
+    const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
+    endpointUrl = baseUrl + routePath;
+  } else {
+    // If not using endpoints and no specific config, return empty
+    return "";
+  }
+
+  if (pathSuffix) {
+    const cleanSuffix = pathSuffix.startsWith('/') ? pathSuffix : '/' + pathSuffix;
+    endpointUrl = endpointUrl.endsWith('/') ? endpointUrl.slice(0, -1) + cleanSuffix : endpointUrl + cleanSuffix;
+  }
+
+  return endpointUrl;
+}
+
 async function fetchWithTimeout(url, fetchOptions = {}, timeoutMilliseconds = FETCH_TIMEOUT) {
   // Create abort controller for timeout handling
   const abortController = new AbortController();
@@ -501,103 +539,26 @@ async function getTotalCount(sectionName, filters = {}) {
   }
 
   try {
-    // Resolve configuration (consistent with get() logic)
-    const sectionNameParts = sectionName.split("/");
-    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
-    const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
-    const currentEnvironment = window.Env?.current || "dev";
-    
-    const shouldUseEndpoint =
-      pageApiConfig &&
-      pageApiConfig[currentEnvironment] &&
-      pageApiConfig[currentEnvironment].endpoint &&
-      pageApiConfig[currentEnvironment].endpoint.trim() !== "";
+    let fullUrl = resolveUrl(sectionName, countRequest.endpointSuffix);
+    if (!fullUrl) return null;
 
-    if (USE_ENDPOINTS || shouldUseEndpoint) {
-      // --- REMOTE API LOGIC ---
-      let endpointUrl;
-      const globalBase = (window.AdminEndpoints?.base || {})[currentEnvironment] || "";
-      
-      if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
-          const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
-          
-          if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
-             endpointUrl = configEndpoint;
-          } else {
-             const cleanBase = globalBase.endsWith('/') ? globalBase.slice(0, -1) : globalBase;
-             const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
-             endpointUrl = cleanBase + cleanPath;
-          }
-      } else {
-          const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
-          endpointUrl = globalBase + routePath;
-      }
-
-      // Append suffix from adapter (usually "count")
-      if (countRequest.endpointSuffix) {
-          endpointUrl = endpointUrl.endsWith('/') 
-              ? endpointUrl + countRequest.endpointSuffix 
-              : endpointUrl + '/' + countRequest.endpointSuffix;
-      }
-
-      // Build Full URL with Query Params
-      let fullUrl = endpointUrl;
-      if (countRequest.params) {
-          const qs = countRequest.params.toString();
-          if (qs) {
-            fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
-          }
-      }
-
-      try {
-          const fetchOptions = {
-              method: countRequest.method || 'GET',
-              headers: { "Content-Type": "application/json", ...(countRequest.headers || {}) },
-              body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
-          };
-
-          const response = await fetchWithTimeout(fullUrl, fetchOptions);
-          const responseData = await response.json();
-          
-          return adapter.transformCountResponse(responseData);
-      } catch (err) {
-        console.warn(`[ApiService] Count request failed for ${fullUrl}:`, err);
-        return null;
-      }
-    } else {
-      // --- LOCAL MOCK DATA LOGIC ---
-      const currentPathname = window.location.pathname;
-      const basePath = currentPathname.substring(0, currentPathname.indexOf("/page/") + 1) || "";
-      const dataFileUrl = `${basePath}page/${sectionName}/data.json`;
-      
-      try {
-        const fetchResponse = await fetchWithTimeout(dataFileUrl, { 
-          cache: "no-store",
-          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-        });
-        if (!fetchResponse.ok) return null;
-        let fullData = await fetchResponse.json();
-        
-        if (!Array.isArray(fullData)) return null;
-        
-        // Mock filtering (re-using transformation logic where possible)
-        // For now keep explicit filtering as it matches mock data structure
-        if (filters.status && filters.status !== "" && filters.status !== "Any") {
-          fullData = fullData.filter(
-            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-          );
-        }
-        
-        // Add more mock filters here if needed
-        
-        return fullData.length;
-      } catch (error) {
-        console.warn(`[ApiService] Mock data count failed for ${sectionName}:`, error);
-        return null;
+    if (countRequest.params) {
+      const qs = countRequest.params.toString();
+      if (qs) {
+        fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
       }
     }
-  } catch (error) {
-    console.warn(`[ApiService] getTotalCount failed for ${sectionName}:`, error);
+
+    const response = await fetchWithTimeout(fullUrl, {
+      method: countRequest.method || 'GET',
+      headers: { "Content-Type": "application/json", ...(countRequest.headers || {}) },
+      body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
+    });
+    
+    const responseData = await response.json();
+    return adapter.transformCountResponse(responseData);
+  } catch (err) {
+    console.warn(`[ApiService] getTotalCount failed:`, err);
     return null;
   }
 }
@@ -606,89 +567,230 @@ async function getTotalCount(sectionName, filters = {}) {
  * API Service
  * Main service for fetching data from local or remote sources
  */
+/**
+ * Apply consolidated mock filtering to a data array
+ * @param {Array} dataArray - Array of data items to filter
+ * @param {Object} filters - Filter criteria
+ * @returns {Array} Filtered array
+ */
+function applyMockFilters(dataArray, filters) {
+    if (!filters || Object.keys(filters).length === 0) return dataArray;
+    
+    let filtered = [...dataArray];
+
+    // 1. Global Search (q)
+    if (filters.q) {
+      const s = filters.q.toLowerCase();
+      filtered = filtered.filter(i => 
+        (i.uid || "").toLowerCase().includes(s) ||
+        (i.public_uid || "").toLowerCase().includes(s) ||
+        (i.username || "").toLowerCase().includes(s) ||
+        (i.display_name || "").toLowerCase().includes(s) ||
+        (i.email || "").toLowerCase().includes(s) ||
+        (i.userId || i.user_id || "").toLowerCase().includes(s) ||
+        (i.referenceId || i.reference_id || "").toLowerCase().includes(s) ||
+        (i.title || "").toLowerCase().includes(s) ||
+        (i.name || "").toLowerCase().includes(s)
+      );
+    }
+
+    // 2. Exact User Identifiers
+    if (filters.uid) {
+        filtered = filtered.filter(i => (i.uid || "").toLowerCase() === filters.uid.toLowerCase());
+    }
+    if (filters.public_uid) {
+        filtered = filtered.filter(i => (i.public_uid || "").toLowerCase() === filters.public_uid.toLowerCase());
+    }
+
+    // 3. User Specifics
+    if (filters.username) {
+      const u = filters.username.toLowerCase();
+      filtered = filtered.filter(i => (i.username || "").toLowerCase().includes(u));
+    }
+    if (filters.display_name) {
+      const d = filters.display_name.toLowerCase();
+      filtered = filtered.filter(i => (i.display_name || "").toLowerCase().includes(d));
+    }
+    if (filters.email) {
+      const e = filters.email.toLowerCase();
+      filtered = filtered.filter(i => (i.email || "").toLowerCase().includes(e));
+    }
+    if (filters.role && filters.role !== "") {
+      const r = filters.role.toLowerCase();
+      filtered = filtered.filter(i => (i.role || "").toLowerCase() === r);
+    }
+
+    // 4. Status
+    if (filters.status && filters.status !== "" && filters.status !== "Any" && filters.status !== "all") {
+      const s = filters.status.toLowerCase();
+      filtered = filtered.filter(i => (i.status || "").toLowerCase() === s);
+    }
+
+    // 5. Media Specifics
+    if (filters.media_type) {
+        const t = filters.media_type.toLowerCase();
+        filtered = filtered.filter(i => (i.media_type || "").toLowerCase() === t);
+    }
+    if (filters.visibility) {
+        const v = filters.visibility.toLowerCase();
+        filtered = filtered.filter(i => (i.visibility || "").toLowerCase() === v);
+    }
+    if (filters.owner_user_id) {
+        const o = filters.owner_user_id.toLowerCase();
+        filtered = filtered.filter(i => (i.owner_user_id || "").toLowerCase() === o);
+    }
+
+    // 6. User Blocks Specifics
+    if (filters.blocker_id) {
+        const b = filters.blocker_id.toLowerCase();
+        filtered = filtered.filter(i => (i.blocker_id || i.fromUserId || "").toLowerCase().includes(b));
+    }
+    if (filters.blocked_id) {
+        const b = filters.blocked_id.toLowerCase();
+        filtered = filtered.filter(i => (i.blocked_id || i.toUserId || "").toLowerCase().includes(b));
+    }
+    if (filters.scope) {
+        const s = filters.scope.toLowerCase();
+        filtered = filtered.filter(i => (i.scope || "").toLowerCase() === s);
+    }
+    if (filters.flag) {
+        const f = filters.flag.toLowerCase();
+        filtered = filtered.filter(i => (i.flag || "").toLowerCase() === f);
+    }
+    if (filters.is_permanent !== undefined && filters.is_permanent !== "") {
+        const p = String(filters.is_permanent) === "true";
+        filtered = filtered.filter(i => (i.is_permanent === p || i.isPermanent === p));
+    }
+    if (filters.expired !== undefined && filters.expired !== "") {
+        const e = String(filters.expired) === "true";
+        filtered = filtered.filter(i => (i.expired === e));
+    }
+
+    // 7. Products Specifics
+    if (filters.category && filters.category !== "All") {
+        const c = filters.category.toLowerCase();
+        filtered = filtered.filter(i => (i.category || "").toLowerCase() === c);
+    }
+    if (filters.sku) {
+        const s = filters.sku.toLowerCase();
+        filtered = filtered.filter(i => (i.sku || "").toLowerCase().includes(s));
+    }
+    if (filters.price_from) {
+        const p = parseFloat(filters.price_from);
+        filtered = filtered.filter(i => parseFloat(i.price || 0) >= p);
+    }
+    if (filters.price_to) {
+        const p = parseFloat(filters.price_to);
+        filtered = filtered.filter(i => parseFloat(i.price || 0) <= p);
+    }
+
+    // 8. Date Ranges
+    if (filters.from || filters.created_from) {
+      const f = new Date(filters.from || filters.created_from);
+      filtered = filtered.filter(i => {
+        const d = i.createdAt || i.created_at;
+        return d && new Date(d) >= f;
+      });
+    }
+    if (filters.to || filters.created_to) {
+      const t = new Date(filters.to || filters.created_to);
+      t.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(i => {
+        const d = i.createdAt || i.created_at;
+        return d && new Date(d) <= t;
+      });
+    }
+    if (filters.last_activity_from) {
+      const f = new Date(filters.last_activity_from);
+      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) >= f);
+    }
+    if (filters.last_activity_to) {
+      const t = new Date(filters.last_activity_to);
+      t.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) <= t);
+    }
+
+    // 9. Boolean Toggles
+    if (filters.promo === true || filters.promo === "true") {
+        filtered = filtered.filter(i => i.promo === true);
+    }
+    if (filters.inStock === true || filters.inStock === "true") {
+        filtered = filtered.filter(i => i.inStock === true);
+    }
+    if (filters.featured === true || filters.featured === "true") {
+        filtered = filtered.filter(i => i.featured === true);
+    }
+
+    return filtered;
+}
+
 window.ApiService = {
   /**
-   * Expose fetchWithTimeout function for use in page scripts
+   * Internal low-level fetch with timeout (Backward compatibility)
    */
   _fetchWithTimeout: fetchWithTimeout,
-  
+
   /**
    * Get total count for a section from separate endpoint
    */
   getTotalCount: getTotalCount,
 
   /**
+   * Perform a POST request
+   */
+  async post(sectionName, pathSuffix, data = {}, headers = {}) {
+    const url = resolveUrl(sectionName, pathSuffix);
+    if (!url) throw new Error(`Could not resolve endpoint for ${sectionName}`);
+
+    return fetchWithTimeout(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify(data)
+    });
+  },
+
+  /**
+   * Perform a DELETE request
+   */
+  async delete(sectionName, pathSuffix, headers = {}) {
+    const url = resolveUrl(sectionName, pathSuffix);
+    if (!url) throw new Error(`Could not resolve endpoint for ${sectionName}`);
+
+    return fetchWithTimeout(url, {
+      method: 'DELETE',
+      headers: headers
+    });
+  },
+
+  /**
+   * Resolve full endpoint URL
+   */
+  resolveEndpoint(sectionName, pathSuffix = "") {
+    return resolveUrl(sectionName, pathSuffix);
+  },
+
+  /**
    * Get data for a section with optional filters and pagination
-   * @param {string} sectionName - Section name to fetch data for
-   * @param {Object} requestOptions - Options object
-   * @param {Object} requestOptions.filters - Filter values object
-   * @param {Object} requestOptions.pagination - Pagination object with limit and offset
-   * @returns {Promise<Object>} Response object with items, total, nextCursor, prevCursor
    */
   async get(sectionName, { filters = {}, pagination = { limit: 50, offset: 0 } } = {}) {
     // Adapter Pattern: Delegate request building to specific adapter
     const adapter = window.ApiAdapters.get(sectionName);
-    console.log("[ApiService] GET - Section:", sectionName, "Adapter:", adapter.constructor.name);
-
+    
     // Simulate network latency
     await new Promise((resolveFunction) => setTimeout(resolveFunction, 450));
 
     if (!hasApiConfigScript()) {
-      throw new Error(
-        `API configuration script tag (#api-config) is missing for section: ${sectionName}. Please add <script type="application/json" id="api-config"> to the page HTML.`
-      );
+      throw new Error(`API configuration script tag (#api-config) is missing for section: ${sectionName}.`);
     }
     
-    // Config Resolution (Preserved)
-    // Try full section name first, then base section name
-    const sectionNameParts = sectionName.split("/");
-    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
-    const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
+    // Build request via adapter
+    const requestConfig = adapter.buildRequest(filters, pagination);
     
-    const currentEnvironment = window.Env.current;
-    
-    const shouldUseEndpoint =
-      pageApiConfig &&
-      pageApiConfig[currentEnvironment] &&
-      pageApiConfig[currentEnvironment].endpoint &&
-      pageApiConfig[currentEnvironment].endpoint.trim() !== "";
+    // Resolve URL using centralized logic
+    let fullUrl = resolveUrl(sectionName, requestConfig.endpointSuffix);
 
-    if (USE_ENDPOINTS || shouldUseEndpoint) {
-       // --- REMOTE API LOGIC ---
-       let endpointUrl;
-       const globalBase = (window.AdminEndpoints?.base || {})[window.Env.current] || "";
-       
-       if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
-          const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
-          
-          // Check if endpoint is absolute (starts with http:// or https://)
-          if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
-             // Use absolute URL as-is
-             endpointUrl = configEndpoint;
-          } else {
-             // Relative path - merge with global base
-             const cleanBase = globalBase.endsWith('/') ? globalBase.slice(0, -1) : globalBase;
-             const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
-             endpointUrl = cleanBase + cleanPath;
-          }
-       } else {
-          // Use global endpoint configuration with default route
-          const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
-          endpointUrl = globalBase + routePath;
-       }
-
-       // Build Request via Adapter
-       const requestConfig = adapter.buildRequest(filters, pagination);
-       
-       // Handle Endpoint Suffix (e.g., /listUserBlocks)
-       if (requestConfig.endpointSuffix) {
-           endpointUrl = endpointUrl.endsWith('/') 
-               ? endpointUrl + requestConfig.endpointSuffix 
-               : endpointUrl + '/' + requestConfig.endpointSuffix;
-       }
-
-       // Build Full URL with Query Params
-       let fullUrl = endpointUrl;
+    if (fullUrl) {
+       // REMOTE API LOGIC
        if (requestConfig.params) {
            const qs = requestConfig.params.toString();
            fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
@@ -702,26 +804,20 @@ window.ApiService = {
            };
 
            // Use internal fetch with timeout
-           const apiResponse = await window.ApiService._fetchWithTimeout(fullUrl, fetchOptions);
+           const apiResponse = await fetchWithTimeout(fullUrl, fetchOptions);
            const responseData = await apiResponse.json();
            
            // Transform Response via Adapter
            return adapter.transformResponse(responseData, filters, pagination);
 
        } catch (apiError) {
-        // Enhanced Error Handling
+        // Simple Error Handling
         if (apiError.isHttpError) {
           if (apiError.status === 404) {
             apiError.message = `Endpoint not found: ${fullUrl}`;
-          } else if (apiError.status >= 500) {
-            apiError.message = `Internal server error (${apiError.status}): ${apiError.statusText || "Server Error"}`;
           } else {
             apiError.message = `API error (${apiError.status}): ${apiError.statusText || "Request Failed"}`;
           }
-        } else if (apiError.isTimeout) {
-          apiError.message = `Request timed out after ${apiError.timeout / 1000} seconds: ${fullUrl}`;
-        } else if (apiError.isNetworkError) {
-          apiError.message = `Network error: Unable to connect to ${fullUrl}`;
         }
         throw apiError;
        }
@@ -730,84 +826,30 @@ window.ApiService = {
        // --- LOCAL MOCK DATA LOGIC (Fallback) ---
        let dataArray = await localFetch(sectionName);
 
-       // Apply standard filters matching original implementation
-       if (filters.q) {
-        const searchQuery = filters.q.toLowerCase();
-        dataArray = dataArray.filter((dataItem) => {
-          const itemUserId = (dataItem.userId || "").toLowerCase();
-          const itemReferenceId = (dataItem.referenceId || "").toLowerCase();
-          return itemUserId.includes(searchQuery) || itemReferenceId.includes(searchQuery);
-        });
-       }
+        // Apply consolidated mock filtering
+        dataArray = applyMockFilters(dataArray, filters);
 
-       if (filters.email) {
-        const emailFilter = filters.email.toLowerCase();
-        dataArray = dataArray.filter((dataItem) => {
-          const itemEmail = (dataItem.email || "").toLowerCase();
-          return itemEmail.includes(emailFilter);
-        });
-       }
+        // Sorting
+        if (pagination.sortField) {
+          const sortField = pagination.sortField;
+          const sortDirection = pagination.sortDirection === 'desc' ? -1 : 1;
 
-       if (filters.country) {
-        const countryFilter = filters.country.toUpperCase();
-        dataArray = dataArray.filter((dataItem) => {
-          const itemCountry = (dataItem.country || dataItem.data?.country || "").toUpperCase();
-          return itemCountry.includes(countryFilter);
-        });
-       }
+          dataArray.sort((a, b) => {
+            const valA = a[sortField];
+            const valB = b[sortField];
 
-       // Status Filter
-       if (filters.status && filters.status !== "" && filters.status !== "Any") {
-        dataArray = dataArray.filter(
-          (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
-        );
-       }
-
-       if (filters.from) {
-        const fromDateFilter = new Date(filters.from);
-        dataArray = dataArray.filter((dataItem) => {
-          const itemCreatedDate = new Date(dataItem.createdAt);
-          return itemCreatedDate >= fromDateFilter;
-        });
-       }
-
-       if (filters.to) {
-        const toDateFilter = new Date(filters.to);
-        toDateFilter.setHours(23, 59, 59, 999);
-        dataArray = dataArray.filter((dataItem) => {
-          const itemCreatedDate = new Date(dataItem.createdAt);
-          return itemCreatedDate <= toDateFilter;
-        });
-       }
-
-       // UserBlocks Specifics
-       if (filters.fromUserId) {
-        const fromFilter = String(filters.fromUserId).toLowerCase();
-        dataArray = dataArray.filter((item) =>
-          String(item.fromUserId || "").toLowerCase().includes(fromFilter)
-        );
-       }
-       if (filters.toUserId) {
-        const toFilter = String(filters.toUserId).toLowerCase();
-        dataArray = dataArray.filter((item) =>
-          String(item.toUserId || "").toLowerCase().includes(toFilter)
-        );
-       }
-       if (filters.scope) {
-        const scopeFilter = String(filters.scope).toLowerCase();
-        dataArray = dataArray.filter(
-          (item) => String(item.scope || "").toLowerCase() === scopeFilter
-        );
-       }
-       if (filters.flag) {
-        const flagFilter = String(filters.flag).toLowerCase();
-        dataArray = dataArray.filter(
-          (item) => String(item.flag || "").toLowerCase() === flagFilter
-        );
-       }
-       if (filters.isPermanent === true) {
-        dataArray = dataArray.filter((item) => item.isPermanent === true);
-       }
+            if (typeof valA === 'string' && typeof valB === 'string') {
+              return valA.localeCompare(valB) * sortDirection;
+            }
+            if (typeof valA === 'number' && typeof valB === 'number') {
+              return (valA - valB) * sortDirection;
+            }
+            // Fallback for other types or mixed types
+            if (valA < valB) return -1 * sortDirection;
+            if (valA > valB) return 1 * sortDirection;
+            return 0;
+          });
+        }
 
        // Pagination
        const paginationOffset = Number(pagination?.offset || 0);

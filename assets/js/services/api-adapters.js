@@ -115,22 +115,24 @@
      */
     class KycShuftiAdapter extends BaseAdapter {
         buildRequest(filters, pagination) {
-            // KYC uses GET method with query parameters
             const params = new URLSearchParams();
 
-            // Map standard filters to API specific query params
-            if (filters.q) {
-                if (filters.q.startsWith("ref-")) {
-                    params.append("reference", filters.q);
-                } else {
-                    params.append("userId", filters.q);
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    // Handle special case for q (search)
+                    if (key === 'q') {
+                        if (value.startsWith("ref-")) {
+                            params.append("reference", value);
+                        } else {
+                            params.append("userId", value);
+                        }
+                    } else {
+                        params.append(key, value);
+                    }
                 }
-            }
-            if (filters.status && filters.status !== "" && filters.status !== "Any") {
-                params.append("status", filters.status);
-            }
-            if (filters.from) params.append("dateFrom", filters.from);
-            if (filters.to) params.append("dateTo", filters.to);
+            });
+
             if (pagination.limit) params.append("limit", pagination.limit);
             
             if (filters.nextToken) {
@@ -263,12 +265,14 @@
         buildRequest(filters, pagination) {
             const params = new URLSearchParams();
             
-            // Map standard filters
-            if (filters.q) params.append("q", filters.q);
-            if (filters.role) params.append("role", filters.role);
-            if (filters.status) params.append("status", filters.status);
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
             
-            // PostgreSQL offset-based pagination
+            // Support pagination
             if (pagination.limit) params.append("limit", pagination.limit);
             if (pagination.offset !== undefined) params.append("offset", pagination.offset);
 
@@ -343,21 +347,12 @@
         buildRequest(filters, pagination) {
             const params = new URLSearchParams();
 
-            // Map standard filters to query parameters
-            if (filters.title) params.append("title", filters.title);
-            if (filters.media_type) params.append("media_type", filters.media_type);
-            if (filters.status) params.append("status", filters.status);
-            if (filters.visibility) params.append("visibility", filters.visibility);
-            if (filters.owner_user_id) params.append("owner_user_id", filters.owner_user_id);
-            if (filters.featured !== undefined) params.append("featured", filters.featured);
-            if (filters.coming_soon !== undefined) params.append("coming_soon", filters.coming_soon);
-            if (filters.created_from) params.append("created_from", filters.created_from);
-            if (filters.created_to) params.append("created_to", filters.created_to);
-            if (filters.file_size_min) params.append("file_size_min", filters.file_size_min);
-            if (filters.file_size_max) params.append("file_size_max", filters.file_size_max);
-            if (filters.file_extension) params.append("file_extension", filters.file_extension);
-            if (filters.file_name) params.append("file_name", filters.file_name);
-            if (filters.description) params.append("description", filters.description);
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
 
             // Pagination
             if (pagination.limit) params.append("limit", pagination.limit);

@@ -11,30 +11,6 @@
 
   // Utility functions moved to ModerationUtils
 
-  /**
-   * Get base URL from API configuration
-   */
-  function getBaseUrl() {
-    let baseUrl = "http://localhost:3000";
-    try {
-      const configScriptElement = document.getElementById("api-config");
-      if (configScriptElement) {
-        const pageConfig = JSON.parse(configScriptElement.textContent);
-        const currentEnvironment = window.Env?.current || "dev";
-        const moderationConfig = pageConfig["moderation"];
-        if (moderationConfig && moderationConfig[currentEnvironment] && moderationConfig[currentEnvironment].endpoint) {
-          const endpointUrl = moderationConfig[currentEnvironment].endpoint;
-          const urlMatch = endpointUrl.match(/^(https?:\/\/[^\/]+)/);
-          if (urlMatch) {
-            baseUrl = urlMatch[1];
-          }
-        }
-      }
-    } catch (configError) {
-      console.warn("[Moderation] Could not parse API config, using default base URL:", configError);
-    }
-    return baseUrl;
-  }
 
   /**
    * Attach content reveal handlers (using event delegation)
@@ -271,7 +247,7 @@
               <button type="button" class="btn btn-primary" id="contentApproveBtn" data-moderation-id="${moderationId}" data-user-id="${userId}">Approve</button>
               <button type="button" class="btn btn-primary" id="contentDeclineBtn" data-moderation-id="${moderationId}" data-user-id="${userId}">Decline</button>
               <button type="button" class="btn btn-primary" id="contentResubmissionBtn" data-moderation-id="${moderationId}" data-user-id="${userId}">Resubmission Required</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
@@ -680,10 +656,10 @@
         <p class="mb-0">Confirm this action?</p>
       </div>
       <div class="d-grid gap-2">
-        <button class="btn btn-${action === 'approve' ? 'success' : action === 'reject' ? 'danger' : 'warning'}" id="confirmActionBtn">
+        <button class="btn btn-primary" id="confirmActionBtn">
           Confirm ${actionLabels[action] || action}
         </button>
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-outline-primary" data-bs-dismiss="modal">Cancel</button>
       </div>
     `;
     modal.modal.show();
@@ -702,11 +678,10 @@ document.getElementById("confirmActionBtn")?.addEventListener("click", async () 
     }
   }
 
-  // Real API call, following the user-blocks pattern, using getBaseUrl
-  const baseUrl = getBaseUrl();
-  let endpoint = '', payload = {};
+  // Real API call, using centralized ApiService for environment-aware routing
+  let pathSuffix = '', payload = {};
   if (action === 'approve' || action === 'reject') {
-    endpoint = baseUrl + `/moderation/applyModerationAction/${moderationId}`;
+    pathSuffix = `/applyModerationAction/${moderationId}`;
     payload = {
       moderationId,
       userId,
@@ -716,28 +691,24 @@ document.getElementById("confirmActionBtn")?.addEventListener("click", async () 
       moderationType: 'standard'
     };
   } else if (action === 'resubmission') {
-    endpoint = baseUrl + `/moderation/addNote/${moderationId}`;
+    pathSuffix = `/addNote/${moderationId}`;
     payload = {
       userId,
       note: 'Resubmission required',
       addedBy: userId || 'system'
     };
-      setTimeout(() => modal.modal.hide(), 2000);
-
+    setTimeout(() => modal.modal.hide(), 2000);
   }
-  if (endpoint) {
+
+  if (pathSuffix) {
     modal.body.innerHTML = `<div class="text-center py-4">${spinner()} Submitting...</div>`;
     try {
-      await window.ApiService._fetchWithTimeout(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      await window.ApiService.post('moderation', pathSuffix, payload);
       modal.body.innerHTML = `<div class="alert alert-success">Action successful!</div>`;
       setTimeout(() => modal.modal.hide(), 1000);
     } catch (err) {
       modal.body.innerHTML = `<div class="alert alert-danger">${err?.message || 'API error'}</div>`;
-      setTimeout(() => modal.modal.hide(), 1000);
+      setTimeout(() => modal.modal.hide(), 3000);
     }
   } else {
     alert(`TODO: Submit ${action} for ${moderationId}`);
@@ -775,7 +746,7 @@ document.getElementById("confirmActionBtn")?.addEventListener("click", async () 
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-primary" id="saveNoteBtn">Save Note</button>
             </div>
           </div>
@@ -886,20 +857,11 @@ document.getElementById("confirmActionBtn")?.addEventListener("click", async () 
                 timestamp: timestamp
               });
             }
-              const baseUrl = getBaseUrl();
-
-              // TODO: Save to API if not using mock data
-            const endpoint = baseUrl+ `/moderation/addNote/${rowData.moderationId}`;
-          
-            await window.ApiService._fetchWithTimeout(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                "userId": userId,
-                "note": newNote.text,
-                "addedBy": newNote.addedBy,
-              }
-                )
+            // Save to API via centralized ApiService
+            await window.ApiService.post('moderation', `/addNote/${rowData.moderationId}`, {
+              "userId": userId,
+              "note": newNote.text,
+              "addedBy": newNote.addedBy,
             });
 
 

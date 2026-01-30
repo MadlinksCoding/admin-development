@@ -104,12 +104,21 @@ The FilterPanel automatically creates a slide-in offcanvas from the right. No cu
 - FilterPanel is initialized automatically by admin.js
 - Slide-in appears when filter button is clicked
 
+### ✅ DO: Match Filters with Table Columns
+
+- **EVERY** filter field defined in `config.js` MUST have a corresponding column in the table renderer.
+- Labels for filters MUST match table header labels exactly to ensure user clarity.
+- Global Search (`q`) placeholders MUST correctly list only the searchable fields present in that section.
+  - Example: If a table only shows "UID" and "Username", the search placeholder should be "UID or Username...", NOT "UID, Username, Email...".
+
 ### ❌ DON'T: Create Custom Filter UIs
 
 - Don't create custom filter panels
 - Don't implement inline filters
 - Don't use modal dialogs for filters
 - Don't bypass the FilterPanel component
+- Don't add "ghost" filters (filters for data that isn't visible in the table).
+- Don't include incorrect field names in the Global Search placeholder.
 
 ---
 
@@ -323,27 +332,22 @@ When rendering tabs manually (if needed), include counts:
 - Don't create custom form controls that mimic Bootstrap
 - Don't implement custom grid systems
 
-### ✅ DO: Use Simple Button Colors
+### ✅ DO: Use Only Blue and White Buttons
 
-**Primary Colors Only:**
+**Only blue and white buttons are allowed.** No other colors (green, red, orange, etc.) should be used for any actions, including delete or confirm.
+
 - `btn-primary` (blue) - Main actions, submit buttons
-- `btn-outline-primary` (blue outline) - Secondary actions, view buttons
-- `btn-success` (green) - Approve, confirm actions
-- `btn-danger` (red) - Delete, reject actions
-- `btn-secondary` (gray) - Cancel, reset actions
+- `btn-outline-primary` (blue outline) - Secondary actions, view buttons, cancel buttons
+- Use white backgrounds with blue text/borders for a clean, professional look.
 
-**Avoid These:**
-- `btn-warning` (yellow/orange)
-- `btn-info` (light blue)
-- `btn-light` / `btn-dark`
-- Custom colored buttons
+### ❌ DON'T: Use Other Button Colors
 
-### ✅ DO: Use Blue and White Most Places
-
-- **Primary blue** (`btn-primary`) for main actions
-- **White backgrounds** for content areas
-- **Light grays** for secondary elements
-- Avoid colorful designs - keep it professional and minimal
+- **NEVER** use `btn-success` (green)
+- **NEVER** use `btn-danger` (red)
+- **NEVER** use `btn-secondary` (gray)
+- **NEVER** use `btn-warning` (yellow/orange)
+- **NEVER** use `btn-info` (light blue)
+- **NEVER** use `btn-light` / `btn-dark`
 
 ### ✅ DO: Use Existing Slide-Ins
 
@@ -504,10 +508,12 @@ When rendering tabs manually (if needed), include counts:
 - [ ] Uses PageRenderer.init() with config
 - [ ] Config includes section, tableConfig, pagination
 - [ ] Filters defined in config.js (not in page)
+- [ ] Every filter has a corresponding table column
+- [ ] Global search placeholder accurately reflects columns
 - [ ] Uses relative API paths (not hardcoded)
 - [ ] Uses Bootstrap classes for all styling
 - [ ] Custom CSS is minimal and targeted
-- [ ] Uses only primary, success, danger button colors
+- [ ] Uses only blue and white button colors (`btn-primary`, `btn-outline-primary`)
 - [ ] Uses blue and white color scheme
 - [ ] Reuses existing components (ModalViewer, FilterPanel, etc.)
 - [ ] Follows demo page patterns exactly
