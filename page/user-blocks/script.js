@@ -29,32 +29,6 @@
     });
   }
 
-  function parseApiConfigBase() {
-    try {
-      const cfgEl = document.getElementById("api-config");
-      if (!cfgEl) return "";
-      const cfg = JSON.parse(cfgEl.textContent || "{}");
-      const env = window.Env?.current || "dev";
-      const sectionCfg = cfg[SECTION];
-      const endpoint = sectionCfg?.[env]?.endpoint || "";
-      if (endpoint) return endpoint.replace(/\/$/, "");
-      const fallback = window.AdminEndpoints?.base?.[env];
-      return (fallback || "").replace(/\/$/, "");
-    } catch (e) {
-      console.warn("[UserBlocks] Failed to parse api-config", e);
-      return "";
-    }
-  }
-
-  function getRoutes() {
-    const base = parseApiConfigBase();
-    const withBase = (path) => (base ? `${base}${path}` : path);
-    return {
-      list: withBase("/listUserBlocks"),
-      unblock: withBase("/unblockUser"),
-      create: withBase("/blockUser")
-    };
-  }
 
   function formatScope(scope) {
     if (!scope) return "-";
@@ -145,7 +119,6 @@
         { field: "blocked_id", label: "To User", sortable: true },
         { field: "scope", label: "Scope", formatter: (value) => formatScope(value) },
         { field: "flag", label: "Flag", formatter: (value) => formatFlag(value) },
-        { field: "reason", label: "Reason" },
         {
           field: "is_permanent",
           label: "Permanent",
@@ -166,24 +139,26 @@
             if (!exp) return "-";
             const expired = isExpired(row);
             const dateText = new Date(exp).toLocaleString();
-            return expired ? `${dateText} (Expired)` : dateText;
+            return expired ? `${dateText}` : dateText;
           }
         },
-        { field: "expired", label: "Expired", formatter: (value, row) => (isExpired(row) ? "Yes" : "No") }
+        {
+          field: "status",
+          label: "Status",
+          formatter: (value, row) => {
+            if (row.deleted_at) return "Unblocked";
+            if (isExpired(row)) return "Expired";
+            return "Blocked";
+          }
+        }
       ],
       actions: [
         { label: "View", className: "btn btn-sm btn-primary", onClick: "handleBlockView" },
         {
-          label:'Unblock',
+          label: 'Unblock',
           className: "btn btn-sm btn-primary",
           onClick: "handleBlockUnblock",
           condition: (row) => !row.deleted_at
-        },
-        {
-          label: 'Blocked',
-          className: "btn  btn-sm btn-outline-primary",
-          onClick: "",
-          condition: (row) => row.deleted_at
         }
       ]
     };
@@ -269,7 +244,7 @@
               <div id="systemBlockFormStatus" class="mt-3 small text-muted"></div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancel</button>
               <button type="button" id="saveSystemBlockBtn" class="btn btn-primary">Save Block</button>
             </div>
           </div>
@@ -304,7 +279,7 @@
     return data;
   }
 
-  function attachSystemBlockHandlers(routes, pageRenderer) {
+  function attachSystemBlockHandlers(pageRenderer) {
     const addBtn = document.getElementById("addSystemBlockBtn");
     if (!addBtn) return;
 
@@ -328,11 +303,7 @@
       const payload = serializeForm(formEl);
       statusEl.textContent = "Saving...";
       try {
-        await window.ApiService._fetchWithTimeout(routes.create, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        await window.ApiService.post(SECTION, "blockUser", payload);
         statusEl.textContent = "Saved. Refreshing list...";
         modalInstance.hide();
         pageRenderer.reset();
@@ -363,8 +334,8 @@
     const confirmHtml = `
       <div class="text-center">
         <div class="mb-3">Are you sure you want to unblock this user?</div>
-        <button id="unblockConfirmBtn" class="btn btn-danger me-2">Unblock</button>
-        <button id="unblockCancelBtn" class="btn btn-secondary">Cancel</button>
+        <button id="unblockConfirmBtn" class="btn btn-primary me-2">Unblock</button>
+        <button id="unblockCancelBtn" class="btn btn-outline-primary">Cancel</button>
       </div>
     `;
     window.ModalViewer.showHtml(confirmHtml);
@@ -374,16 +345,11 @@
       if (e.target && e.target.id === "unblockConfirmBtn") {
         e.preventDefault();
         document.removeEventListener("click", handler, true);
-        const routes = getRoutes();
         try {
-          await window.ApiService._fetchWithTimeout(routes.unblock, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              from: row.blocker_id || row.fromUserId,
-              to: row.blocked_id || row.toUserId,
-              scope: row.scope
-            })
+          await window.ApiService.post(SECTION, "unblockUser", {
+            from: row.blocker_id || row.fromUserId,
+            to: row.blocked_id || row.toUserId,
+            scope: row.scope
           });
           window.ModalViewer.showHtml('<div class="text-success text-center">Block removed successfully.</div>');
           setTimeout(() => {
@@ -413,7 +379,7 @@
 
     const pageRenderer = window.PageRenderer.init(buildPageConfig());
 
-    attachSystemBlockHandlers(getRoutes(), pageRenderer);
+    attachSystemBlockHandlers(pageRenderer);
 
     document.body.addEventListener("section:refresh", () => {
       pageRenderer.reset();

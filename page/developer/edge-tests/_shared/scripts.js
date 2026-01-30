@@ -230,7 +230,7 @@ apiHandler.handleRequest(apiParams);
 			<div class="api-params-block">
 				<div class="d-flex align-items-center justify-content-between">
 					<strong>Code Usage Example:</strong>
-					<button class="btn btn-sm btn-outline-secondary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#code-example-body-${scenarioId}" aria-expanded="false" aria-controls="code-example-body-${scenarioId}" aria-label="Toggle code example">
+					<button class="btn btn-sm btn-outline-primary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#code-example-body-${scenarioId}" aria-expanded="false" aria-controls="code-example-body-${scenarioId}" aria-label="Toggle code example">
 						<i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
 						<i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
 						<span class="visually-hidden">Toggle code example</span>
@@ -415,7 +415,7 @@ apiHandler.handleRequest(apiParams);
 				<div class="card-header">
 					<div class="d-flex align-items-center justify-content-between">
 						<h5 class="card-title mb-0">${displayTitle}</h5>
-						<button class="btn btn-sm btn-outline-secondary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="false" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
+						<button class="btn btn-sm btn-outline-primary collapse-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#scenario-body-${scenarioId}" aria-expanded="false" aria-controls="scenario-body-${scenarioId}" aria-label="Toggle scenario section">
 							<i class="bi bi-chevron-up icon-expanded" aria-hidden="true"></i>
 							<i class="bi bi-chevron-down icon-collapsed" aria-hidden="true"></i>
 							<span class="visually-hidden">Toggle scenario section</span>
@@ -441,7 +441,7 @@ apiHandler.handleRequest(apiParams);
 										data-has-inputs="${inputFields.length > 0}">
 							<i class="bi bi-play-fill"></i> Test API Call
 						</button>
-						<button class="btn btn-outline-secondary clear-response-btn" data-scenario-id="${scenarioId}" aria-label="Clear scenario response">
+						<button class="btn btn-outline-primary clear-response-btn" data-scenario-id="${scenarioId}" aria-label="Clear scenario response">
 							<i class="bi bi-x-circle"></i>
 						</button>
 					</div>
@@ -802,14 +802,14 @@ apiHandler.handleRequest(apiParams);
 				<div class="demo-section">
 					<div class="d-flex align-items-center justify-content-between">
 						<h3><i class="bi bi-play-circle"></i> Test Scenarios</h3>
-						<button class="btn btn-sm btn-outline-secondary" id="toggle-all-scenarios-btn"><i class="bi bi-arrows-expand"></i> Expand All</button>
+						<button class="btn btn-sm btn-outline-primary" id="toggle-all-scenarios-btn"><i class="bi bi-arrows-expand"></i> Expand All</button>
 					</div>
 					${ScenarioList.map((s) => createTestScenarioSection(s, { sectionKey: section, getBaseUrl: () => getBaseUrl(section, userBaseUrlOverride) })).join("")}
 				</div>
 				${cleanupEndpoint ? `
 				<div class="demo-section cleanup-section" id="cleanup-section">
 					<h3><i class="bi bi-trash"></i> Cleanup Method</h3>
-					<button class="btn btn-danger" id="cleanup-btn"><i class="bi bi-trash"></i> Run Cleanup</button>
+					<button class="btn btn-primary" id="cleanup-btn"><i class="bi bi-trash"></i> Run Cleanup</button>
 					<div id="cleanup-response" class="response-container mt-3"></div>
 				</div>` : ""}
 			`;
