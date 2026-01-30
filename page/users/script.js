@@ -66,6 +66,29 @@
       tableConfig: USERS_TABLE_CONFIG,
       pagination: { enabled: true, pageSize: 20 }
     });
+    
+    // Create User Button Handler
+    const createUserBtn = document.getElementById("createUserBtn");
+    if (createUserBtn) {
+      createUserBtn.onclick = () => {
+        const modal = window.ModalViewer;
+        modal.init();
+        
+        const titleEl = document.querySelector("#viewModal .modal-title");
+        if (titleEl) titleEl.textContent = "User Creation";
+        
+        modal.body.innerHTML = `
+          <div class="text-center py-4">
+            <h5>Creation Policy</h5>
+            <p class="text-muted px-3">
+              Users must go through the proper registration and verification flows to be created. 
+              Manual creation through this panel is currently disabled to ensure platform integrity.
+            </p>
+          </div>
+        `;
+        modal.modal.show();
+      };
+    }
 
     /**
      * GLOBAL ACTION HANDLERS
