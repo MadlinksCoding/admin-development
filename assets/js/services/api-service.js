@@ -584,9 +584,10 @@ function applyMockFilters(dataArray, filters) {
       filtered = filtered.filter(i => 
         (i.uid || "").toLowerCase().includes(s) ||
         (i.public_uid || "").toLowerCase().includes(s) ||
-        (i.username || "").toLowerCase().includes(s) ||
+        (i.username || i.user_name || "").toLowerCase().includes(s) ||
         (i.display_name || "").toLowerCase().includes(s) ||
         (i.email || "").toLowerCase().includes(s) ||
+        (i.phone_number || "").toLowerCase().includes(s) ||
         (i.userId || i.user_id || "").toLowerCase().includes(s) ||
         (i.referenceId || i.reference_id || "").toLowerCase().includes(s) ||
         (i.title || "").toLowerCase().includes(s) ||
@@ -603,9 +604,13 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 3. User Specifics
-    if (filters.username) {
-      const u = filters.username.toLowerCase();
-      filtered = filtered.filter(i => (i.username || "").toLowerCase().includes(u));
+    if (filters.username || filters.user_name) {
+      const u = (filters.username || filters.user_name).toLowerCase();
+      filtered = filtered.filter(i => (i.username || i.user_name || "").toLowerCase().includes(u));
+    }
+    if (filters.phone_number) {
+      const p = filters.phone_number.toLowerCase();
+      filtered = filtered.filter(i => (i.phone_number || "").toLowerCase().includes(p));
     }
     if (filters.display_name) {
       const d = filters.display_name.toLowerCase();

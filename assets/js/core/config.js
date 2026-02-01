@@ -246,7 +246,7 @@ window.AdminConfig = {
         type: "text",
         name: "q",
         label: "Global Search",
-        placeholder: "ID, Username or Display Name…"
+        placeholder: "ID, Username, Email, Phone or Name…"
       },
       {
         type: "text",
@@ -262,9 +262,21 @@ window.AdminConfig = {
       },
       {
         type: "text",
-        name: "username",
+        name: "user_name",
         label: "Username",
         placeholder: "Filter by username"
+      },
+      {
+        type: "text",
+        name: "email",
+        label: "Email",
+        placeholder: "Filter by email"
+      },
+      {
+        type: "text",
+        name: "phone_number",
+        label: "Phone Number",
+        placeholder: "Filter by phone number"
       },
       {
         type: "text",

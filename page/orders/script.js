@@ -52,15 +52,53 @@
       console.log("Delete order:", row);
     };
 
-    window.handleOrderViewAll = (row) => {
-      // Try View All first (offcanvas), fallback to View (modal)
-      const viewAllButton = document.querySelector(`[data-view-all="${row.orderId}"]`);
-      if (viewAllButton) {
-        viewAllButton.click();
-      } else {
-        // Fallback to View modal
-        const viewButton = document.querySelector(`[data-view-json='${encodeURIComponent(JSON.stringify(row))}']`);
-        if (viewButton) viewButton.click();
+    window.handleOrderViewAll = async (row) => {
+      const orderId = row.orderId;
+      window.SlideIn.showHtml(`Order #${orderId}`, window.AdminUtils.spinnerInline(`Loading order details…`));
+      
+      try {
+        const allOrders = await fetchAllOrders();
+        const orderRecord = allOrders.find((order) => order.orderId === orderId);
+        
+        if (!orderRecord) {
+          window.SlideIn.showHtml(`Order #${orderId}`, '<div class="text-muted">Order not found.</div>');
+          return;
+        }
+
+        const orderItemsHtml = (orderRecord.items || [])
+          .map(item => `<tr><td>${item.sku}</td><td>${item.name}</td><td>${item.qty}</td><td>$${item.price.toFixed(2)}</td></tr>`)
+          .join("");
+
+        const paymentsHtml = (orderRecord.payments || [])
+          .map(p => `<tr><td>${p.method}</td><td>$${p.amount.toFixed(2)}</td><td>${p.id}</td></tr>`)
+          .join("");
+
+        const content = `
+          <div class="mb-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Order #${orderRecord.orderId}</h5>
+            <span class="badge text-bg-secondary">${orderRecord.status}</span>
+          </div>
+          <div class="text-muted small mb-3">Channel: ${orderRecord.channel} • Total: $${orderRecord.total?.toFixed ? orderRecord.total.toFixed(2) : orderRecord.total} • ${new Date(orderRecord.createdAt).toLocaleString()}</div>
+          <div class="mb-3"><h6>Customer</h6>${orderRecord.customer.name} &lt;${orderRecord.customer.email}&gt;</div>
+          <div class="mb-3"><h6>Shipping</h6>Method: ${orderRecord.shipping?.method || "-"} • Cost: $${(orderRecord.shipping?.cost || 0).toFixed(2)}<br><span class="text-muted small">${orderRecord.shipping?.address || ""}</span></div>
+          <div class="mb-3"><h6>Items</h6>
+            <div class="table-responsive"><table class="table table-sm">
+              <thead><tr><th>SKU</th><th>Name</th><th>Qty</th><th>Price</th></tr></thead>
+              <tbody>${orderItemsHtml || '<tr><td colspan="4" class="text-muted">No items</td></tr>'}</tbody>
+            </table></div>
+          </div>
+          <div class="mb-3"><h6>Payments</h6>
+            <div class="table-responsive"><table class="table table-sm">
+              <thead><tr><th>Method</th><th>Amount</th><th>Txn</th></tr></thead>
+              <tbody>${paymentsHtml || '<tr><td colspan="3" class="text-muted">No payments</td></tr>'}</tbody>
+            </table></div>
+          </div>
+          <div class="mb-3"><h6>Raw JSON</h6><pre class="code-json bg-light border p-3 rounded small" style="max-height: 400px; overflow: auto;">${JSON.stringify(orderRecord, null, 2)}</pre></div>
+        `;
+        
+        window.SlideIn.showHtml(`Order #${orderId}`, content);
+      } catch (err) {
+        window.SlideIn.showHtml(`Order #${orderId}`, window.AdminUtils.errorMessage(err));
       }
     };
     // Define page size constant for pagination
@@ -101,33 +139,6 @@
       </div></div>`;
     }
 
-    /**
-     * Ensure offcanvas element exists in DOM, create if missing
-     * @returns {Object} Object with canvas element, body element, and Bootstrap API instance
-     */
-    function ensureOffcanvas() {
-      // Query for existing offcanvas element
-      let offcanvasElement = document.querySelector("#detailsOffcanvas");
-      // Check if offcanvas doesn't exist
-      if (!offcanvasElement) {
-        // Create wrapper div for offcanvas HTML
-        const wrapperElement = document.createElement("div");
-        // Set inner HTML with offcanvas structure
-        wrapperElement.innerHTML = `<div class="offcanvas offcanvas-end offcanvas-details" tabindex="-1" id="detailsOffcanvas">
-          <div class="offcanvas-header"><h5 class="offcanvas-title">Details</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div>
-          <div class="offcanvas-body" id="detailsBody"></div></div>`;
-        // Append offcanvas to document body
-        document.body.appendChild(wrapperElement.firstElementChild);
-        // Query for offcanvas element again after creation
-        offcanvasElement = document.querySelector("#detailsOffcanvas");
-      }
-      // Return object with canvas, body, and Bootstrap API instance
-      return {
-        canvas: offcanvasElement,
-        body: document.querySelector("#detailsBody"),
-        api: new bootstrap.Offcanvas(offcanvasElement)
-      };
-    }
 
     /**
      * Fetch all orders from local data file
@@ -146,95 +157,6 @@
       return fetchResponse.json();
     }
 
-    // Delegated "View All" click handler
-    // Add click event listener to document body
-    document.body.addEventListener("click", async (clickEvent) => {
-      // Find closest button with data-view-all attribute
-      const viewAllButton = clickEvent.target.closest("[data-view-all]");
-      // Return early if button not found
-      if (!viewAllButton) return;
-      // Ensure offcanvas exists and get references
-      const { canvas, body, api } = ensureOffcanvas();
-      // Get order ID from button attribute and convert to number
-      const orderId = Number(viewAllButton.getAttribute("data-view-all"));
-      // Set offcanvas body to loading spinner
-      body.innerHTML = spinnerInline(`Loading order #${orderId}…`);
-      // Show the offcanvas
-      api.show();
-      // Try to load and display order details
-      try {
-        // Fetch all orders
-        const allOrders = await fetchAllOrders();
-        // Find order matching order ID
-        const orderRecord = allOrders.find((order) => order.orderId === orderId);
-        // Check if order was found
-        if (!orderRecord) {
-          // Display not found message
-          body.innerHTML = '<div class="text-muted">Order not found.</div>';
-          // Exit function
-          return;
-        }
-        // Generate HTML for order items table rows
-        const orderItemsHtml = (orderRecord.items || [])
-          .map(
-            (orderItem) =>
-              `<tr><td>${orderItem.sku}</td><td>${orderItem.name}</td><td>${
-                orderItem.qty
-              }</td><td>$${orderItem.price.toFixed(2)}</td></tr>`
-          )
-          .join("");
-        // Generate HTML for payments table rows
-        const paymentsHtml = (orderRecord.payments || [])
-          .map(
-            (payment) =>
-              `<tr><td>${payment.method}</td><td>$${payment.amount.toFixed(2)}</td><td>${
-                payment.id
-              }</td></tr>`
-          )
-          .join("");
-        // Set offcanvas body to order details HTML
-        body.innerHTML = `
-          <div class="mb-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Order #${orderRecord.orderId}</h5>
-            <span class="badge text-bg-secondary">${orderRecord.status}</span>
-          </div>
-          <div class="text-muted small mb-3">Channel: ${orderRecord.channel} • Total: $${
-          orderRecord.total?.toFixed ? orderRecord.total.toFixed(2) : orderRecord.total
-        } • ${new Date(orderRecord.createdAt).toLocaleString()}</div>
-          <div class="mb-3"><h6>Customer</h6>${orderRecord.customer.name} &lt;${
-          orderRecord.customer.email
-        }&gt;</div>
-          <div class="mb-3"><h6>Shipping</h6>Method: ${
-            orderRecord.shipping?.method || "-"
-          } • Cost: $${(orderRecord.shipping?.cost || 0).toFixed(
-          2
-        )}<br><span class="text-muted small">${orderRecord.shipping?.address || ""}</span></div>
-          <div class="mb-3"><h6>Items</h6>
-            <div class="table-responsive"><table class="table table-sm">
-              <thead><tr><th>SKU</th><th>Name</th><th>Qty</th><th>Price</th></tr></thead>
-              <tbody>${
-                orderItemsHtml || '<tr><td colspan="4" class="text-muted">No items</td></tr>'
-              }</tbody>
-            </table></div>
-          </div>
-          <div class="mb-3"><h6>Payments</h6>
-            <div class="table-responsive"><table class="table table-sm">
-              <thead><tr><th>Method</th><th>Amount</th><th>Txn</th></tr></thead>
-              <tbody>${
-                paymentsHtml || '<tr><td colspan="3" class="text-muted">No payments</td></tr>'
-              }</tbody>
-            </table></div>
-          </div>
-          <div class="mb-3"><h6>Raw JSON</h6><pre class="code-json">${JSON.stringify(
-            orderRecord,
-            null,
-            2
-          )}</pre></div>`;
-      } catch (loadError) {
-        // Display error message in offcanvas body
-        body.innerHTML = errorMessage(loadError);
-      }
-    });
 
     /**
      * Load a chunk of data and render table
