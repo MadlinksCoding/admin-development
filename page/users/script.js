@@ -36,11 +36,11 @@
           }
         },
         { field: "user_name", label: "Username", sortable: true },
-        { field: "email", label: "Email", sortable: true },
         { field: "display_name", label: "Display Name", sortable: true },
+        { field: "email", label: "Email", sortable: true },
         { field: "phone_number", label: "Phone Number", sortable: true },
         { field: "role", label: "Role", sortable: true },
-        // { field: "status", label: "Status", sortable: true },
+        { field: "status", label: "Status", sortable: true },
         // { 
         //   field: "last_activity", 
         //   label: "Last Activity", 

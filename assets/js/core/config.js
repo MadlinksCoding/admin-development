@@ -304,7 +304,6 @@ window.AdminConfig = {
           { value: "", label: "All Statuses" },
           { value: "online", label: "Online" },
           { value: "away", label: "Away" },
-          { value: "dnd", label: "DND" },
           { value: "offline", label: "Offline" }
         ]
       },
@@ -407,6 +406,12 @@ window.AdminConfig = {
         placeholder: "Search by title"
       },
       {
+        type: "text",
+        name: "media_id",
+        label: "Media ID",
+        placeholder: "Exact media ID"
+      },
+      {
         type: "select",
         name: "media_type",
         label: "Media Type",
@@ -441,7 +446,8 @@ window.AdminConfig = {
           { value: "subscribers", label: "Subscribers" },
           { value: "purchasers", label: "Purchasers" },
           { value: "private", label: "Private" },
-          { value: "unlisted", label: "Unlisted" }
+          { value: "unlisted", label: "Unlisted" },
+          { value: "coming_soon", label: "Coming Soon" }
         ]
       },
       {
@@ -454,6 +460,11 @@ window.AdminConfig = {
         type: "toggle",
         name: "featured",
         label: "Featured Only"
+      },
+      {
+        type: "toggle",
+        name: "coming_soon",
+        label: "Coming Soon Only"
       },
       {
         type: "date",

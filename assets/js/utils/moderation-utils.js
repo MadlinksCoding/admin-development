@@ -112,6 +112,7 @@
       'pk': 'PK',
       'sk': 'SK',
       'url': 'URL',
+      'asset_url': 'Asset URL',
       'api': 'API',
       'html': 'HTML',
       'css': 'CSS',
@@ -339,17 +340,18 @@
         `;
         
         // Display based on detected type
-        if (detectedType === 'image' && content.url) {
+        const url = content.asset_url || content.url || "";
+        if (detectedType === 'image' && url) {
           contentHtml += `
             <div class="mb-3">
-              <p class="mb-2"><strong>Src URL:</strong> <a href="${content.url}" target="_blank" class="text-break">${content.url}</a></p>
+              <p class="mb-2"><strong>Src URL:</strong> <a href="${url}" target="_blank" class="text-break">${url}</a></p>
               ${content.alt ? `<p class="mb-2 text-muted"><strong>Alt Text:</strong> ${content.alt}</p>` : ''}
               ${content.caption ? `<p class="mb-2 text-muted"><strong>Caption:</strong> ${content.caption}</p>` : ''}
             </div>
           `;
         } else if ((detectedType === 'gallery' || detectedType === 'image_gallery') && content.images && Array.isArray(content.images) && content.images.length > 0) {
           const imageUrls = content.images.map((img, idx) => {
-            const imgUrl = typeof img === 'string' ? img : (img.url || '');
+            const imgUrl = typeof img === 'string' ? img : (img.asset_url || img.url || '');
             const imgAlt = typeof img === 'string' ? null : (img.alt || null);
             const imgCaption = typeof img === 'object' ? (img.caption || null) : null;
             return { url: imgUrl, alt: imgAlt, caption: imgCaption };
@@ -364,17 +366,17 @@
               `).join("")}
             </div>
           `;
-        } else if (detectedType === 'video' && content.url) {
+        } else if (detectedType === 'video' && url) {
           contentHtml += `
             <div class="mb-3">
-              <p class="mb-2"><strong>Src URL:</strong> <a href="${content.url}" target="_blank" class="text-break">${content.url}</a></p>
+              <p class="mb-2"><strong>Src URL:</strong> <a href="${url}" target="_blank" class="text-break">${url}</a></p>
               ${content.title ? `<p class="mb-2"><strong>Title:</strong> ${content.title}</p>` : ''}
             </div>
           `;
-        } else if (detectedType === 'audio' && content.url) {
+        } else if (detectedType === 'audio' && url) {
           contentHtml += `
             <div class="mb-3">
-              <p class="mb-2"><strong>Src URL:</strong> <a href="${content.url}" target="_blank" class="text-break">${content.url}</a></p>
+              <p class="mb-2"><strong>Src URL:</strong> <a href="${url}" target="_blank" class="text-break">${url}</a></p>
               ${content.title ? `<p class="mb-2"><strong>Title:</strong> ${content.title}</p>` : ''}
               ${content.artist ? `<p class="mb-2"><strong>Artist:</strong> ${content.artist}</p>` : ''}
             </div>

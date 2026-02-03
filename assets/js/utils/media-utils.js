@@ -36,6 +36,7 @@
       'id': 'ID',
       'uid': 'UID',
       'url': 'URL',
+      'asset_url': 'Asset URL',
       'html': 'HTML',
       'json': 'JSON',
       'size': 'Size',
@@ -167,83 +168,29 @@
     try {
       const recordData = rowData;
       
-      // Fields to exclude from the main field list (shown elsewhere or internal)
-      const fieldsToExclude = ['content', 'meta', 'notes', 'pk', 'sk', 'id'];
+      // Critical fields to show in the summary (to save space)
+      const importantFields = ['media_id', 'owner_user_id', 'media_type', 'status', 'visibility', 'collection_id', 'title', 'asset_url'];
       
       const fields = [];
-      for (const key in recordData) {
-        if (recordData.hasOwnProperty(key) && !fieldsToExclude.includes(key)) {
+      for (const key of importantFields) {
+        if (recordData.hasOwnProperty(key)) {
           const value = recordData[key];
-          if (value !== null && typeof value !== 'object') {
-            fields.push({
-              label: formatFieldLabel(key),
-              value: formatFieldValue(value, key)
-            });
-          } else if (Array.isArray(value) && value.length > 0 && typeof value[0] !== 'object') {
-            fields.push({
-              label: formatFieldLabel(key),
-              value: formatFieldValue(value, key)
-            });
+          if (value !== null && value !== undefined) {
+             fields.push({
+               label: formatFieldLabel(key),
+               value: formatFieldValue(value, key)
+             });
           }
         }
       }
-
-      // Sort fields
-      const importantFields = ['title', 'media_type', 'status', 'visibility', 'owner_user_id'];
-      fields.sort((a, b) => {
-        const aIndex = importantFields.findIndex(f => a.label.toLowerCase().includes(f.toLowerCase()));
-        const bIndex = importantFields.findIndex(f => b.label.toLowerCase().includes(f.toLowerCase()));
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
-        return a.label.localeCompare(b.label);
-      });
 
       const fieldsHtml = fields.map(field => 
         `<p class="mb-2"><strong>${field.label}:</strong> ${field.value}</p>`
       ).join("");
 
       // Display content/media preview using ContentTypeDetector
+      // Removed per user request to only show payload and fields
       let previewHtml = "";
-      if (window.ContentTypeDetector) {
-        // Detect content type
-        const typeInfo = window.ContentTypeDetector.detect(recordData);
-        const displayLabel = typeInfo.displayLabel;
-        
-        previewHtml = `
-          <div class="mt-4 border-top pt-4">
-            <h6>Content Preview</h6>
-            <p class="mb-2"><strong>Detected Format:</strong> ${displayLabel}</p>
-        `;
-
-        const content = recordData.content || {};
-        const url = recordData.url || content.url || "";
-        
-        if (url) {
-            if (typeInfo.type === 'image') {
-                previewHtml += `
-                    <div class="mb-3 text-center">
-                        <img src="${url}" class="img-fluid rounded border" style="max-height: 300px;">
-                        <p class="mt-2 small"><a href="${url}" target="_blank" class="text-break">${url}</a></p>
-                    </div>
-                `;
-            } else if (typeInfo.type === 'video') {
-                previewHtml += `
-                    <div class="mb-3 text-center">
-                        <video src="${url}" controls class="img-fluid rounded border" style="max-height: 300px;"></video>
-                        <p class="mt-2 small"><a href="${url}" target="_blank" class="text-break">${url}</a></p>
-                    </div>
-                `;
-            } else {
-                previewHtml += `
-                    <div class="mb-3">
-                        <p><strong>URL:</strong> <a href="${url}" target="_blank" class="text-break">${url}</a></p>
-                    </div>
-                `;
-            }
-        }
-        previewHtml += `</div>`;
-      }
 
       // Get previous moderation updates from history or notes
       const history = recordData.meta?.history || [];
@@ -265,20 +212,19 @@
               const updateUser = update.userId || update.addedBy || update.createdBy || "-";
               
               let noteDisplay = "";
-              if (update.publicNote) {
-                noteDisplay += `<p class="mb-2"><strong>Public Note:</strong> <span class="text-primary">${update.publicNote}</span></p>`;
-              }
-              if (update.note) {
-                noteDisplay += `<p class="mb-2"><strong>Private Note:</strong> <span class="text-muted">${update.note}</span></p>`;
+              // Support for new notes schema
+              if (update.text) {
+                const isPublic = update.isPublic === true;
+                noteDisplay = `<div class="ps-2 border-start mt-1"><strong>${isPublic ? 'Public' : 'Private'}:</strong> ${update.text}</div>`;
+              } else if (update.publicNote) {
+                noteDisplay = `<div class="ps-2 border-start mt-1"><strong>Public:</strong> ${update.publicNote}</div>`;
+              } else if (update.note) {
+                noteDisplay = `<div class="ps-2 border-start mt-1"><strong>Private:</strong> ${update.note}</div>`;
               }
               
               return `
-                <div class="mb-3 border-bottom pb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong>${updateType.toUpperCase()} ${index + 1}</strong>
-                    <span class="badge bg-secondary">${updateTime}</span>
-                  </div>
-                  <p class="mb-1 small"><strong>User:</strong> ${updateUser}</p>
+                <div class="mb-3 small">
+                  <div><strong>[${updateTime}] ${updateType.toUpperCase()}</strong> - ${updateUser}</div>
                   ${noteDisplay}
                 </div>
               `;
@@ -288,22 +234,13 @@
       }
 
       body.innerHTML = `
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Media Record</h5>
-          <span class="badge bg-primary text-uppercase">${recordData.media_type || 'Other'}</span>
-        </div>
         ${fieldsHtml}
         ${previewHtml}
         <div class="mt-4 border-top pt-3">
           <h6>Full Technical Payload</h6>
-          <pre class="code-json bg-light p-3 rounded small" style="max-height: 200px; overflow-y: auto;">${JSON.stringify(recordData, null, 2)}</pre>
+          <pre class="code-json bg-light p-3 rounded small" style="max-height: 600px; overflow-y: auto;">${JSON.stringify(recordData, null, 2)}</pre>
         </div>
         ${previousUpdatesHtml}
-        <div class="mt-4 border-top pt-3 d-grid gap-2">
-            <button class="btn btn-primary" onclick='handleMediaDelete(${JSON.stringify(recordData)})'>
-                <i class="bi bi-trash me-2"></i>Delete Media Item
-            </button>
-        </div>
       `;
     } catch (error) {
       body.innerHTML = errorMessage(error);

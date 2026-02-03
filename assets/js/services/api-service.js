@@ -632,6 +632,10 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 5. Media Specifics
+    if (filters.media_id) {
+        const m = filters.media_id.toLowerCase();
+        filtered = filtered.filter(i => (i.media_id || "").toLowerCase() === m);
+    }
     if (filters.media_type) {
         const t = filters.media_type.toLowerCase();
         filtered = filtered.filter(i => (i.media_type || "").toLowerCase() === t);
@@ -724,6 +728,9 @@ function applyMockFilters(dataArray, filters) {
     }
     if (filters.featured === true || filters.featured === "true") {
         filtered = filtered.filter(i => i.featured === true);
+    }
+    if (filters.coming_soon === true || filters.coming_soon === "true") {
+        filtered = filtered.filter(i => i.coming_soon === true);
     }
 
     return filtered;

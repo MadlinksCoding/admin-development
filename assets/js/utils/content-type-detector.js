@@ -16,9 +16,10 @@
       return { type: 'unknown', displayLabel: 'Unknown', isMedia: false, isString: false };
     }
 
-    // Get type from contentType or type field
-    const contentType = (recordData.contentType || recordData.type || '').toLowerCase().trim();
-    const content = recordData.content || {};
+    // Get type from contentType, type or media_type field
+    const contentType = (recordData.contentType || recordData.type || recordData.media_type || '').toLowerCase().trim();
+    // For media items, the record itself often contains the content fields (url, asset_url)
+    const content = recordData.content || recordData;
 
     // String-based types (not media)
     const stringTypes = ['text', 'html', 'global_tag', 'personal_tag', 'tag', 'tags', 'report', 'link'];
@@ -36,11 +37,14 @@
     }
 
     // Media types
-    const mediaTypes = ['image', 'video', 'audio', 'gallery', 'image_gallery', 'emoji', 'icon'];
+    const mediaTypes = ['image', 'video', 'audio', 'gallery', 'image_gallery', 'emoji', 'icon', 'file'];
     
     // Check if it's a known media type
     for (const mediaType of mediaTypes) {
       if (contentType === mediaType) {
+        // For 'file' type, we still want to try detecting from structure to be more specific
+        if (contentType === 'file') break;
+
         return {
           type: mediaType,
           displayLabel: formatTypeLabel(mediaType),
@@ -50,8 +54,8 @@
       }
     }
 
-    // If type is "media" or unknown, try to detect from content structure
-    if (contentType === 'media' || !contentType || contentType === '') {
+    // If type is "media", "file" or unknown, try to detect from content structure
+    if (contentType === 'media' || contentType === 'file' || !contentType || contentType === '') {
       const detected = detectFromContentStructure(content);
       // If we successfully detected a type, return it; otherwise fall back to "Unknown"
       if (detected.type !== 'unknown') {
@@ -89,8 +93,8 @@
     }
 
     // Check for image
-    if (content.url) {
-      const url = content.url.toLowerCase();
+    if (content.url || content.asset_url) {
+      const url = (content.asset_url || content.url).toLowerCase();
       const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', 'image', 'photo', 'img'];
       if (imageExtensions.some(ext => url.includes(ext))) {
         return { type: 'image', displayLabel: 'Image', isMedia: true, isString: false };

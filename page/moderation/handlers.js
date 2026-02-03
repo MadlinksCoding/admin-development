@@ -406,8 +406,8 @@
         // Render media directly from content (use validation.data if available, otherwise use content directly)
         const mediaData = validation?.data || content;
 
-        if (typeLower === 'image' && (mediaData.url || content.url)) {
-          const imgUrl = mediaData.url || content.url;
+        if (typeLower === 'image' && (mediaData.asset_url || mediaData.url || content.asset_url || content.url)) {
+          const imgUrl = mediaData.asset_url || mediaData.url || content.asset_url || content.url;
           const imgAlt = mediaData.alt || content.alt || 'Image';
           contentHtml = `
             <div class="text-center">
@@ -421,7 +421,7 @@
           if (Array.isArray(images) && images.length > 0) {
             const galleryId = `gallery-${moderationId}`;
             const firstImg = images[0];
-            const firstUrl = typeof firstImg === 'string' ? firstImg : (firstImg.url || '');
+            const firstUrl = typeof firstImg === 'string' ? firstImg : (firstImg.asset_url || firstImg.url || '');
             const firstAlt = typeof firstImg === 'string' ? 'Image 1' : (firstImg.alt || 'Image 1');
             contentHtml = `
               <div id="${galleryId}" class="content-gallery">
@@ -446,7 +446,7 @@
                 return { url: img, alt: `Image ${idx + 1}`, caption: null };
               }
               return {
-                url: img.url || '',
+                url: img.asset_url || img.url || '',
                 alt: img.alt || `Image ${idx + 1}`,
                 caption: img.caption || null
               };
@@ -454,8 +454,8 @@
             modalBody.dataset.galleryImages = JSON.stringify(normalizedImages);
             modalBody.dataset.galleryId = galleryId;
           }
-        } else if (typeLower === 'video' && (mediaData.url || content.url)) {
-          const videoUrl = mediaData.url || content.url;
+        } else if (typeLower === 'video' && (mediaData.asset_url || mediaData.url || content.asset_url || content.url)) {
+          const videoUrl = mediaData.asset_url || mediaData.url || content.asset_url || content.url;
           const videoTitle = mediaData.title || content.title;
           const videoId = `video-${moderationId}`;
           contentHtml = `
@@ -478,8 +478,8 @@
           
           // Store video ID for cleanup
           modalBody.dataset.videoId = videoId;
-        } else if (typeLower === 'audio' && (mediaData.url || content.url)) {
-          const audioUrl = mediaData.url || content.url;
+        } else if (typeLower === 'audio' && (mediaData.asset_url || mediaData.url || content.asset_url || content.url)) {
+          const audioUrl = mediaData.asset_url || mediaData.url || content.asset_url || content.url;
           contentHtml = `
             <div class="text-center py-5">
               <audio controls class="w-100">
