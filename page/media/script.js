@@ -421,7 +421,16 @@
           const result = await res.json();
           if (!result.success) throw new Error(result.message || "Failed to add note");
 
-          modal.modal.hide();
+          // Close the modal properly using Bootstrap's API
+          const modalElement = document.getElementById('viewModal');
+          if (modalElement) {
+            const bsModal = bootstrap.Modal.getInstance(modalElement);
+            if (bsModal) {
+              bsModal.hide();
+            }
+          }
+          
+          // Refresh the page data
           document.body.dispatchEvent(new CustomEvent('section:refresh'));
         }, "Saving note...", "Note added successfully.");
       };

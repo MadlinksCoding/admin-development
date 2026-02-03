@@ -41,7 +41,7 @@
   }
 
   function isPermanent(row) {
-    return row.isPermanent === true || row.is_permanent === true;
+    return !!row.is_permanent || row.is_permanent === true;
   }
 
   function expiresAtValue(row) {
