@@ -302,6 +302,7 @@ window.PayloadBuilders = {
     return {
       env: window.Env.current,
       section: "user-blocks",
+      id: filterValues.id || undefined,
       from: filterValues.from || undefined,
       to: filterValues.to || undefined,
       scope: filterValues.scope || undefined,
@@ -650,6 +651,10 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 6. User Blocks Specifics
+    if (filters.id) {
+      const id = String(filters.id).toLowerCase();
+      filtered = filtered.filter(i => String(i.id || i.blockId || "").toLowerCase().includes(id));
+    }
     if (filters.blocker_id) {
         const b = filters.blocker_id.toLowerCase();
         filtered = filtered.filter(i => (i.blocker_id || i.fromUserId || "").toLowerCase().includes(b));

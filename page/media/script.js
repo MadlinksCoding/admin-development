@@ -132,6 +132,26 @@
      * GLOBAL ACTION HANDLERS
      */
 
+    // Utility: close any open modals and clean up backdrops/body state
+    const closeAllModals = () => {
+      const openModals = document.querySelectorAll('.modal.show');
+      openModals.forEach((el) => {
+        try {
+          const instance = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+          instance.hide();
+        } catch (e) {}
+      });
+
+      // Force cleanup in case Bootstrap leaves stale backdrops
+      setTimeout(() => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach((backdrop) => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }, 150);
+    };
+
     // 1. View Media (Preview Modal like Moderation)
     window.handleMediaView = (rowData) => {
       const modal = window.ModalViewer;
@@ -147,6 +167,53 @@
       let mediaHtml = "";
       let galleryImages = [];
       const isGallery = typeInfo.type === 'gallery' || typeInfo.type === 'image_gallery';
+
+      const normalizeGalleryImages = (images) => {
+        if (!Array.isArray(images)) return [];
+        const normalized = images.map((img, idx) => {
+          if (typeof img === 'string') {
+            return { url: img, title: `Image ${idx + 1}` };
+          }
+          return {
+            url: img.asset_url || img.url || img.src || "",
+            title: img.title || img.name || `Image ${idx + 1}`
+          };
+        }).filter(item => item.url);
+        return normalized;
+      };
+
+      const extractGalleryImages = (data) => {
+        const results = [];
+        const addImages = (images) => {
+          normalizeGalleryImages(images).forEach(img => results.push(img));
+        };
+
+        if (Array.isArray(data?.images)) addImages(data.images);
+        if (Array.isArray(data?.media_meta?.images)) addImages(data.media_meta.images);
+        if (Array.isArray(data?.content?.images)) addImages(data.content.images);
+        if (Array.isArray(data?.gallery?.images)) addImages(data.gallery.images);
+
+        if (typeof data?.image_variants_json === 'string') {
+          try {
+            const parsed = JSON.parse(data.image_variants_json);
+            if (Array.isArray(parsed)) addImages(parsed);
+            if (Array.isArray(parsed?.images)) addImages(parsed.images);
+          } catch (e) {}
+        } else if (Array.isArray(data?.image_variants_json)) {
+          addImages(data.image_variants_json);
+        }
+
+        if (data?.asset_url || data?.url) {
+          results.push({ url: data.asset_url || data.url, title: data.title || data.media_id || 'Image' });
+        }
+
+        const seen = new Set();
+        return results.filter(img => {
+          if (!img.url || seen.has(img.url)) return false;
+          seen.add(img.url);
+          return true;
+        });
+      };
 
       // If it's a gallery or has a collection, try to find other items in the same collection from the table
       if ((isGallery || rowData.collection_id) && rowData.collection_id) {
@@ -167,11 +234,11 @@
             }
           } catch (e) {}
         });
+      }
 
-        // Ensure current item is first if possible, or at least present
-        if (galleryImages.length === 0 && url) {
-          galleryImages.push({ url, title: rowData.title || rowData.media_id, type: rowData.media_type });
-        }
+      // Fallback to embedded gallery data or single asset URL
+      if (galleryImages.length === 0 && isGallery) {
+        galleryImages = extractGalleryImages(rowData);
       }
 
       if (isGallery && galleryImages.length > 0) {
@@ -261,7 +328,7 @@
           <button type="button" class="btn btn-outline-primary btn-sm" onclick='handleMediaDelete(${JSON.stringify(rowData)})'>
              Delete
           </button>
-          <button type="button" class="btn btn-outline-primary btn-sm" onclick='handleMediaAddNote(${JSON.stringify(rowData)})'>Add Note</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick='handleMediaAddNote(${JSON.stringify(rowData)})'>Add Note</button>
           <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal">Close</button>
         </div>
       `;
@@ -297,12 +364,11 @@
 
       modal.body.innerHTML = `
         <div class="text-center py-3">
-          <i class="bi bi-exclamation-triangle text-primary mb-3" style="font-size: 3rem;"></i>
           <h5>Delete media item?</h5>
           <p class="text-muted">This will soft-delete the media item <strong>${mediaId}</strong>.</p>
           <div class="mt-4 d-flex justify-content-center gap-2">
-            <button type="button" class="btn btn-outline-primary px-4" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary px-4" id="confirmDeleteBtn">Delete</button>
+          <button type="button" class="btn btn-primary px-4" id="confirmDeleteBtn">Delete</button>
+          <button type="button" class="btn btn-outline-primary px-4" data-bs-dismiss="modal">Cancel</button>
           </div>
         </div>
       `;
@@ -374,6 +440,9 @@
 
     // 4. Add Note to Media
     window.handleMediaAddNote = (rowData) => {
+      // Close any other open modals before showing the notes modal
+      closeAllModals();
+
       const mediaId = rowData.media_id;
       const modal = window.ModalViewer;
       modal.init();
@@ -393,12 +462,24 @@
               <label class="form-check-label" for="isPublicNote">Public Note (Visible to user)</label>
             </div>
             <div class="d-flex justify-content-end gap-2 mt-4">
-              <button type="button" class="btn btn-outline-secondary btn-sm" onclick='handleMediaView(${JSON.stringify(rowData)})'>Back to Preview</button>
               <button type="submit" class="btn btn-primary btn-sm">Save Note</button>
             </div>
           </form>
         </div>
       `;
+
+      const modalElement = document.getElementById('viewModal');
+      if (modalElement && modal.modal) {
+        // Ensure proper cleanup on close
+        modalElement.addEventListener('hidden.bs.modal', () => {
+          closeAllModals();
+        }, { once: true });
+
+        // Show the modal after resetting content
+        setTimeout(() => {
+          modal.modal.show();
+        }, 50);
+      }
 
       const form = document.getElementById("addNoteForm");
       form.onsubmit = async (e) => {
@@ -421,14 +502,12 @@
           const result = await res.json();
           if (!result.success) throw new Error(result.message || "Failed to add note");
 
-          // Close the modal properly using Bootstrap's API
-          const modalElement = document.getElementById('viewModal');
+          // Close the modal properly and clean up
           if (modalElement) {
             const bsModal = bootstrap.Modal.getInstance(modalElement);
-            if (bsModal) {
-              bsModal.hide();
-            }
+            if (bsModal) bsModal.hide();
           }
+          closeAllModals();
           
           // Refresh the page data
           document.body.dispatchEvent(new CustomEvent('section:refresh'));

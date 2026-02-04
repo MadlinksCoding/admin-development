@@ -115,6 +115,7 @@
     return {
       id: "user-blocks-table",
       columns: [
+        { field: "id", label: "ID", sortable: true, formatter: (value) => value || "-" },
         { field: "blocker_id", label: "From User", sortable: true },
         { field: "blocked_id", label: "To User", sortable: true },
         { field: "scope", label: "Scope", formatter: (value) => formatScope(value) },
@@ -351,7 +352,7 @@
             to: row.blocked_id || row.toUserId,
             scope: row.scope
           });
-          window.ModalViewer.showHtml('<div class="text-success text-center">Block removed successfully.</div>');
+          window.ModalViewer.showHtml('<div class="text-center">Block removed successfully.</div>');
           setTimeout(() => {
             window.ModalViewer.modal.hide();
             document.body.dispatchEvent(new CustomEvent("section:refresh"));

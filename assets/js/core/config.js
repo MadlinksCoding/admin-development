@@ -321,6 +321,12 @@ window.AdminConfig = {
     "user-blocks": [
       {
         type: "text",
+        name: "id",
+        label: "Block ID",
+        placeholder: "Filter by block ID"
+      },
+      {
+        type: "text",
         name: "q",
         label: "Global Search",
         placeholder: "From or To User ID…"
