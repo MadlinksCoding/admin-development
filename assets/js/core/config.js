@@ -776,7 +776,7 @@ window.AdminConfig = {
  */
 window.AdminEndpoints = {
   base: {
-    prod: "https://209.38.24.155:3000",
+    prod: "http://209.38.24.155:3000",
     stage: "http://localhost:3000",
     dev: ""
   },
