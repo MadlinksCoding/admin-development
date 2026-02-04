@@ -246,7 +246,7 @@ window.AdminConfig = {
         type: "text",
         name: "q",
         label: "Global Search",
-        placeholder: "ID, Username or Display Name…"
+        placeholder: "ID, Username, Email, Phone or Name…"
       },
       {
         type: "text",
@@ -262,9 +262,21 @@ window.AdminConfig = {
       },
       {
         type: "text",
-        name: "username",
+        name: "user_name",
         label: "Username",
         placeholder: "Filter by username"
+      },
+      {
+        type: "text",
+        name: "email",
+        label: "Email",
+        placeholder: "Filter by email"
+      },
+      {
+        type: "text",
+        name: "phone_number",
+        label: "Phone Number",
+        placeholder: "Filter by phone number"
       },
       {
         type: "text",
@@ -292,7 +304,6 @@ window.AdminConfig = {
           { value: "", label: "All Statuses" },
           { value: "online", label: "Online" },
           { value: "away", label: "Away" },
-          { value: "dnd", label: "DND" },
           { value: "offline", label: "Offline" }
         ]
       },
@@ -308,6 +319,12 @@ window.AdminConfig = {
       }
     ],
     "user-blocks": [
+      {
+        type: "text",
+        name: "id",
+        label: "Block ID",
+        placeholder: "Filter by block ID"
+      },
       {
         type: "text",
         name: "q",
@@ -395,6 +412,12 @@ window.AdminConfig = {
         placeholder: "Search by title"
       },
       {
+        type: "text",
+        name: "media_id",
+        label: "Media ID",
+        placeholder: "Exact media ID"
+      },
+      {
         type: "select",
         name: "media_type",
         label: "Media Type",
@@ -429,7 +452,8 @@ window.AdminConfig = {
           { value: "subscribers", label: "Subscribers" },
           { value: "purchasers", label: "Purchasers" },
           { value: "private", label: "Private" },
-          { value: "unlisted", label: "Unlisted" }
+          { value: "unlisted", label: "Unlisted" },
+          { value: "coming_soon", label: "Coming Soon" }
         ]
       },
       {
@@ -442,6 +466,11 @@ window.AdminConfig = {
         type: "toggle",
         name: "featured",
         label: "Featured Only"
+      },
+      {
+        type: "toggle",
+        name: "coming_soon",
+        label: "Coming Soon Only"
       },
       {
         type: "date",

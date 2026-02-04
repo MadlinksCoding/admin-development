@@ -1,5 +1,6 @@
 [
   {
+    "id": "test_block_917",
     "blocker_id": "test_user_917",
     "sk_scope": "test_user_target_896#feed",
     "blocked_id": "test_user_target_896",
@@ -13,6 +14,7 @@
     "testing": true
   },
   {
+    "id": "test_block_87",
     "blocker_id": "test_user_87",
     "sk_scope": "test_user_target_309#feed",
     "blocked_id": "test_user_target_309",
@@ -26,6 +28,7 @@
     "testing": true
   },
   {
+    "id": "test_block_951",
     "blocker_id": "test_user_951",
     "sk_scope": "test_user_target_363#feed",
     "blocked_id": "test_user_target_363",
@@ -39,6 +42,7 @@
     "testing": true
   },
   {
+    "id": "test_block_933",
     "blocker_id": "test_user_933",
     "sk_scope": "test_user_target_921#private_chat",
     "blocked_id": "test_user_target_921",
@@ -52,6 +56,7 @@
     "testing": true
   },
   {
+    "id": "test_block_474",
     "blocker_id": "test_user_474",
     "sk_scope": "test_user_target_94#feed",
     "blocked_id": "test_user_target_94",
@@ -65,6 +70,7 @@
     "testing": true
   },
   {
+    "id": "test_block_954",
     "blocker_id": "test_user_954",
     "sk_scope": "test_user_target_781#feed",
     "blocked_id": "test_user_target_781",
@@ -78,6 +84,7 @@
     "testing": true
   },
   {
+    "id": "test_block_520",
     "blocker_id": "test_user_520",
     "sk_scope": "test_user_target_366#private_chat",
     "blocked_id": "test_user_target_366",
@@ -91,6 +98,7 @@
     "testing": true
   },
   {
+    "id": "test_block_112",
     "blocker_id": "test_user_112",
     "sk_scope": "test_user_target_280#private_chat",
     "blocked_id": "test_user_target_280",
@@ -104,6 +112,7 @@
     "testing": true
   },
   {
+    "id": "test_block_43",
     "blocker_id": "test_user_43",
     "sk_scope": "test_user_target_456#feed",
     "blocked_id": "test_user_target_456",
@@ -117,6 +126,7 @@
     "testing": true
   },
   {
+    "id": "test_block_295",
     "blocker_id": "test_user_295",
     "sk_scope": "test_user_target_928#private_chat",
     "blocked_id": "test_user_target_928",
@@ -130,6 +140,7 @@
     "testing": true
   },
   {
+    "id": "test_block_495",
     "blocker_id": "test_user_495",
     "sk_scope": "test_user_target_687#feed",
     "blocked_id": "test_user_target_687",
@@ -143,6 +154,7 @@
     "testing": true
   },
   {
+    "id": "test_block_669",
     "blocker_id": "test_user_669",
     "sk_scope": "test_user_target_952#feed",
     "blocked_id": "test_user_target_952",
@@ -156,6 +168,7 @@
     "testing": true
   },
   {
+    "id": "test_block_332",
     "blocker_id": "test_user_332",
     "sk_scope": "test_user_target_138#private_chat",
     "blocked_id": "test_user_target_138",
@@ -169,6 +182,7 @@
     "testing": true
   },
   {
+    "id": "test_block_332",
     "blocker_id": "test_user_332",
     "sk_scope": "test_user_target_565#feed",
     "blocked_id": "test_user_target_565",
@@ -182,6 +196,7 @@
     "testing": true
   },
   {
+    "id": "test_block_132",
     "blocker_id": "test_user_132",
     "sk_scope": "test_user_target_750#feed",
     "blocked_id": "test_user_target_750",
@@ -195,6 +210,7 @@
     "testing": true
   },
   {
+    "id": "test_block_132",
     "blocker_id": "test_user_269",
     "sk_scope": "test_user_target_48#feed",
     "blocked_id": "test_user_target_48",
@@ -208,6 +224,7 @@
     "testing": true
   },
   {
+    "id": "test_block_359",
     "blocker_id": "test_user_359",
     "sk_scope": "test_user_target_920#feed",
     "blocked_id": "test_user_target_920",
@@ -221,6 +238,7 @@
     "testing": true
   },
   {
+    "id": "test_block_248",
     "blocker_id": "test_user_248",
     "sk_scope": "test_user_target_686#private_chat",
     "blocked_id": "test_user_target_686",
@@ -234,6 +252,7 @@
     "testing": true
   },
   {
+    "id": "test_block_13",
     "blocker_id": "test_user_13",
     "sk_scope": "test_user_target_340#feed",
     "blocked_id": "test_user_target_340",
@@ -247,6 +266,7 @@
     "testing": true
   },
   {
+    "id": "test_block_676",
     "blocker_id": "test_user_676",
     "sk_scope": "test_user_target_859#private_chat",
     "blocked_id": "test_user_target_859",

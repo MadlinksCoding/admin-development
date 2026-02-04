@@ -35,16 +35,18 @@
             `;
           }
         },
-        { field: "username", label: "Username", sortable: true },
+        { field: "user_name", label: "Username", sortable: true },
         { field: "display_name", label: "Display Name", sortable: true },
+        { field: "email", label: "Email", sortable: true },
+        { field: "phone_number", label: "Phone Number", sortable: true },
         { field: "role", label: "Role", sortable: true },
         { field: "status", label: "Status", sortable: true },
-        { 
-          field: "last_activity", 
-          label: "Last Activity", 
-          sortable: true,
-          formatter: (value) => value ? window.ModerationUtils.formatDateTime(value) : 'Never'
-        }
+        // { 
+        //   field: "last_activity", 
+        //   label: "Last Activity", 
+        //   sortable: true,
+        //   formatter: (value) => value ? window.ModerationUtils.formatDateTime(value) : 'Never'
+        // }
       ],
       actions: [
         {
@@ -81,7 +83,7 @@
           <div class="text-center py-4">
             <h5>Creation Policy</h5>
             <p class="text-muted px-3">
-              Users must go through the proper registration and verification flows to be created. 
+              Users must go through the proper registration and verification flows(KYC) to be created. 
               Manual creation through this panel is currently disabled to ensure platform integrity.
             </p>
           </div>
@@ -110,7 +112,7 @@
         const isDev = (window.Env?.current || "dev") === "dev";
         const user = isDev ? rowData : await fetchFullUser(rowData.uid);
         
-        offcanvasTitle.textContent = `Profile: ${user.userName || user.username}`;
+        offcanvasTitle.textContent = `User: ${user.user_name || user.username}`;
         offcanvasBody.innerHTML = renderProfileHtml(user);
       } catch (err) {
         offcanvasBody.innerHTML = window.AdminUtils.errorMessage(err);
@@ -132,7 +134,7 @@
         const isDev = (window.Env?.current || "dev") === "dev";
         const user = isDev ? rowData : await fetchFullUser(rowData.uid);
 
-        offcanvasTitle.textContent = `Settings: ${user.userName || user.username}`;
+        offcanvasTitle.textContent = `Settings: ${user.user_name || user.userName}`;
         offcanvasBody.innerHTML = renderSettingsFormHtml(user);
       } catch (err) {
         offcanvasBody.innerHTML = window.AdminUtils.errorMessage(err);
@@ -193,21 +195,19 @@
       
       const fields = [
         { label: "UID", value: user.uid },
-        { label: "Public UID", value: user.public_uid || "-" },
-        { label: "Username", value: user.username },
+        { label: "Public UID", value: user.public_uid ||user.publicUid || "-" },
+        { label: "Username", value: user.user_name || user.userName || "-" },
         { label: "Display Name", value: user.display_name || "-" },
         { label: "Email", value: user.email || "-" },
         { label: "Role", value: user.role || "-" },
+        { label: "Status", value: status.toLowerCase() || "-" },
         { label: "Last Activity", value: user.last_activity ? window.ModerationUtils.formatDateTime(user.last_activity) : "-" }
       ];
 
       const fieldsHtml = fields.map(f => `<p class="mb-2"><strong>${f.label}:</strong> ${f.value}</p>`).join("");
 
       return `
-        <div class="mb-3 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">User Identity</h5>
-          <span class="badge text-bg-${statusClass}">${status.toUpperCase()}</span>
-        </div>
+       
         <div class="user-details-body">
           ${fieldsHtml}
           ${user.user_profile ? `
@@ -232,9 +232,10 @@
       const fields = [
         { label: "Locale", value: s.locale || "en-US" },
         { label: "Email Notifications", value: n.email ? "Enabled" : "Disabled" },
+        { label: "Push Notifications", value: n.push ? "Enabled" : "Disabled" },
         { label: "SMS Notifications", value: n.sms ? "Enabled" : "Disabled" },
-        { label: "Video Messaging", value: s.callVideoMessage ? "Enabled" : "Disabled" },
-        { label: "Presence", value: s.presencePreference || "online" }
+        { label: "Video Messaging", value: s.call_video_message ? "Enabled" : "Disabled" },
+        { label: "Presence", value: s.presence_preference || "-" }
       ];
 
       const fieldsHtml = fields.map(f => `<p class="mb-2"><strong>${f.label}:</strong> ${f.value}</p>`).join("");
@@ -242,10 +243,7 @@
       return `
         <div id="userSettingsPanel" class="d-flex flex-column h-100">
           <div class="flex-grow-1">
-            <div class="mb-3 d-flex justify-content-between align-items-center">
-              <h5 class="mb-0">User Preferences</h5>
-              <span class="badge text-bg-primary">ACTIVE</span>
-            </div>
+          
             <div class="user-settings-body">
               ${fieldsHtml}
               <div class="mt-4 border-top pt-3">

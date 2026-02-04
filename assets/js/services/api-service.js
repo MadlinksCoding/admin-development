@@ -302,6 +302,7 @@ window.PayloadBuilders = {
     return {
       env: window.Env.current,
       section: "user-blocks",
+      id: filterValues.id || undefined,
       from: filterValues.from || undefined,
       to: filterValues.to || undefined,
       scope: filterValues.scope || undefined,
@@ -584,9 +585,10 @@ function applyMockFilters(dataArray, filters) {
       filtered = filtered.filter(i => 
         (i.uid || "").toLowerCase().includes(s) ||
         (i.public_uid || "").toLowerCase().includes(s) ||
-        (i.username || "").toLowerCase().includes(s) ||
+        (i.username || i.user_name || "").toLowerCase().includes(s) ||
         (i.display_name || "").toLowerCase().includes(s) ||
         (i.email || "").toLowerCase().includes(s) ||
+        (i.phone_number || "").toLowerCase().includes(s) ||
         (i.userId || i.user_id || "").toLowerCase().includes(s) ||
         (i.referenceId || i.reference_id || "").toLowerCase().includes(s) ||
         (i.title || "").toLowerCase().includes(s) ||
@@ -603,9 +605,13 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 3. User Specifics
-    if (filters.username) {
-      const u = filters.username.toLowerCase();
-      filtered = filtered.filter(i => (i.username || "").toLowerCase().includes(u));
+    if (filters.username || filters.user_name) {
+      const u = (filters.username || filters.user_name).toLowerCase();
+      filtered = filtered.filter(i => (i.username || i.user_name || "").toLowerCase().includes(u));
+    }
+    if (filters.phone_number) {
+      const p = filters.phone_number.toLowerCase();
+      filtered = filtered.filter(i => (i.phone_number || "").toLowerCase().includes(p));
     }
     if (filters.display_name) {
       const d = filters.display_name.toLowerCase();
@@ -627,6 +633,10 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 5. Media Specifics
+    if (filters.media_id) {
+        const m = filters.media_id.toLowerCase();
+        filtered = filtered.filter(i => (i.media_id || "").toLowerCase() === m);
+    }
     if (filters.media_type) {
         const t = filters.media_type.toLowerCase();
         filtered = filtered.filter(i => (i.media_type || "").toLowerCase() === t);
@@ -641,6 +651,10 @@ function applyMockFilters(dataArray, filters) {
     }
 
     // 6. User Blocks Specifics
+    if (filters.id) {
+      const id = String(filters.id).toLowerCase();
+      filtered = filtered.filter(i => String(i.id || i.blockId || "").toLowerCase().includes(id));
+    }
     if (filters.blocker_id) {
         const b = filters.blocker_id.toLowerCase();
         filtered = filtered.filter(i => (i.blocker_id || i.fromUserId || "").toLowerCase().includes(b));
@@ -719,6 +733,9 @@ function applyMockFilters(dataArray, filters) {
     }
     if (filters.featured === true || filters.featured === "true") {
         filtered = filtered.filter(i => i.featured === true);
+    }
+    if (filters.coming_soon === true || filters.coming_soon === "true") {
+        filtered = filtered.filter(i => i.coming_soon === true);
     }
 
     return filtered;

@@ -284,11 +284,13 @@
         }
 
         transformResponse(responseData) {
-            // Backend returns: { users: [...], count: 13 }
+            // Backend returns: { users: [...], count: number (returned), totalCount: number (db total) }
             return {
                 items: responseData.users || [],
-                total: responseData.count || (responseData.users ? responseData.users.length : 0),
-                // items are already in correct format (uid, username, etc.)
+                // Prioritize totalCount (DB total) over count (returned items count)
+                total: responseData.totalCount !== undefined ? responseData.totalCount : 
+                       (responseData.count !== undefined ? responseData.count : 
+                       (responseData.users ? responseData.users.length : 0)),
             };
         }
     }
@@ -366,10 +368,13 @@
         }
 
         transformResponse(responseData) {
-            // Backend returns: { items: [...], count: number, limit: number, offset: number, nextCursor?: string }
+            // Backend returns: { items: [...], count: number (returned), totalCount: number (db total), ... }
             return {
                 items: responseData.items || [],
-                total: responseData.count || (responseData.items ? responseData.items.length : 0),
+                // Prioritize totalCount (DB total) over count (returned items count)
+                total: responseData.totalCount !== undefined ? responseData.totalCount : 
+                       (responseData.count !== undefined ? responseData.count : 
+                       (responseData.items ? responseData.items.length : 0)),
                 nextCursor: responseData.nextCursor,
                 prevCursor: responseData.prevCursor
             };

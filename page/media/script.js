@@ -84,28 +84,26 @@
         },
         { 
           field: "updated_at", 
-          label: "Updated", 
+          label: "UpdatedAt", 
           sortable: true,
           formatter: (value) => value ? new Date(value).toLocaleDateString() : '-'
         },
         { 
           field: "featured", 
-          label: "featured", 
+          label: "Featured", 
           sortable: true,
           formatter: (value) => {
             const val = String(!!value);
-            const badgeClass = val === 'true' ? 'bg-primary-subtle text-primary' : 'text-muted';
-            return `<span class="badge ${badgeClass} text-uppercase" style="font-size: 0.7rem;">${val}</span>`;
+            return `<span>${val}</span>`;
           }
         },
          { 
           field: "coming_soon", 
-          label: "commingSoon", 
+          label: "Coming Soon", 
           sortable: true,
           formatter: (value) => {
             const val = String(!!value);
-            const badgeClass = val === 'true' ? 'bg-primary-subtle text-primary' : 'text-muted';
-            return `<span class="badge ${badgeClass} text-uppercase" style="font-size: 0.7rem;">${val}</span>`;
+            return `<span>${val}</span>`;
           }
         }
       ],
@@ -134,6 +132,26 @@
      * GLOBAL ACTION HANDLERS
      */
 
+    // Utility: close any open modals and clean up backdrops/body state
+    const closeAllModals = () => {
+      const openModals = document.querySelectorAll('.modal.show');
+      openModals.forEach((el) => {
+        try {
+          const instance = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+          instance.hide();
+        } catch (e) {}
+      });
+
+      // Force cleanup in case Bootstrap leaves stale backdrops
+      setTimeout(() => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach((backdrop) => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }, 150);
+    };
+
     // 1. View Media (Preview Modal like Moderation)
     window.handleMediaView = (rowData) => {
       const modal = window.ModalViewer;
@@ -144,14 +162,152 @@
 
       // Detect type
       const typeInfo = window.ContentTypeDetector.detect(rowData);
-      const url = rowData.url || rowData.content?.url || "";
+      const url = rowData.asset_url || rowData.url || rowData.content?.asset_url || rowData.content?.url || "";
 
       let mediaHtml = "";
-      if (url) {
+      let galleryImages = [];
+      const isGallery = typeInfo.type === 'gallery' || typeInfo.type === 'image_gallery';
+
+      const normalizeGalleryImages = (images) => {
+        if (!Array.isArray(images)) return [];
+        const normalized = images.map((img, idx) => {
+          if (typeof img === 'string') {
+            return { url: img, title: `Image ${idx + 1}` };
+          }
+          return {
+            url: img.asset_url || img.url || img.src || "",
+            title: img.title || img.name || `Image ${idx + 1}`
+          };
+        }).filter(item => item.url);
+        return normalized;
+      };
+
+      const extractGalleryImages = (data) => {
+        const results = [];
+        const addImages = (images) => {
+          normalizeGalleryImages(images).forEach(img => results.push(img));
+        };
+
+        if (Array.isArray(data?.images)) addImages(data.images);
+        if (Array.isArray(data?.media_meta?.images)) addImages(data.media_meta.images);
+        if (Array.isArray(data?.content?.images)) addImages(data.content.images);
+        if (Array.isArray(data?.gallery?.images)) addImages(data.gallery.images);
+
+        if (typeof data?.image_variants_json === 'string') {
+          try {
+            const parsed = JSON.parse(data.image_variants_json);
+            if (Array.isArray(parsed)) addImages(parsed);
+            if (Array.isArray(parsed?.images)) addImages(parsed.images);
+          } catch (e) {}
+        } else if (Array.isArray(data?.image_variants_json)) {
+          addImages(data.image_variants_json);
+        }
+
+        if (data?.asset_url || data?.url) {
+          results.push({ url: data.asset_url || data.url, title: data.title || data.media_id || 'Image' });
+        }
+
+        const seen = new Set();
+        return results.filter(img => {
+          if (!img.url || seen.has(img.url)) return false;
+          seen.add(img.url);
+          return true;
+        });
+      };
+
+      // If it's a gallery or has a collection, try to find other items in the same collection from the table
+      if ((isGallery || rowData.collection_id) && rowData.collection_id) {
+        const collectionId = rowData.collection_id;
+        const buttons = document.querySelectorAll('[data-row-data]');
+        const seenMediaIds = new Set();
+        
+        buttons.forEach(btn => {
+          try {
+            const data = JSON.parse(decodeURIComponent(btn.getAttribute('data-row-data')));
+            if (data.collection_id === collectionId && !seenMediaIds.has(data.media_id)) {
+              seenMediaIds.add(data.media_id);
+              galleryImages.push({
+                url: data.asset_url || data.url || "",
+                title: data.title || data.media_id,
+                type: data.media_type
+              });
+            }
+          } catch (e) {}
+        });
+      }
+
+      // Fallback to embedded gallery data or single asset URL
+      if (galleryImages.length === 0 && isGallery) {
+        galleryImages = extractGalleryImages(rowData);
+      }
+
+      if (isGallery && galleryImages.length > 0) {
+        const galleryId = `media-gallery-${rowData.id}`;
+        const firstImg = galleryImages[0];
+        
+        mediaHtml = `
+          <div id="${galleryId}" class="content-gallery py-3">
+            <div class="d-flex align-items-center justify-content-center position-relative" style="min-height: 400px; background: #f8f9fa; border-radius: 8px;">
+              ${galleryImages.length > 1 ? `
+                <button class="btn btn-outline-primary gallery-nav gallery-nav-prev" data-gallery="${galleryId}" data-direction="prev" style="position: absolute; left: 10px; z-index: 10; border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              ` : ''}
+              <div class="gallery-viewport text-center w-100 px-5">
+                <img id="${galleryId}-img" src="${firstImg.url}" class="img-fluid rounded shadow-sm" style="max-height: 450px; object-fit: contain;">
+                <p class="mt-3 mb-0 fw-bold" id="${galleryId}-title">${firstImg.title}</p>
+                <p class="mt-1 text-muted small" id="${galleryId}-caption">1 / ${galleryImages.length}</p>
+              </div>
+              ${galleryImages.length > 1 ? `
+                <button class="btn btn-outline-primary gallery-nav gallery-nav-next" data-gallery="${galleryId}" data-direction="next" style="position: absolute; right: 10px; z-index: 10; border-radius: 50%; width: 40px; height: 40px; padding: 0;">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+
+        // Initialize carousel logic after modal is shown
+        setTimeout(() => {
+          let currentIndex = 0;
+          const updateGallery = () => {
+            const img = document.getElementById(`${galleryId}-img`);
+            const title = document.getElementById(`${galleryId}-title`);
+            const caption = document.getElementById(`${galleryId}-caption`);
+            if (img) img.src = galleryImages[currentIndex].url;
+            if (title) title.textContent = galleryImages[currentIndex].title;
+            if (caption) caption.textContent = `${currentIndex + 1} / ${galleryImages.length}`;
+          };
+
+          const modalEl = document.getElementById('viewModal');
+          if (modalEl) {
+            const nextBtn = modalEl.querySelector('.gallery-nav-next');
+            const prevBtn = modalEl.querySelector('.gallery-nav-prev');
+            
+            if (nextBtn) {
+              nextBtn.onclick = (e) => {
+                e.stopPropagation();
+                currentIndex = (currentIndex + 1) % galleryImages.length;
+                updateGallery();
+              };
+            }
+            if (prevBtn) {
+              prevBtn.onclick = (e) => {
+                e.stopPropagation();
+                currentIndex = (currentIndex - 1 + galleryImages.length) % galleryImages.length;
+                updateGallery();
+              };
+            }
+          }
+        }, 300);
+
+      } else if (url) {
         if (typeInfo.type === 'image') {
           mediaHtml = `<img src="${url}" class="img-fluid rounded border shadow-sm" style="max-height: 500px;">`;
         } else if (typeInfo.type === 'video') {
           mediaHtml = `<video src="${url}" controls class="img-fluid rounded border shadow-sm" style="max-height: 500px;"></video>`;
+        } else if (typeInfo.type === 'audio') {
+          mediaHtml = `<div class="bg-light p-4 border rounded text-center"><audio src="${url}" controls class="w-100 mb-2"></audio><p class="mt-2 mb-0">${typeInfo.displayLabel}</p></div>`;
         } else {
           mediaHtml = `<div class="bg-light p-5 border rounded text-center"><i class="bi bi-file-earmark-play" style="font-size: 3rem;"></i><p class="mt-2">${typeInfo.displayLabel}</p></div>`;
         }
@@ -168,10 +324,11 @@
           <div class="col-md-6"><strong>Type:</strong> ${rowData.media_type || '-'}</div>
           <div class="col-md-12 text-break"><strong>URL:</strong> <a href="${url}" target="_blank">${url}</a></div>
         </div>
-        <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+        <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
           <button type="button" class="btn btn-outline-primary btn-sm" onclick='handleMediaDelete(${JSON.stringify(rowData)})'>
-             <i class="bi bi-trash me-1"></i>Delete
+             Delete
           </button>
+          <button type="button" class="btn btn-primary btn-sm" onclick='handleMediaAddNote(${JSON.stringify(rowData)})'>Add Note</button>
           <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal">Close</button>
         </div>
       `;
@@ -207,12 +364,11 @@
 
       modal.body.innerHTML = `
         <div class="text-center py-3">
-          <i class="bi bi-exclamation-triangle text-primary mb-3" style="font-size: 3rem;"></i>
           <h5>Delete media item?</h5>
           <p class="text-muted">This will soft-delete the media item <strong>${mediaId}</strong>.</p>
           <div class="mt-4 d-flex justify-content-center gap-2">
-            <button type="button" class="btn btn-outline-primary px-4" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary px-4" id="confirmDeleteBtn">Delete</button>
+          <button type="button" class="btn btn-primary px-4" id="confirmDeleteBtn">Delete</button>
+          <button type="button" class="btn btn-outline-primary px-4" data-bs-dismiss="modal">Cancel</button>
           </div>
         </div>
       `;
@@ -280,6 +436,83 @@
           };
         }
       }, 100);
+    };
+
+    // 4. Add Note to Media
+    window.handleMediaAddNote = (rowData) => {
+      // Close any other open modals before showing the notes modal
+      closeAllModals();
+
+      const mediaId = rowData.media_id;
+      const modal = window.ModalViewer;
+      modal.init();
+
+      const titleEl = document.querySelector("#viewModal .modal-title");
+      if (titleEl) titleEl.textContent = `Add Note: ${rowData.title || mediaId}`;
+
+      modal.body.innerHTML = `
+        <div class="p-2">
+          <form id="addNoteForm">
+            <div class="mb-3">
+              <label for="noteText" class="form-label">Note</label>
+              <textarea class="form-control" id="noteText" rows="4" placeholder="Enter your note here..." required></textarea>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="isPublicNote">
+              <label class="form-check-label" for="isPublicNote">Public Note (Visible to user)</label>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button type="submit" class="btn btn-primary btn-sm">Save Note</button>
+            </div>
+          </form>
+        </div>
+      `;
+
+      const modalElement = document.getElementById('viewModal');
+      if (modalElement && modal.modal) {
+        // Ensure proper cleanup on close
+        modalElement.addEventListener('hidden.bs.modal', () => {
+          closeAllModals();
+        }, { once: true });
+
+        // Show the modal after resetting content
+        setTimeout(() => {
+          modal.modal.show();
+        }, 50);
+      }
+
+      const form = document.getElementById("addNoteForm");
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const note = document.getElementById("noteText").value;
+        const isPublic = document.getElementById("isPublicNote").checked;
+        
+        await window.Processing.process(async () => {
+          const payload = {
+            note,
+            addedBy: "admin-user", // TODO: Get actual admin ID
+            isPublic,
+            actorUserId: 'admin-user',
+            expectedVersion: rowData.version || 0
+          };
+
+          const res = await window.ApiService.post("media", `addNote/${mediaId}`, payload);
+          
+          const result = await res.json();
+          if (!result.success) throw new Error(result.message || "Failed to add note");
+
+          // Close the modal properly and clean up
+          if (modalElement) {
+            const bsModal = bootstrap.Modal.getInstance(modalElement);
+            if (bsModal) bsModal.hide();
+          }
+          closeAllModals();
+          
+          // Refresh the page data
+          document.body.dispatchEvent(new CustomEvent('section:refresh'));
+        }, "Saving note...", "Note added successfully.");
+      };
     };
 
     /**

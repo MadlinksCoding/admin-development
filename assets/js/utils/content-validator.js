@@ -12,19 +12,19 @@
    * @returns {Object} { valid: boolean, error: string|null, data: Object|null }
    */
   function validateImage(content) {
-    if (!content || !content.url) {
+    if (!content || (!content.url && !content.asset_url)) {
       return { valid: false, error: "Image URL is required", data: null };
     }
+    const url = content.asset_url || content.url;
 
-    // Check if URL is valid
     try {
-      new URL(content.url);
+      new URL(url);
     } catch (e) {
       return { valid: false, error: "Invalid image URL", data: null };
     }
 
     // Check if it's NOT a video or audio (more lenient - assume image if valid URL)
-    const urlLower = content.url.toLowerCase();
+    const urlLower = url.toLowerCase();
     const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
     const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
     const videoPlatforms = ['youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com'];
@@ -46,7 +46,7 @@
       valid: true,
       error: null,
       data: {
-        url: content.url,
+        url: url,
         alt: content.alt || content.title || "Image",
         caption: content.caption || null
       }
@@ -94,13 +94,14 @@
    * @returns {Object} { valid: boolean, error: string|null, data: Object|null }
    */
   function validateVideo(content) {
-    if (!content || !content.url) {
+    if (!content || (!content.url && !content.asset_url)) {
       return { valid: false, error: "Video URL is required", data: null };
     }
+    const url = content.asset_url || content.url;
 
     // Check if URL is valid
     try {
-      new URL(content.url);
+      new URL(url);
     } catch (e) {
       return { valid: false, error: "Invalid video URL", data: null };
     }
@@ -108,7 +109,7 @@
     // Check if it's a video extension or video platform
     const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
     const videoPlatforms = ['youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com'];
-    const urlLower = content.url.toLowerCase();
+    const urlLower = url.toLowerCase();
     const isVideo = videoExtensions.some(ext => urlLower.includes(ext)) ||
                     videoPlatforms.some(platform => urlLower.includes(platform));
 
@@ -120,7 +121,7 @@
       valid: true,
       error: null,
       data: {
-        url: content.url,
+        url: url,
         title: content.title || "Video",
         thumbnail: content.thumbnail || null
       }
@@ -133,20 +134,21 @@
    * @returns {Object} { valid: boolean, error: string|null, data: Object|null }
    */
   function validateAudio(content) {
-    if (!content || !content.url) {
+    if (!content || (!content.url && !content.asset_url)) {
       return { valid: false, error: "Audio URL is required", data: null };
     }
+    const url = content.asset_url || content.url;
 
     // Check if URL is valid
     try {
-      new URL(content.url);
+      new URL(url);
     } catch (e) {
       return { valid: false, error: "Invalid audio URL", data: null };
     }
 
     // Check if it's an audio extension
     const audioExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac'];
-    const urlLower = content.url.toLowerCase();
+    const urlLower = url.toLowerCase();
     const isAudio = audioExtensions.some(ext => urlLower.includes(ext));
 
     if (!isAudio) {
@@ -157,7 +159,7 @@
       valid: true,
       error: null,
       data: {
-        url: content.url,
+        url: url,
         title: content.title || "Audio",
         artist: content.artist || null
       }

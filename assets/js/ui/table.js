@@ -423,9 +423,10 @@
    * Attach sort handlers to table headers
    * @param {string} tableId - Table ID
    */
-  function attachSortHandlers(tableId) {
-    const table = document.querySelector(`#${tableId}`);
-    if (!table) return;
+  function attachSortHandlers(table) {
+    if (!table || table.dataset.sortAttached) return;
+    table.dataset.sortAttached = "true";
+    const tableId = table.id;
     
     table.querySelectorAll('th[data-sortable]').forEach(header => {
       header.style.cursor = 'pointer';
@@ -461,9 +462,9 @@
    * Attach row selection handlers
    * @param {string} tableId - Table ID
    */
-  function attachRowSelectionHandlers(tableId) {
-    const table = document.querySelector(`#${tableId}`);
-    if (!table) return;
+  function attachRowSelectionHandlers(table) {
+    if (!table || table.dataset.selectionAttached) return;
+    table.dataset.selectionAttached = "true";
 
     // Handle row clicks for selection - clicking ANYTHING in a row selects it
     table.addEventListener('click', (e) => {
@@ -500,9 +501,9 @@
    * Attach action button handlers
    * @param {string} tableId - Table ID
    */
-  function attachActionHandlers(tableId) {
-    const table = document.querySelector(`#${tableId}`);
-    if (!table) return;
+  function attachActionHandlers(table) {
+    if (!table || table.dataset.actionsAttached) return;
+    table.dataset.actionsAttached = "true";
 
     // Handle action buttons
     table.addEventListener('click', (e) => {
@@ -542,10 +543,9 @@
   function init() {
     // Find all tables with IDs
     document.querySelectorAll('table[id]').forEach(table => {
-      const tableId = table.id;
-      attachSortHandlers(tableId);
-      attachActionHandlers(tableId);
-      attachRowSelectionHandlers(tableId);
+      attachSortHandlers(table);
+      attachActionHandlers(table);
+      attachRowSelectionHandlers(table);
     });
   }
 
