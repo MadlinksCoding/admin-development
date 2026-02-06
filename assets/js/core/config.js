@@ -1006,6 +1006,11 @@ window.AdminEndpoints = {
     "media": "/media",
     "products": "/products",
     "orders": "/orders",
-    "subscriptions": "/subscriptions"
+    "subscriptions": "/subscriptions",
+    "payment-sessions": "/payment-sessions",
+    "payment-transactions": "/payment-transactions",
+    "payment-schedules": "/payment-schedules",
+    "payment-tokens": "/payment-tokens",
+    "payment-webhooks": "/payment-webhooks"
   }
 };

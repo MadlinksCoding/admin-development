@@ -25,9 +25,9 @@
     <script type="application/json" id="api-config">
       {
         "payment-sessions": {
-          "prod": { "endpoint": "http://209.38.24.155:3000/admin/payment-sessions" },
-          "stage": { "endpoint": "http://localhost:3000/admin/payment-sessions" },
-          "dev": { "endpoint": "http://localhost:3000/admin/payment-sessions" }
+          "prod": { "endpoint": "admin/payment-sessions" },
+          "stage": { "endpoint": "admin/payment-sessions" },
+          "dev": { "endpoint": "" }
         }
       }
     </script>
@@ -69,6 +69,7 @@
     <script src="assets/js/core/utils.js"></script>
     <script src="assets/js/core/state.js"></script>
     <script src="assets/js/core/config.js"></script>
+    <script src="assets/js/services/api-adapters.js"></script>
     <script src="assets/js/services/api-service.js"></script>
     <script src="assets/js/ui/sidebar.js"></script>
     <script src="assets/js/ui/env-selector.js"></script>
