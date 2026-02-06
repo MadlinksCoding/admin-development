@@ -116,3 +116,21 @@ body {
 .env-pill {
   min-width: 90px;
 }
+
+
+/**
+ * Offcanvas Styles
+ * Ensures white background for all offcanvas panels
+ */
+
+.offcanvas {
+  background-color: #ffffff !important;
+}
+
+.offcanvas-body {
+  background-color: #ffffff !important;
+}
+
+.offcanvas-header {
+  background-color: #ffffff !important;
+}

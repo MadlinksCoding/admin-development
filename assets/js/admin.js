@@ -162,6 +162,11 @@ window.AdminShell = window.AdminShell || {
       window.ModalViewer.init();
     }
 
+    // Initialize slide-in component (if available)
+    if (window.SlideIn && typeof window.SlideIn.init === "function") {
+      window.SlideIn.init();
+    }
+
     // Add event listener for section refresh events
     document.body.addEventListener("section:refresh", updateResetButton);
 

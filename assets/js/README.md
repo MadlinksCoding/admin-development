@@ -10,6 +10,7 @@ assets/js/
 │   └── config.js           # Configuration data (sidebar, filters, notes)
 │
 ├── services/                # Data services
+│   ├── api-adapters.js     # API Adapters (request building, response transformation)
 │   └── api-service.js      # API/data fetching service
 │
 ├── ui/                      # UI components
@@ -29,9 +30,10 @@ Scripts must be loaded in this order:
 1. **core/utils.js** - Utility functions
 2. **core/state.js** - State management
 3. **core/config.js** - Configuration
-4. **services/api-service.js** - Data service
-5. **ui/** components (any order)
-6. **admin.js** - Main initializer
+4. **services/api-adapters.js** - API Adapters
+5. **services/api-service.js** - Data service
+6. **ui/** components (any order)
+7. **admin.js** - Main initializer
 
 ## Module Descriptions
 
@@ -60,9 +62,14 @@ Scripts must be loaded in this order:
 
 ### Services
 
+#### `services/api-adapters.js`
+- `ApiAdapters.get(section)` - Factory to get adapter for section
+- `BaseAdapter` - Key class for standard API behavior
+- specialized adapters (`KycShuftiAdapter`, etc.)
+
 #### `services/api-service.js`
 - `ApiService.get(section, options)` - Main data fetching method
-- `PayloadBuilders` - Builds request payloads per section
+- Delegates request/response logic to `ApiAdapters`
 - Supports local JSON files or remote API endpoints
 
 ### UI Components
@@ -83,7 +90,7 @@ Scripts must be loaded in this order:
 
 #### `ui/modal-viewer.js`
 - `ModalViewer.init()` - Initialize modal
-- Handles `[data-view-json]` and `[data-view-html]` attributes
+- handles `[data-view-json]` and `[data-view-html]` attributes
 
 #### `ui/notes-panel.js`
 - `NotesPanel.render()` - Render page notes (DEPRECATED - use static HTML instead)
@@ -106,6 +113,7 @@ Scripts must be loaded in this order:
 <script src="../../assets/js/core/config.js"></script>
 
 <!-- Services -->
+<script src="../../assets/js/services/api-adapters.js"></script>
 <script src="../../assets/js/services/api-service.js"></script>
 
 <!-- UI Components -->

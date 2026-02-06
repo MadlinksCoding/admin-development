@@ -37,15 +37,15 @@
     <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <!-- Page-specific stylesheet -->
     <link href="page/media/style.css" rel="stylesheet" />
-    <!-- API Configuration: Configure API endpoints per environment. Set endpoint to use real API, or leave empty to use dummy data. Example: "endpoint": "https://api.example.com/media" -->
+    <!-- API Configuration: Configure API endpoints per environment. Set endpoint to use real API, or leave empty to use dummy data. Example: "endpoint": "https://api.example.com/users" -->
     <script type="application/json" id="api-config">
       {
         "media": {
           "prod": {
-            "endpoint": ""
+            "endpoint": "/media"
           },
           "stage": {
-            "endpoint": ""
+            "endpoint": "/media"
           },
           "dev": {
             "endpoint": ""
@@ -124,17 +124,32 @@
       </main>
     </div>
 
+    <!-- Media Data Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mediaDataOffcanvas" aria-labelledby="mediaDataOffcanvasLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mediaDataOffcanvasLabel">Media Data</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body" id="mediaDataOffcanvasBody">
+        <!-- Content will be loaded here -->
+      </div>
+    </div>
+
     <!-- Bootstrap JavaScript bundle from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core JavaScript modules -->
     <!-- Utility functions -->
     <script src="assets/js/core/utils.js"></script>
+    <script src="assets/js/utils/processing.js"></script>
+    <script src="assets/js/utils/content-type-detector.js"></script>
+    <script src="assets/js/utils/media-utils.js"></script>
     <!-- State management -->
     <script src="assets/js/core/state.js"></script>
     <!-- Configuration data -->
     <script src="assets/js/core/config.js"></script>
     <!-- Services -->
     <!-- API service for data fetching -->
+    <script src="assets/js/services/api-adapters.js"></script>
     <script src="assets/js/services/api-service.js"></script>
     <!-- UI Components -->
     <!-- Sidebar navigation component -->
@@ -151,6 +166,8 @@
     <script src="assets/js/ui/tabs.js"></script>
     <!-- Table component -->
     <script src="assets/js/ui/table.js"></script>
+    <!-- Page renderer utility -->
+    <script src="assets/js/ui/page-renderer.js"></script>
     <!-- Main -->
     <!-- Main admin panel orchestrator -->
     <script src="assets/js/admin.js"></script>
@@ -159,3 +176,4 @@
 <script src="page/media/script.js" defer></script>
   </body>
 </html>
+

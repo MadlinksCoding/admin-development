@@ -211,17 +211,23 @@
           ? (this.pagination.pageSize || 20)
           : 999;
 
-        // Fetch data and total count
-        const [apiResponse, totalCount] = await Promise.all([
+        // Fetch data and total count (only if tabs are present or total unavailable in main response)
+        const fetchPromises = [
           window.DataService.get(this.section, {
             filters: activeFilters,
             pagination: { limit, offset: this.cursor }
-          }),
-          window.ApiService.getTotalCount(this.section, countFilters)
-        ]);
+          })
+        ];
+
+        if (this.tabs.length > 0) {
+          fetchPromises.push(window.ApiService.getTotalCount(this.section, activeFilters));
+        }
+
+        const [apiResponse, totalCountResponse] = await Promise.all(fetchPromises);
 
         const dataItems = apiResponse.items || [];
-        this.total = totalCount !== null ? totalCount : (apiResponse.totalCount ||apiResponse.total || dataItems.length);
+        const responseTotal = apiResponse.totalCount || apiResponse.total || dataItems.length;
+        this.total = (totalCountResponse !== undefined && totalCountResponse !== null) ? totalCountResponse : responseTotal;
         this.nextToken = apiResponse.nextToken || null;
         console.log("nextToken:", this.nextToken ,apiResponse );
 
@@ -233,7 +239,9 @@
 
         // Calculate pagination info
         const startIndex = (this.page - 1) * limit + 1;
-        const endIndex = Math.min(this.page * limit, this.total);
+        const endIndex = this.pagination.enabled 
+          ? Math.min(this.page * limit, this.total)
+          : (this.cursor + dataItems.length);
         const currentPageNumber = this.pagination.enabled ? this.page : null;
 
         // Initial render setup
@@ -286,7 +294,11 @@
             this.pageContent.appendChild(loadMoreWrap);
           }
 
-          const hasMore = apiResponse.hasMore !== false && (this.nextToken !== null || (this.cursor + dataItems.length < this.total));
+          const hasMore = apiResponse.hasMore === true || 
+            (apiResponse.hasMore !== false && 
+             apiResponse.nextToken !== null && 
+             apiResponse.nextToken !== undefined) || 
+            (this.total > 0 && endIndex < this.total);
           const loadMoreHtml = window.Table.createLoadMoreControls({ disabled: !hasMore });
           loadMoreWrap.innerHTML = loadMoreHtml;
 

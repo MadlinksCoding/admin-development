@@ -1,0 +1,489 @@
+/**
+ * API Adapters Service
+ * Provides adapter pattern implementation for different API sections.
+ * Handles request building and response transformation.
+ */
+
+(function() {
+    'use strict';
+
+    /**
+     * Base API Adapter
+     * Handles standard POST requests with JSON payload
+     */
+    class BaseAdapter {
+        constructor(section) {
+            this.section = section;
+        }
+
+        /**
+         * Build the request payload and options
+         * @param {Object} filters - Filter values
+         * @param {Object} pagination - Pagination options
+         * @returns {Object} Request configuration { method, url, data, params }
+         */
+        buildRequest(filters, pagination) {
+            // Default behavior: POST with standard payload
+            const payload = this.buildPayload(filters, pagination);
+            return {
+                method: "POST",
+                data: payload
+            };
+        }
+
+        /**
+         * Build the standard payload object
+         */
+        buildPayload(filters, pagination) {
+            return {
+                env: window.Env.current,
+                section: this.section,
+                ...filters,
+                pagination: pagination
+            };
+        }
+
+        /**
+         * Build the count request configuration
+         * @param {Object} filters - Filter values
+         * @returns {Object|null} Request configuration or null if not supported
+         */
+        buildCountRequest(filters) {
+            // Default: GET with filters as query params
+            const params = new URLSearchParams();
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    // Skip nextToken as it doesn't affect total count
+                    if (key === 'nextToken') return;
+                    params.append(key, value);
+                }
+            });
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "count"
+            };
+        }
+
+        /**
+         * Transform the count response into a number
+         * @param {Object} response - Raw API response
+         * @returns {number|null} Standardized count
+         */
+        transformCountResponse(response) {
+            if (!response) return null;
+            // Handle common count response patterns
+            if (typeof response === 'number') return response;
+            return response.count !== undefined ? response.count : 
+                   (response.totalCount !== undefined ? response.totalCount : 
+                   (response.total !== undefined ? response.total : null));
+        }
+
+        /**
+         * Transform the API response into standard format
+         * @param {Object} response - Raw API response
+         * @returns {Object} Standardized response { items, total, nextToken, ... }
+         */
+        transformResponse(response, filters) {
+            if (response && response.items && Array.isArray(response.items)) {
+                 let items = response.items;
+                 // Apply client-side email filter if needed/supported
+                 if (filters && filters.email) {
+                    const emailParam = filters.email.toLowerCase();
+                    items = items.filter(i => (i.email || "").toLowerCase().includes(emailParam));
+                 }
+                 // Apply client-side country filter
+                 if (filters && filters.country) {
+                    const countryParam = filters.country.toUpperCase();
+                    items = items.filter(i => 
+                        (i.country || i.data?.country || "").toUpperCase().includes(countryParam)
+                    );
+                 }
+                 response.items = items;
+                 // Update total if we filtered
+                 if (filters && (filters.email || filters.country) && typeof response.total === 'number') {
+                     response.total = items.length;
+                 }
+            }
+            return response;
+        }
+    }
+
+    /**
+     * KYC Shufti Adapter
+     * Handles GET requests and specific field mapping for Shufti Pro integration
+     */
+    class KycShuftiAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    // Handle special case for q (search)
+                    if (key === 'q') {
+                        if (value.startsWith("ref-")) {
+                            params.append("reference", value);
+                        } else {
+                            params.append("userId", value);
+                        }
+                    } else {
+                        params.append(key, value);
+                    }
+                }
+            });
+
+            if (pagination.limit) params.append("limit", pagination.limit);
+            
+            if (filters.nextToken) {
+                params.append("nextToken", filters.nextToken);
+            } else if (pagination.offset !== undefined) {
+                params.append("offset", pagination.offset);
+            }
+
+            return {
+                method: "GET",
+                params: params,
+                useSpecialEndpoint: true // Signal to use specific endpoint construction
+            };
+        }
+
+        transformResponse(responseData, filters, pagination) {
+            // Transform sessions to items
+            // Backend returns: { count, sessions, filters, timestamp }
+            if (responseData.sessions && Array.isArray(responseData.sessions)) {
+                let allItems = responseData.sessions.map((session) => ({
+                    ...session,
+                    referenceId: session.reference, // Map reference -> referenceId
+                    email: session.userEmail,       // Map userEmail -> email
+                    country: session.userCountry,   // Map userCountry -> country
+                    createdAt: session.created_at,  // Map created_at -> createdAt
+                    locale: session.appLocale,
+                    mode: session.verificationMode,
+                    status: session.status,
+                    lastEvent: session.lastEvent || session.status
+                }));
+
+                // Apply client-side filtering for unsupported filters (email, country)
+                if (filters.email) {
+                    const emailFilter = filters.email.toLowerCase();
+                    allItems = allItems.filter(item => 
+                        (item.email || item.userEmail || "").toLowerCase().includes(emailFilter)
+                    );
+                }
+
+                if (filters.country) {
+                    const countryFilter = filters.country.toUpperCase();
+                    allItems = allItems.filter(item => 
+                        (item.country || item.userCountry || item.data?.country || "").toUpperCase().includes(countryFilter)
+                    );
+                }
+
+                // Client-side pagination since backend returns all for this endpoint
+                const offset = Number(pagination?.offset || 0);
+                const limit = Number(pagination?.limit || 50);
+                const endIndex = Math.min(offset + limit, allItems.length);
+
+                return {
+                    items: allItems.slice(offset, endIndex),
+                    total: allItems.length,
+                    nextToken: responseData.nextToken,
+                    nextCursor: endIndex < allItems.length ? endIndex : null,
+                    prevCursor: offset > 0 ? Math.max(0, offset - limit) : null
+                };
+            }
+            return responseData;
+        }
+    }
+
+    /**
+     * User Blocks Adapter
+     * Handles specific query params and show_total_count behavior
+     */
+    class UserBlocksAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            
+            // Auto-append all set filters
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
+            
+            // Force show_total_count
+            params.append("show_total_count", "1");
+
+            // Handle pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset) params.append("offset", pagination.offset);
+            if (filters.nextToken) params.append("nextToken", filters.nextToken);
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "listUserBlocks" 
+            };
+        }
+    }
+
+    /**
+     * Moderation Adapter
+     * Handles specific query params and show_total_count behavior
+     */
+    class ModerationAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
+            
+            params.append("show_total_count", "1");
+            
+             // Handle pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset) params.append("offset", pagination.offset);
+            if (filters.nextToken) params.append("nextToken", filters.nextToken);
+
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "fetchModerations"
+            };
+        }
+    }
+
+     /**
+     * User Adapter
+     * Handles GET requests to /fetchUsers and specific field mapping
+     */
+    class UsersAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
+            
+            // Support pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset !== undefined) params.append("offset", pagination.offset);
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "fetchUsers"
+            };
+        }
+
+        transformResponse(responseData) {
+            // Backend returns: { users: [...], count: number (returned), totalCount: number (db total) }
+            return {
+                items: responseData.users || [],
+                // Prioritize totalCount (DB total) over count (returned items count)
+                total: responseData.totalCount !== undefined ? responseData.totalCount : 
+                       (responseData.count !== undefined ? responseData.count : 
+                       (responseData.users ? responseData.users.length : 0)),
+            };
+        }
+    }
+
+    /**
+     * Products Adapter
+     * Specific payload construction
+     */
+    class ProductsAdapter extends BaseAdapter {
+         buildPayload(filters, pagination) {
+             return {
+                env: window.Env.current,
+                section: "products",
+                q: filters.q,
+                category: filters.category,
+                status: filters.status,
+                type: filters.type,
+                in_stock: filters.inStock === true ? true : undefined,
+                promo_only: filters.promo === true ? true : undefined,
+                sku: filters.sku,
+                price_min: filters.price_from,
+                price_max: filters.price_to,
+                tags: Array.isArray(filters.tags) ? filters.tags : undefined,
+                pagination: pagination
+             };
+         }
+    }
+    
+    // ... Implement other specific adapters if their payload construction differs significantly 
+    // or rely on BaseAdapter if they just dump filters.
+    // Looking at ApiService.js, most others (orders, subscriptions, media) just spread filters.
+    // BaseAdapter does `...filters`, so it covers subscriptions, media, postgres, scylla, etc.
+    // Products, Orders have some renaming (q -> query, etc).
+
+    class OrdersAdapter extends BaseAdapter {
+        buildPayload(filters, pagination) {
+            return {
+                env: window.Env.current,
+                section: "orders",
+                query: filters.q, // Maps q -> query
+                status: filters.status,
+                channel: filters.channel,
+                from: filters.from,
+                to: filters.to,
+                pagination: pagination
+            };
+        }
+    }
+
+
+    /**
+     * Media Adapter
+     * Handles GET requests to /fetchMediaItems and specific field mapping
+     */
+    class MediaAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+
+            // Map all filter values to query parameters dynamically
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== "") {
+                    params.append(key, value);
+                }
+            });
+
+            // Pagination
+            if (pagination.limit) params.append("limit", pagination.limit);
+            if (pagination.offset !== undefined) params.append("offset", pagination.offset);
+
+            return {
+                method: "GET",
+                params: params,
+                endpointSuffix: "fetchMediaItems"
+            };
+        }
+
+        transformResponse(responseData) {
+            // Backend returns: { items: [...], count: number (returned), totalCount: number (db total), ... }
+            return {
+                items: responseData.items || [],
+                // Prioritize totalCount (DB total) over count (returned items count)
+                total: responseData.totalCount !== undefined ? responseData.totalCount : 
+                       (responseData.count !== undefined ? responseData.count : 
+                       (responseData.items ? responseData.items.length : 0)),
+                nextCursor: responseData.nextCursor,
+                prevCursor: responseData.prevCursor
+            };
+        }
+    }
+
+    /**
+     * Payment Gateway Base Adapter
+     * Handles GET requests with query params for payment-related sections
+     */
+    class PaymentGatewayBaseAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                params.append(key, value);
+            });
+
+            if (pagination && pagination.limit !== undefined && pagination.limit !== null) {
+                params.append("limit", pagination.limit);
+            }
+
+            if (filters && filters.nextToken) {
+                params.append("nextToken", filters.nextToken);
+            } else if (pagination && pagination.offset !== undefined && pagination.offset !== null) {
+                params.append("offset", pagination.offset);
+            }
+
+            return {
+                method: "GET",
+                params
+            };
+        }
+
+        transformResponse(responseData) {
+            if (!responseData || typeof responseData !== "object") return responseData;
+            if (Array.isArray(responseData.items)) return responseData;
+
+            const listKey = [
+                "data",
+                "rows",
+                "results",
+                "records",
+                "transactions",
+                "sessions",
+                "schedules",
+                "tokens",
+                "webhooks"
+            ].find((key) => Array.isArray(responseData[key]));
+
+            if (!listKey) return responseData;
+
+            const items = responseData[listKey];
+            const total = responseData.total !== undefined
+                ? responseData.total
+                : (responseData.totalCount !== undefined
+                    ? responseData.totalCount
+                    : (responseData.count !== undefined ? responseData.count : items.length));
+
+            return {
+                items,
+                total,
+                nextCursor: responseData.nextCursor,
+                prevCursor: responseData.prevCursor,
+                nextToken: responseData.nextToken
+            };
+        }
+    }
+
+    class PaymentSessionsAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentTransactionsAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentSchedulesAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentTokensAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentWebhooksAdapter extends PaymentGatewayBaseAdapter {}
+
+
+    // Registry of all adapters
+    const registry = {
+        'default': BaseAdapter,
+        'kyc-shufti': KycShuftiAdapter,
+        'user-blocks': UserBlocksAdapter,
+        'moderation': ModerationAdapter,
+        'products': ProductsAdapter,
+        'orders': OrdersAdapter,
+        'users': UsersAdapter,
+        'media': MediaAdapter,
+        'payment-sessions': PaymentSessionsAdapter,
+        'payment-transactions': PaymentTransactionsAdapter,
+        'payment-schedules': PaymentSchedulesAdapter,
+        'payment-tokens': PaymentTokensAdapter,
+        'payment-webhooks': PaymentWebhooksAdapter
+    };
+
+    /**
+     * Factory to get the correct adapter instance
+     */
+    function getAdapter(sectionName) {
+        // Handle path-like section names (e.g. developer/scylla-db -> scylla-db)
+        const baseSectionName = sectionName.split("/").pop();
+        
+        const AdapterClass = registry[baseSectionName] || registry[sectionName] || registry['default'];
+        return new AdapterClass(baseSectionName);
+    }
+
+    // Expose Global API
+    window.ApiAdapters = {
+        get: getAdapter,
+        registry
+    };
+
+})();

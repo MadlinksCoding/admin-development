@@ -60,11 +60,7 @@
     };
 
     window.handleProductView = (row) => {
-      // Use existing modal viewer
-      const viewButton = document.querySelector(`[data-view-json='${encodeURIComponent(JSON.stringify(row))}']`);
-      if (viewButton) {
-        viewButton.click();
-      }
+      window.SlideIn.showJson(`Product: ${row.name || row.id}`, row);
     };
 
     /**

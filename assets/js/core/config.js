@@ -260,20 +260,101 @@ window.AdminConfig = {
       {
         type: "text",
         name: "q",
-        label: "Search",
-        placeholder: "search…"
+        label: "Global Search",
+        placeholder: "ID, Username, Email, Phone or Name…"
+      },
+      {
+        type: "text",
+        name: "uid",
+        label: "UID",
+        placeholder: "Exact internal UID"
+      },
+      {
+        type: "text",
+        name: "public_uid",
+        label: "Public UID",
+        placeholder: "Exact Public UID"
+      },
+      {
+        type: "text",
+        name: "user_name",
+        label: "Username",
+        placeholder: "Filter by username"
+      },
+      {
+        type: "text",
+        name: "email",
+        label: "Email",
+        placeholder: "Filter by email"
+      },
+      {
+        type: "text",
+        name: "phone_number",
+        label: "Phone Number",
+        placeholder: "Filter by phone number"
+      },
+      {
+        type: "text",
+        name: "display_name",
+        label: "Display Name",
+        placeholder: "Filter by display name"
+      },
+      {
+        type: "select",
+        name: "role",
+        label: "Role",
+        options: [
+          { value: "", label: "All Roles" },
+          { value: "creator", label: "Creator" },
+          { value: "vendor", label: "Vendor" },
+          { value: "agent", label: "Agent" },
+          { value: "fan", label: "Fan" }
+        ]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "Status",
+        options: [
+          { value: "", label: "All Statuses" },
+          { value: "online", label: "Online" },
+          { value: "away", label: "Away" },
+          { value: "offline", label: "Offline" }
+        ]
+      },
+      {
+        type: "date",
+        name: "last_activity_from",
+        label: "Activity From"
+      },
+      {
+        type: "date",
+        name: "last_activity_to",
+        label: "Activity To"
       }
     ],
     "user-blocks": [
       {
         type: "text",
-        name: "from",
+        name: "id",
+        label: "Block ID",
+        placeholder: "Filter by block ID"
+      },
+      {
+        type: "text",
+        name: "q",
+        label: "Global Search",
+        placeholder: "From or To User ID…"
+      },
+      {
+        type: "text",
+        name: "blocker_id",
         label: "From User ID",
         placeholder: "user_a"
       },
       {
         type: "text",
-        name: "to",
+        name: "blocked_id",
         label: "To User ID",
         placeholder: "user_b"
       },
@@ -281,27 +362,150 @@ window.AdminConfig = {
         type: "select",
         name: "scope",
         label: "Scope",
-        options: ["", "feed", "private_chat", "global"]
+        options: [
+          { value: "", label: "All Scopes" },
+          { value: "private_chat", label: "Private Chat" },
+          { value: "feed", label: "Feed" },
+          { value: "global", label: "Global" }
+        ]
+      },
+      {
+        type: "select",
+        name: "flag",
+        label: "Flag",
+        options: [
+          { value: "", label: "All Flags" },
+          { value: "fraud", label: "Fraud" },
+          { value: "abuse", label: "Abuse" },
+          { value: "violence", label: "Violence" },
+          { value: "spam", label: "Spam" },
+          { value: "security", label: "Security" }
+        ]
       },
       {
         type: "select",
         name: "is_permanent",
-        label: "is_permanent",
-        options: ["", "true", "false"]
+        label: "Permanent",
+        options: [
+          { value: "", label: "Any" },
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" }
+        ]
       },
       {
-        type: "text",
-        name: "limit",
-        label: "Limit",
-        placeholder: "20"
+        type: "select",
+        name: "expired",
+        label: "Expired",
+        options: [
+          { value: "", label: "Any" },
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" }
+        ]
       },
+      {
+        type: "date",
+        name: "created_from",
+        label: "Created From"
+      },
+      {
+        type: "date",
+        name: "created_to",
+        label: "Created To"
+      }
     ],
     media: [
       {
         type: "text",
         name: "q",
-        label: "Search",
-        placeholder: "search…"
+        label: "Global Search",
+        placeholder: "Title, filename…"
+      },
+      {
+        type: "text",
+        name: "title",
+        label: "Title",
+        placeholder: "Search by title"
+      },
+      {
+        type: "text",
+        name: "media_id",
+        label: "Media ID",
+        placeholder: "Exact media ID"
+      },
+      {
+        type: "select",
+        name: "media_type",
+        label: "Media Type",
+        options: [
+          { value: "", label: "All Types" },
+          { value: "image", label: "Image" },
+          { value: "video", label: "Video" },
+          { value: "audio", label: "Audio" },
+          { value: "file", label: "File" },
+          { value: "gallery", label: "Gallery" }
+        ]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "Status",
+        options: [
+          { value: "", label: "All Statuses" },
+          { value: "published", label: "Published" },
+          { value: "scheduled", label: "Scheduled" },
+          { value: "draft", label: "Draft" },
+          { value: "pending", label: "Pending" }
+        ]
+      },
+      {
+        type: "select",
+        name: "visibility",
+        label: "Visibility",
+        options: [
+          { value: "", label: "All Visibility" },
+          { value: "public", label: "Public" },
+          { value: "subscribers", label: "Subscribers" },
+          { value: "purchasers", label: "Purchasers" },
+          { value: "private", label: "Private" },
+          { value: "unlisted", label: "Unlisted" },
+          { value: "coming_soon", label: "Coming Soon" }
+        ]
+      },
+      {
+        type: "text",
+        name: "owner_user_id",
+        label: "Owner ID",
+        placeholder: "Filter by owner"
+      },
+      {
+        type: "toggle",
+        name: "featured",
+        label: "Featured Only"
+      },
+      {
+        type: "toggle",
+        name: "coming_soon",
+        label: "Coming Soon Only"
+      },
+      {
+        type: "date",
+        name: "created_from",
+        label: "Created From"
+      },
+      {
+        type: "date",
+        name: "created_to",
+        label: "Created To"
+      },
+      {
+        type: "number",
+        name: "file_size_min",
+        label: "Min Size (KB)"
+      },
+      {
+        type: "number",
+        name: "file_size_max",
+        label: "Max Size (KB)"
       }
     ],
     moderation: [
@@ -780,5 +984,28 @@ window.AdminConfig = {
         "Environment switching (prod/stage/dev)"
       ]
     }
+  }
+};
+
+/**
+ * API Endpoints Configuration
+ * Global base URLs and section routes
+ */
+window.AdminEndpoints = {
+  base: {
+    prod: "http://209.38.24.155:3000",
+    stage: "http://localhost:3000",
+    dev: ""
+  },
+  routes: {
+    // Define specific overrides here. Default is /<slug>
+    "kyc-shufti": "/kyc-shufti",
+    "user-blocks": "/user-blocks",
+    "moderation": "/moderation",
+    "users": "/users",
+    "media": "/media",
+    "products": "/products",
+    "orders": "/orders",
+    "subscriptions": "/subscriptions"
   }
 };

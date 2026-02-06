@@ -49,12 +49,50 @@ function getPageApiConfig(sectionName) {
 }
 
 /**
- * Fetch with timeout and error handling
- * @param {string} url - URL to fetch from
- * @param {Object} fetchOptions - Fetch API options object
- * @param {number} timeoutMilliseconds - Timeout in milliseconds (default: 20000)
- * @returns {Promise<Response>} Fetch response object
+ * Internal helper to resolve endpoint URL
  */
+function resolveUrl(sectionName, pathSuffix = "") {
+  if (!hasApiConfigScript()) return "";
+  
+  const sectionNameParts = sectionName.split("/");
+  const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
+  const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
+  const currentEnvironment = window.Env?.current || "dev";
+  
+  let baseUrl = (window.AdminEndpoints?.base || {})[currentEnvironment] || "";
+  let endpointUrl = "";
+
+  const shouldUseEndpoint =
+    pageApiConfig &&
+    pageApiConfig[currentEnvironment] &&
+    pageApiConfig[currentEnvironment].endpoint &&
+    pageApiConfig[currentEnvironment].endpoint.trim() !== "";
+
+  if (shouldUseEndpoint) {
+    const configEndpoint = pageApiConfig[currentEnvironment].endpoint;
+    if (configEndpoint.startsWith('http://') || configEndpoint.startsWith('https://')) {
+      endpointUrl = configEndpoint;
+    } else {
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+      const cleanPath = configEndpoint.startsWith('/') ? configEndpoint : '/' + configEndpoint;
+      endpointUrl = cleanBase + cleanPath;
+    }
+  } else if (USE_ENDPOINTS) {
+    const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
+    endpointUrl = baseUrl + routePath;
+  } else {
+    // If not using endpoints and no specific config, return empty
+    return "";
+  }
+
+  if (pathSuffix) {
+    const cleanSuffix = pathSuffix.startsWith('/') ? pathSuffix : '/' + pathSuffix;
+    endpointUrl = endpointUrl.endsWith('/') ? endpointUrl.slice(0, -1) + cleanSuffix : endpointUrl + cleanSuffix;
+  }
+
+  return endpointUrl;
+}
+
 async function fetchWithTimeout(url, fetchOptions = {}, timeoutMilliseconds = FETCH_TIMEOUT) {
   // Create abort controller for timeout handling
   const abortController = new AbortController();
@@ -63,11 +101,19 @@ async function fetchWithTimeout(url, fetchOptions = {}, timeoutMilliseconds = FE
 
   // Try to fetch the resource
   try {
+    // Build headers - default to JSON if body is present
+    const headers = { ...(fetchOptions.headers || {}) };
+    if (fetchOptions.body && !headers["Content-Type"]) {
+      headers["Content-Type"] = "application/json";
+    }
+
     // Default cache control to prevent browser caching
     // Only add if cache option is not explicitly provided in fetchOptions
     const finalFetchOptions = {
       // Spread fetch options first
       ...fetchOptions,
+      // Use built headers
+      headers,
       // Add cache control if not already specified (prevents browser caching)
       ...(fetchOptions.cache === undefined ? { cache: 'no-store' } : {}),
       // Add abort signal for timeout control
@@ -256,6 +302,7 @@ window.PayloadBuilders = {
     return {
       env: window.Env.current,
       section: "user-blocks",
+      id: filterValues.id || undefined,
       from: filterValues.from || undefined,
       to: filterValues.to || undefined,
       scope: filterValues.scope || undefined,
@@ -575,356 +622,36 @@ async function localFetch(sectionName) {
  * @returns {Promise<number|null>} Total count or null if unavailable
  */
 async function getTotalCount(sectionName, filters = {}) {
-  // user-blocks: no dedicated count endpoint; handled via list query with show_total_count
-  const baseSectionName = sectionName.split("/").pop();
-  if (baseSectionName === "user-blocks" || baseSectionName === "s") {
+  // Use adapter for request building and response transformation
+  const adapter = window.ApiAdapters.get(sectionName);
+  const countRequest = adapter.buildCountRequest(filters);
+  
+  // If adapter signals no dedicated count endpoint (e.g., combined with list)
+  if (!countRequest) {
     return null;
   }
 
   try {
-    // Get page-specific API configuration
-    const pageApiConfig = getPageApiConfig(sectionName);
-    const currentEnvironment = window.Env?.current || "dev";
-    
-    if (!pageApiConfig || !pageApiConfig[currentEnvironment]) {
-      return null;
-    }
+    let fullUrl = resolveUrl(sectionName, countRequest.endpointSuffix);
+    if (!fullUrl) return null;
 
-    const endpoint = pageApiConfig[currentEnvironment].endpoint?.trim();
-    const shouldUseEndpoint = USE_ENDPOINTS || (endpoint && endpoint !== "");
-
-    if (shouldUseEndpoint && endpoint) {
-      // Try to fetch from /count endpoint
-      const countUrl = endpoint.endsWith('/') 
-        ? endpoint.slice(0, -1) + '/count'
-        : endpoint + '/count';
-      
-      // Build query string from filters
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value != null && value !== '') {
-          queryParams.append(key, value);
-        }
-      });
-      
-      const urlWithParams = queryParams.toString() 
-        ? `${countUrl}?${queryParams.toString()}`
-        : countUrl;
-
-      const response = await fetchWithTimeout(urlWithParams, { method: 'GET' });
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      return data.count || data.total || data.totalCount|| null;
-    } else {
-      // For mock data, apply filters and return filtered count
-      // Use fetchWithTimeout directly to avoid circular dependency
-      const currentPathname = window.location.pathname;
-      const basePath = currentPathname.substring(0, currentPathname.indexOf("/page/") + 1) || "";
-      const dataFileUrl = `${basePath}page/${sectionName}/data.json`;
-      
-      try {
-        const fetchResponse = await fetchWithTimeout(dataFileUrl, { 
-          cache: "no-store",
-          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-        });
-        if (!fetchResponse.ok) return null;
-        let fullData = await fetchResponse.json();
-        
-        console.log('[getTotalCount] Total items before filter:', fullData.length, 'filters:', filters);
-        
-        if (!Array.isArray(fullData)) return null;
-        
-        // Apply status filter if provided (same logic as in get function)
-        if (filters.status && filters.status !== "" && filters.status !== "Any") {
-          console.log('[getTotalCount] Applying status filter:', filters.status);
-          const originalLength = fullData.length;
-          fullData = fullData.filter(
-            (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
-          );
-          console.log('[getTotalCount] After status filter:', fullData.length, 'items (was', originalLength, ')');
-        } else {
-          console.log('[getTotalCount] No status filter to apply');
-        }
-
-        // Apply sales-registry specific filters for count
-        if (baseSectionName === "sales-registry") {
-          // Apply payee filter if provided
-          if (filters.payee) {
-            const payeeFilter = filters.payee.toLowerCase();
-            fullData = fullData.filter((dataItem) => {
-              const itemPayer = (dataItem.userId || "").toLowerCase();
-              return itemPayer.includes(payeeFilter);
-            });
-          }
-
-          // Apply beneficiary filter if provided
-          if (filters.beneficiary) {
-            const beneficiaryFilter = filters.beneficiary.toLowerCase();
-            fullData = fullData.filter((dataItem) => {
-              const itemBeneficiary = (dataItem.beneficiaryId || "").toLowerCase();
-              return itemBeneficiary.includes(beneficiaryFilter);
-            });
-          }
-
-          // Apply type filter if provided
-          if (filters.type && filters.type !== "") {
-            fullData = fullData.filter(
-              (dataItem) => (dataItem.transactionType || "").toLowerCase() === filters.type.toLowerCase()
-            );
-          }
-
-          // Apply type filter if provided
-          if (filters.type && filters.type !== "") {
-            fullData = fullData.filter(
-              (dataItem) => (dataItem.type || "").toLowerCase() === filters.type.toLowerCase()
-            );
-          }
-
-          // Apply state filter if provided (for sales-registry, state is used instead of status)
-          if (filters.state && filters.state !== "" && filters.state !== "Any") {
-            fullData = fullData.filter(
-              (dataItem) => (dataItem.state || "").toLowerCase() === filters.state.toLowerCase()
-            );
-          }
-
-          // Apply reference ID filter if provided
-          if (filters.refId) {
-            const refIdFilter = filters.refId.toLowerCase();
-            fullData = fullData.filter((dataItem) => {
-              const itemRefId = (dataItem.refId || "").toLowerCase();
-              return itemRefId.includes(refIdFilter);
-            });
-          }
-
-          // Apply purpose filter if provided
-          if (filters.purpose && filters.purpose !== "") {
-            fullData = fullData.filter(
-              (dataItem) => (dataItem.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
-            );
-          }
-
-          // Apply date range filters (from/to)
-          if (filters.from) {
-            const fromDateFilter = new Date(filters.from);
-            fullData = fullData.filter((dataItem) => {
-              const itemCreatedDate = new Date(dataItem.createdAt);
-              return itemCreatedDate >= fromDateFilter;
-            });
-          }
-
-          if (filters.to) {
-            const toDateFilter = new Date(filters.to);
-            toDateFilter.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((dataItem) => {
-              const itemCreatedDate = new Date(dataItem.createdAt);
-              return itemCreatedDate <= toDateFilter;
-            });
-          }
-        }
-
-        // Payment sections: apply same filters as in get()
-        if (baseSectionName === "payment-sessions") {
-          if (filters.userId) {
-            const v = String(filters.userId).toLowerCase();
-            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-          }
-          if (filters.orderId) {
-            const v = String(filters.orderId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.orderId || item.checkoutId || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.sessionType && filters.sessionType !== "") {
-            fullData = fullData.filter(
-              (item) => (item.sessionType || "").toLowerCase() === filters.sessionType.toLowerCase()
-            );
-          }
-          if (filters.status && filters.status !== "") {
-            fullData = fullData.filter(
-              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-            );
-          }
-          if (filters.from) {
-            const fromD = new Date(filters.from);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.created_at);
-              return !Number.isNaN(d.getTime()) && d >= fromD;
-            });
-          }
-          if (filters.to) {
-            const toD = new Date(filters.to);
-            toD.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.created_at);
-              return !Number.isNaN(d.getTime()) && d <= toD;
-            });
-          }
-        }
-        if (baseSectionName === "payment-transactions") {
-          if (filters.userId) {
-            const v = String(filters.userId).toLowerCase();
-            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-          }
-          if (filters.beneficiaryId) {
-            const v = String(filters.beneficiaryId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.beneficiaryId || item.recipientId || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.orderType && filters.orderType !== "") {
-            const typeFilter = filters.orderType.toLowerCase();
-            fullData = fullData.filter(
-              (item) =>
-                (item.orderType || item.transactionType || "").toLowerCase() === typeFilter
-            );
-          }
-          if (filters.status && filters.status !== "") {
-            fullData = fullData.filter(
-              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-            );
-          }
-          if (filters.referenceId) {
-            const v = String(filters.referenceId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.orderId || item.transactionId || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.purpose && filters.purpose !== "") {
-            fullData = fullData.filter(
-              (item) => (item.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
-            );
-          }
-          if (filters.from) {
-            const fromD = new Date(filters.from);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.created_at);
-              return !Number.isNaN(d.getTime()) && d >= fromD;
-            });
-          }
-          if (filters.to) {
-            const toD = new Date(filters.to);
-            toD.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.created_at);
-              return !Number.isNaN(d.getTime()) && d <= toD;
-            });
-          }
-        }
-        if (baseSectionName === "payment-schedules") {
-          if (filters.userId) {
-            const v = String(filters.userId).toLowerCase();
-            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-          }
-          if (filters.referenceId) {
-            const v = String(filters.referenceId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.orderId || item.subscriptionId || item.registrationId || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.frequency && filters.frequency !== "") {
-            fullData = fullData.filter(
-              (item) => (item.frequency || "").toLowerCase() === filters.frequency.toLowerCase()
-            );
-          }
-          if (filters.status && filters.status !== "") {
-            fullData = fullData.filter(
-              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-            );
-          }
-          if (filters.from) {
-            const fromD = new Date(filters.from);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.startDate);
-              return !Number.isNaN(d.getTime()) && d >= fromD;
-            });
-          }
-          if (filters.to) {
-            const toD = new Date(filters.to);
-            toD.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt || item.nextScheduleDate);
-              return !Number.isNaN(d.getTime()) && d <= toD;
-            });
-          }
-        }
-        if (baseSectionName === "payment-tokens") {
-          if (filters.userId) {
-            const v = String(filters.userId).toLowerCase();
-            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-          }
-          if (filters.registrationId) {
-            const v = String(filters.registrationId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.registrationId || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.type && filters.type !== "") {
-            fullData = fullData.filter(
-              (item) => (item.type || "").toLowerCase() === filters.type.toLowerCase()
-            );
-          }
-          if (filters.from) {
-            const fromD = new Date(filters.from);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt);
-              return !Number.isNaN(d.getTime()) && d >= fromD;
-            });
-          }
-          if (filters.to) {
-            const toD = new Date(filters.to);
-            toD.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt);
-              return !Number.isNaN(d.getTime()) && d <= toD;
-            });
-          }
-        }
-        if (baseSectionName === "payment-webhooks") {
-          if (filters.orderId) {
-            const v = String(filters.orderId).toLowerCase();
-            fullData = fullData.filter((item) =>
-              String(item.orderId || item.idempotencyKey || "").toLowerCase().includes(v)
-            );
-          }
-          if (filters.actionTaken && filters.actionTaken !== "") {
-            fullData = fullData.filter(
-              (item) => (item.actionTaken || "").toLowerCase() === filters.actionTaken.toLowerCase()
-            );
-          }
-          if (filters.handled !== undefined && filters.handled !== "") {
-            const handledVal = filters.handled === "true";
-            fullData = fullData.filter((item) => item.handled === handledVal);
-          }
-          if (filters.from) {
-            const fromD = new Date(filters.from);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt);
-              return !Number.isNaN(d.getTime()) && d >= fromD;
-            });
-          }
-          if (filters.to) {
-            const toD = new Date(filters.to);
-            toD.setHours(23, 59, 59, 999);
-            fullData = fullData.filter((item) => {
-              const d = new Date(item.createdAt);
-              return !Number.isNaN(d.getTime()) && d <= toD;
-            });
-          }
-        }
-        
-        // Apply other filters if needed (category, type, etc.)
-        // Add more filter logic here if needed for accurate counts
-        
-        console.log('[getTotalCount] Returning count:', fullData.length);
-        return fullData.length;
-      } catch (error) {
-        console.warn(`[ApiService] Failed to fetch mock data for count:`, error);
-        return null;
+    if (countRequest.params) {
+      const qs = countRequest.params.toString();
+      if (qs) {
+        fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
       }
     }
-  } catch (error) {
-    console.warn(`[ApiService] Failed to fetch total count for ${sectionName}:`, error);
+
+    const response = await fetchWithTimeout(fullUrl, {
+      method: countRequest.method || 'GET',
+      headers: { "Content-Type": "application/json", ...(countRequest.headers || {}) },
+      body: countRequest.data ? JSON.stringify(countRequest.data) : undefined
+    });
+    
+    const responseData = await response.json();
+    return adapter.transformCountResponse(responseData);
+  } catch (err) {
+    console.warn(`[ApiService] getTotalCount failed:`, err);
     return null;
   }
 }
@@ -963,9 +690,182 @@ async function fetchFromAxcess(entity, id) {
  * API Service
  * Main service for fetching data from local or remote sources
  */
+/**
+ * Apply consolidated mock filtering to a data array
+ * @param {Array} dataArray - Array of data items to filter
+ * @param {Object} filters - Filter criteria
+ * @returns {Array} Filtered array
+ */
+function applyMockFilters(dataArray, filters) {
+    if (!filters || Object.keys(filters).length === 0) return dataArray;
+    
+    let filtered = [...dataArray];
+
+    // 1. Global Search (q)
+    if (filters.q) {
+      const s = filters.q.toLowerCase();
+      filtered = filtered.filter(i => 
+        (i.uid || "").toLowerCase().includes(s) ||
+        (i.public_uid || "").toLowerCase().includes(s) ||
+        (i.username || i.user_name || "").toLowerCase().includes(s) ||
+        (i.display_name || "").toLowerCase().includes(s) ||
+        (i.email || "").toLowerCase().includes(s) ||
+        (i.phone_number || "").toLowerCase().includes(s) ||
+        (i.userId || i.user_id || "").toLowerCase().includes(s) ||
+        (i.referenceId || i.reference_id || "").toLowerCase().includes(s) ||
+        (i.title || "").toLowerCase().includes(s) ||
+        (i.name || "").toLowerCase().includes(s)
+      );
+    }
+
+    // 2. Exact User Identifiers
+    if (filters.uid) {
+        filtered = filtered.filter(i => (i.uid || "").toLowerCase() === filters.uid.toLowerCase());
+    }
+    if (filters.public_uid) {
+        filtered = filtered.filter(i => (i.public_uid || "").toLowerCase() === filters.public_uid.toLowerCase());
+    }
+
+    // 3. User Specifics
+    if (filters.username || filters.user_name) {
+      const u = (filters.username || filters.user_name).toLowerCase();
+      filtered = filtered.filter(i => (i.username || i.user_name || "").toLowerCase().includes(u));
+    }
+    if (filters.phone_number) {
+      const p = filters.phone_number.toLowerCase();
+      filtered = filtered.filter(i => (i.phone_number || "").toLowerCase().includes(p));
+    }
+    if (filters.display_name) {
+      const d = filters.display_name.toLowerCase();
+      filtered = filtered.filter(i => (i.display_name || "").toLowerCase().includes(d));
+    }
+    if (filters.email) {
+      const e = filters.email.toLowerCase();
+      filtered = filtered.filter(i => (i.email || "").toLowerCase().includes(e));
+    }
+    if (filters.role && filters.role !== "") {
+      const r = filters.role.toLowerCase();
+      filtered = filtered.filter(i => (i.role || "").toLowerCase() === r);
+    }
+
+    // 4. Status
+    if (filters.status && filters.status !== "" && filters.status !== "Any" && filters.status !== "all") {
+      const s = filters.status.toLowerCase();
+      filtered = filtered.filter(i => (i.status || "").toLowerCase() === s);
+    }
+
+    // 5. Media Specifics
+    if (filters.media_id) {
+        const m = filters.media_id.toLowerCase();
+        filtered = filtered.filter(i => (i.media_id || "").toLowerCase() === m);
+    }
+    if (filters.media_type) {
+        const t = filters.media_type.toLowerCase();
+        filtered = filtered.filter(i => (i.media_type || "").toLowerCase() === t);
+    }
+    if (filters.visibility) {
+        const v = filters.visibility.toLowerCase();
+        filtered = filtered.filter(i => (i.visibility || "").toLowerCase() === v);
+    }
+    if (filters.owner_user_id) {
+        const o = filters.owner_user_id.toLowerCase();
+        filtered = filtered.filter(i => (i.owner_user_id || "").toLowerCase() === o);
+    }
+
+    // 6. User Blocks Specifics
+    if (filters.id) {
+      const id = String(filters.id).toLowerCase();
+      filtered = filtered.filter(i => String(i.id || i.blockId || "").toLowerCase().includes(id));
+    }
+    if (filters.blocker_id) {
+        const b = filters.blocker_id.toLowerCase();
+        filtered = filtered.filter(i => (i.blocker_id || i.fromUserId || "").toLowerCase().includes(b));
+    }
+    if (filters.blocked_id) {
+        const b = filters.blocked_id.toLowerCase();
+        filtered = filtered.filter(i => (i.blocked_id || i.toUserId || "").toLowerCase().includes(b));
+    }
+    if (filters.scope) {
+        const s = filters.scope.toLowerCase();
+        filtered = filtered.filter(i => (i.scope || "").toLowerCase() === s);
+    }
+    if (filters.flag) {
+        const f = filters.flag.toLowerCase();
+        filtered = filtered.filter(i => (i.flag || "").toLowerCase() === f);
+    }
+    if (filters.is_permanent !== undefined && filters.is_permanent !== "") {
+        const p = String(filters.is_permanent) === "true";
+        filtered = filtered.filter(i => (i.is_permanent === p || i.isPermanent === p));
+    }
+    if (filters.expired !== undefined && filters.expired !== "") {
+        const e = String(filters.expired) === "true";
+        filtered = filtered.filter(i => (i.expired === e));
+    }
+
+    // 7. Products Specifics
+    if (filters.category && filters.category !== "All") {
+        const c = filters.category.toLowerCase();
+        filtered = filtered.filter(i => (i.category || "").toLowerCase() === c);
+    }
+    if (filters.sku) {
+        const s = filters.sku.toLowerCase();
+        filtered = filtered.filter(i => (i.sku || "").toLowerCase().includes(s));
+    }
+    if (filters.price_from) {
+        const p = parseFloat(filters.price_from);
+        filtered = filtered.filter(i => parseFloat(i.price || 0) >= p);
+    }
+    if (filters.price_to) {
+        const p = parseFloat(filters.price_to);
+        filtered = filtered.filter(i => parseFloat(i.price || 0) <= p);
+    }
+
+    // 8. Date Ranges
+    if (filters.from || filters.created_from) {
+      const f = new Date(filters.from || filters.created_from);
+      filtered = filtered.filter(i => {
+        const d = i.createdAt || i.created_at;
+        return d && new Date(d) >= f;
+      });
+    }
+    if (filters.to || filters.created_to) {
+      const t = new Date(filters.to || filters.created_to);
+      t.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(i => {
+        const d = i.createdAt || i.created_at;
+        return d && new Date(d) <= t;
+      });
+    }
+    if (filters.last_activity_from) {
+      const f = new Date(filters.last_activity_from);
+      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) >= f);
+    }
+    if (filters.last_activity_to) {
+      const t = new Date(filters.last_activity_to);
+      t.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) <= t);
+    }
+
+    // 9. Boolean Toggles
+    if (filters.promo === true || filters.promo === "true") {
+        filtered = filtered.filter(i => i.promo === true);
+    }
+    if (filters.inStock === true || filters.inStock === "true") {
+        filtered = filtered.filter(i => i.inStock === true);
+    }
+    if (filters.featured === true || filters.featured === "true") {
+        filtered = filtered.filter(i => i.featured === true);
+    }
+    if (filters.coming_soon === true || filters.coming_soon === "true") {
+        filtered = filtered.filter(i => i.coming_soon === true);
+    }
+
+    return filtered;
+}
+
 window.ApiService = {
   /**
-   * Expose fetchWithTimeout function for use in page scripts
+   * Internal low-level fetch with timeout (Backward compatibility)
    */
   _fetchWithTimeout: fetchWithTimeout,
 
@@ -975,717 +875,132 @@ window.ApiService = {
   getTotalCount: getTotalCount,
 
   /**
-   * Fetch a single transaction or session from Axcess by ID
+   * Perform a POST request
    */
-  fetchFromAxcess: fetchFromAxcess,
+  async post(sectionName, pathSuffix, data = {}, headers = {}) {
+    const url = resolveUrl(sectionName, pathSuffix);
+    if (!url) throw new Error(`Could not resolve endpoint for ${sectionName}`);
+
+    return fetchWithTimeout(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify(data)
+    });
+  },
+
+  /**
+   * Perform a DELETE request
+   */
+  async delete(sectionName, pathSuffix, headers = {}) {
+    const url = resolveUrl(sectionName, pathSuffix);
+    if (!url) throw new Error(`Could not resolve endpoint for ${sectionName}`);
+
+    return fetchWithTimeout(url, {
+      method: 'DELETE',
+      headers: headers
+    });
+  },
+
+  /**
+   * Resolve full endpoint URL
+   */
+  resolveEndpoint(sectionName, pathSuffix = "") {
+    return resolveUrl(sectionName, pathSuffix);
+  },
 
   /**
    * Get data for a section with optional filters and pagination
-   * @param {string} sectionName - Section name to fetch data for
-   * @param {Object} requestOptions - Options object
-   * @param {Object} requestOptions.filters - Filter values object
-   * @param {Object} requestOptions.pagination - Pagination object with limit and offset
-   * @returns {Promise<Object>} Response object with items, total, nextCursor, prevCursor
    */
   async get(sectionName, { filters = {}, pagination = { limit: 50, offset: 0 } } = {}) {
-    // Extract base section name from path (e.g., "developer/scylla-db" -> "scylla-db") by splitting by "/" and getting the last part
-    const sectionNameParts = sectionName.split("/");
-    const baseSectionName = sectionNameParts[sectionNameParts.length - 1];
-    // Get payload builder function for section (try full path first, then base name, then default)
-    const payloadBuilderFunction =
-      window.PayloadBuilders && window.PayloadBuilders[sectionName]
-        ? window.PayloadBuilders[sectionName]
-        : window.PayloadBuilders && window.PayloadBuilders[baseSectionName]
-        ? window.PayloadBuilders[baseSectionName]
-        : window.PayloadBuilders.default;
-
-    // Build payload using builder function
-    const requestPayload = payloadBuilderFunction(filters, pagination);
-    // Log payload and filters for debugging
-    console.log("[ApiService] GET - Section:", sectionName, "Filters:", filters, "Payload:", requestPayload);
-
-    // Simulate network latency for realistic behavior
+    // Adapter Pattern: Delegate request building to specific adapter
+    const adapter = window.ApiAdapters.get(sectionName);
+    
+    // Simulate network latency
     await new Promise((resolveFunction) => setTimeout(resolveFunction, 450));
 
-    // Get page-specific API configuration from HTML (check if config script tag exists first, will throw error if missing)
     if (!hasApiConfigScript()) {
-      throw new Error(
-        `API configuration script tag (#api-config) is missing for section: ${sectionName}. Please add <script type="application/json" id="api-config"> to the page HTML.`
-      );
+      throw new Error(`API configuration script tag (#api-config) is missing for section: ${sectionName}.`);
     }
-    // Try full section name first, then base section name
-    // getPageApiConfig returns null if section not found in config (but script tag exists)
-    const pageApiConfig = getPageApiConfig(sectionName) || getPageApiConfig(baseSectionName);
-    // Get current environment
-    const currentEnvironment = window.Env.current;
-    // Check if current environment should use real endpoint (must be non-empty string)
-    const shouldUseEndpoint =
-      pageApiConfig &&
-      pageApiConfig[currentEnvironment] &&
-      pageApiConfig[currentEnvironment].endpoint &&
-      pageApiConfig[currentEnvironment].endpoint.trim() !== "";
+    
+    // Build request via adapter
+    const requestConfig = adapter.buildRequest(filters, pagination);
+    
+    // Resolve URL using centralized logic
+    let fullUrl = resolveUrl(sectionName, requestConfig.endpointSuffix);
 
-    // Check if using remote API endpoints (global flag or page-specific config)
-    if (USE_ENDPOINTS || shouldUseEndpoint) {
-      // Get endpoint URL from page config or global config
-      let endpointUrl;
-      if (shouldUseEndpoint && pageApiConfig[currentEnvironment].endpoint) {
-        // Use page-specific endpoint
-        endpointUrl = pageApiConfig[currentEnvironment].endpoint;
-      } else {
-        // Use global endpoint configuration
-        const baseUrl = (window.AdminEndpoints?.base || {})[window.Env.current] || "";
-        const routePath = (window.AdminEndpoints?.routes || {})[sectionName] || `/${sectionName}`;
-        endpointUrl = baseUrl + routePath;
-      }
+    if (fullUrl) {
+       // REMOTE API LOGIC
+       if (requestConfig.params) {
+           const qs = requestConfig.params.toString();
+           fullUrl += (fullUrl.includes('?') ? '&' : '?') + qs;
+       }
 
-      // Try to fetch from remote API
-      try {
-        // Check if this section uses GET with query parameters (kyc-shufti, user-blocks)
-        var usesGetMethod = true;
-        
-        // Declare API response variable
-        let apiResponse;
-        
-        // Check if using GET method
-        if (usesGetMethod) {
-          // Build query parameters for GET request
-          const queryParams = new URLSearchParams();
-          
-              if (baseSectionName === "kyc-shufti") {
-                // KYC-specific query params
-                if (filters.q) {
-                  if (filters.q.startsWith("ref-")) {
-                    queryParams.append("reference", filters.q);
-                  } else {
-                    queryParams.append("userId", filters.q);
-                  }
-                }
-                if (filters.status && filters.status !== "" && filters.status !== "Any") {
-                  queryParams.append("status", filters.status);
-                }
-                if (filters.from) {
-                  queryParams.append("dateFrom", filters.from);
-                }
-                if (filters.to) {
-                  queryParams.append("dateTo", filters.to);
-                }
-                if (pagination.limit) {
-                  queryParams.append("limit", pagination.limit);
-                }
-                if (filters.nextToken) {
-                  queryParams.append("nextToken", filters.nextToken);
-                } else if (pagination.offset !== undefined) {
-                  queryParams.append("offset", pagination.offset);
-                }
-              } else {
-                // Generic GET query params for all admin tables.
-                // Append filters and pagination in a consistent way so tables are truly dynamic.
-                Object.entries(filters).forEach(([key, value]) => {
-                  if (value === undefined || value === null || value === "") return;
-                  // Skip complex objects (not representable in query string)
-                  if (typeof value === "object") return;
-                  queryParams.append(key, String(value));
-                });
+       try {
+           const fetchOptions = {
+               method: requestConfig.method,
+               headers: { "Content-Type": "application/json", ...(requestConfig.headers || {}) },
+               body: requestConfig.data ? JSON.stringify(requestConfig.data) : undefined
+           };
 
-                // Pagination defaults from PageRenderer
-                if (pagination && pagination.limit != null && !queryParams.has("limit")) {
-                  queryParams.append("limit", String(pagination.limit));
-                }
-                if (pagination && pagination.offset != null && !queryParams.has("offset")) {
-                  queryParams.append("offset", String(pagination.offset));
-                }
+           // Use internal fetch with timeout
+           const apiResponse = await fetchWithTimeout(fullUrl, fetchOptions);
+           const responseData = await apiResponse.json();
+           
+           // Transform Response via Adapter
+           return adapter.transformResponse(responseData, filters, pagination);
 
-                // sales-registry / moderation / user-blocks historically used show_total_count
-                if (["user-blocks", "moderation", "sales-registry"].includes(baseSectionName)) {
-                  queryParams.append("show_total_count", "1");
-                }
-              }
-          // For user-blocks, list endpoint is /listUserBlocks under the configured base
-          // For sales-registry, use the endpoint as-is
-          let listUrl = endpointUrl;
-          if (baseSectionName === "user-blocks") {
-            listUrl = endpointUrl.endsWith("/")
-              ? `${endpointUrl}listUserBlocks`
-              : `${endpointUrl}/listUserBlocks`;
-          }
-          if (baseSectionName == "moderation") {
-            listUrl = endpointUrl.endsWith("/")
-              ? `${endpointUrl}fetchModerations`
-              : `${endpointUrl}/fetchModerations`;
-          }
-
-          // Construct full URL with query parameters
-          const queryString = queryParams.toString();
-          const fullUrl = queryString ? `${listUrl}?${queryString}` : listUrl;
-          // Fetch data from remote endpoint using GET
-          apiResponse = await window.ApiService._fetchWithTimeout(fullUrl, {
-            // Use GET method
-            method: "GET"
-          });
-        } else {
-          // Fetch data from remote endpoint using POST
-          apiResponse = await window.ApiService._fetchWithTimeout(endpointUrl, {
-            // Use POST method
-            method: "POST",
-            // Set content type header
-            headers: { "Content-Type": "application/json" },
-            // Stringify payload as request body
-            body: JSON.stringify(requestPayload)
-          });
-        }
-        // Parse JSON response
-        let responseData = await apiResponse.json();
-        
-        // Transform backend response format for kyc-shufti section
-        // Backend returns: { count, sessions, filters, timestamp }
-        // Frontend expects: { items, total, nextCursor, prevCursor }
-        // Backend field mapping: reference -> referenceId, userEmail -> email, userCountry -> country, created_at -> createdAt
-        if (usesGetMethod && responseData.sessions && Array.isArray(responseData.sessions)) {
-          // Transform sessions to items - map backend field names to frontend field names
-          // Keep status values as-is from backend (e.g., "verification.accepted", "verification.declined")
-          let allItems = responseData.sessions.map((session) => {
-            // Map backend fields to frontend expected fields
-            return {
-              ...session,
-              // Map reference to referenceId
-              referenceId: session.reference,
-              // Map userEmail to email
-              email: session.userEmail,
-              // Map userCountry to country
-              country: session.userCountry,
-              // Map created_at to createdAt
-              createdAt: session.created_at,
-              // Map appLocale to locale
-              locale: session.appLocale,
-              // Map verificationMode to mode
-              mode: session.verificationMode,
-              // Keep status and lastEvent as-is from backend (no normalization)
-              status: session.status,
-              lastEvent: session.lastEvent || session.status,
-              // Keep original fields for backward compatibility
-              reference: session.reference,
-              userEmail: session.userEmail,
-              userCountry: session.userCountry,
-              created_at: session.created_at,
-              appLocale: session.appLocale,
-              verificationMode: session.verificationMode
-            };
-          });
-          
-          // Apply client-side filtering for unsupported filters (email, country) BEFORE pagination
-          // Apply email filter if provided (client-side)
-          if (filters.email) {
-            // Convert email to lowercase for case-insensitive search
-            const emailFilter = filters.email.toLowerCase();
-            // Filter array by email (check both userEmail and email fields)
-            allItems = allItems.filter((dataItem) => {
-              // Get email from mapped field or original field
-              const itemEmail = (dataItem.email || dataItem.userEmail || "").toLowerCase();
-              // Return true if email contains filter value
-              return itemEmail.includes(emailFilter);
-            });
-          }
-          
-          // Apply country filter if provided (client-side)
-          if (filters.country) {
-            // Convert country to uppercase for case-insensitive search
-            const countryFilter = filters.country.toUpperCase();
-            // Filter array by country (check both userCountry and country fields)
-            allItems = allItems.filter((dataItem) => {
-              // Get country from mapped field or original field
-              const itemCountry = (dataItem.country || dataItem.userCountry || dataItem.data?.country || "").toUpperCase();
-              // Return true if country matches filter value
-              return itemCountry.includes(countryFilter);
-            });
-          }
-          
-          // Apply pagination (client-side since backend returns all)
-          const paginationOffset = Number(pagination?.offset || 0);
-          const paginationLimit = Number(pagination?.limit || 50);
-          const paginationEndIndex = Math.min(paginationOffset + paginationLimit, allItems.length);
-          
-          // Create transformed response with filtered and paginated items
-          responseData = {
-            items: allItems.slice(paginationOffset, paginationEndIndex),
-            total: allItems.length, // Use filtered count, not original count
-            nextToken: responseData.nextToken,
-            nextCursor: paginationEndIndex < allItems.length ? paginationEndIndex : null,
-            prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
-          };
-        }  else if (responseData.items && Array.isArray(responseData.items)) {
-          // Apply client-side filtering for other sections that use POST
-          // Create filtered array starting with response items
-          let filteredItems = responseData.items;
-          
-          // Apply email filter if provided (client-side)
-          if (filters.email) {
-            // Convert email to lowercase for case-insensitive search
-            const emailFilter = filters.email.toLowerCase();
-            // Filter array by email
-            filteredItems = filteredItems.filter((dataItem) => {
-              // Get email and convert to lowercase
-              const itemEmail = (dataItem.email || "").toLowerCase();
-              // Return true if email contains filter value
-              return itemEmail.includes(emailFilter);
-            });
-          }
-          
-          // Apply country filter if provided (client-side)
-          if (filters.country) {
-            // Convert country to uppercase for case-insensitive search
-            const countryFilter = filters.country.toUpperCase();
-            // Filter array by country
-            filteredItems = filteredItems.filter((dataItem) => {
-              // Get country from dataItem or nested data object
-              const itemCountry = (dataItem.country || dataItem.data?.country || "").toUpperCase();
-              // Return true if country matches filter value
-              return itemCountry.includes(countryFilter);
-            });
-          }
-          
-          // Update response with filtered items
-          responseData.items = filteredItems;
-          // Update total count if it was provided
-          if (typeof responseData.total === "number") {
-            responseData.total = filteredItems.length;
-          }
-        }
-        
-        // Return response data
-        return responseData;
-      } catch (apiError) {
-        // Enhance error message with endpoint information
+       } catch (apiError) {
+        // Simple Error Handling
         if (apiError.isHttpError) {
-          // Check for 404 not found
           if (apiError.status === 404) {
-            // Set message for missing endpoint
-            apiError.message = `Endpoint not found: ${endpointUrl}`;
-          } else if (apiError.status >= 500) {
-            // Set message for server errors
-            apiError.message = `Internal server error (${apiError.status}): ${
-              apiError.statusText || "Server Error"
-            }`;
+            apiError.message = `Endpoint not found: ${fullUrl}`;
           } else {
-            // Set message for other HTTP errors
-            apiError.message = `API error (${apiError.status}): ${
-              apiError.statusText || "Request Failed"
-            }`;
+            apiError.message = `API error (${apiError.status}): ${apiError.statusText || "Request Failed"}`;
           }
-        } else if (apiError.isTimeout) {
-          // Set message for timeout errors
-          apiError.message = `Request timed out after ${
-            apiError.timeout / 1000
-          } seconds: ${endpointUrl}`;
-        } else if (apiError.isNetworkError) {
-          // Set message for network errors
-          apiError.message = `Network error: Unable to connect to ${endpointUrl}`;
         }
-        // Re-throw enhanced error
         throw apiError;
-      }
+       }
+
     } else {
-      // Fetch data array from local JSON file
-      let dataArray = await localFetch(sectionName);
+       // --- LOCAL MOCK DATA LOGIC (Fallback) ---
+       let dataArray = await localFetch(sectionName);
 
-      // Apply search query filter if provided
-      if (filters.q) {
-        // Convert query to lowercase for case-insensitive search
-        const searchQuery = filters.q.toLowerCase();
-        // Filter array by search query
-        dataArray = dataArray.filter((dataItem) => {
-          // Get user ID and convert to lowercase
-          const itemUserId = (dataItem.userId || "").toLowerCase();
-          // Get reference ID and convert to lowercase
-          const itemReferenceId = (dataItem.referenceId || "").toLowerCase();
-          // Return true if query matches user ID or reference ID
-          return itemUserId.includes(searchQuery) || itemReferenceId.includes(searchQuery);
-        });
-      }
+        // Apply consolidated mock filtering
+        dataArray = applyMockFilters(dataArray, filters);
 
-      // Apply email filter if provided
-      if (filters.email) {
-        // Convert email to lowercase for case-insensitive search
-        const emailFilter = filters.email.toLowerCase();
-        // Filter array by email
-        dataArray = dataArray.filter((dataItem) => {
-          // Get email and convert to lowercase
-          const itemEmail = (dataItem.email || "").toLowerCase();
-          // Return true if email contains filter value
-          return itemEmail.includes(emailFilter);
-        });
-      }
+        // Sorting
+        if (pagination.sortField) {
+          const sortField = pagination.sortField;
+          const sortDirection = pagination.sortDirection === 'desc' ? -1 : 1;
 
-      // Apply country filter if provided
-      if (filters.country) {
-        // Convert country to uppercase for case-insensitive search
-        const countryFilter = filters.country.toUpperCase();
-        // Filter array by country
-        dataArray = dataArray.filter((dataItem) => {
-          // Get country from dataItem or nested data object
-          const itemCountry = (dataItem.country || dataItem.data?.country || "").toUpperCase();
-          // Return true if country matches filter value
-          return itemCountry.includes(countryFilter);
-        });
-      }
+          dataArray.sort((a, b) => {
+            const valA = a[sortField];
+            const valB = b[sortField];
 
-      // Apply status filter if provided and not empty/Any
-      if (filters.status && filters.status !== "" && filters.status !== "Any") {
-        console.log('[ApiService] Applying status filter:', filters.status, 'to', dataArray.length, 'items');
-        // Filter array by status (exact match, case-insensitive)
-        dataArray = dataArray.filter(
-          (dataItem) => (dataItem.status || "").toLowerCase() === filters.status.toLowerCase()
-        );
-        console.log('[ApiService] After status filter:', dataArray.length, 'items remaining');
-      } else {
-        console.log('[ApiService] No status filter applied. filters.status =', filters.status);
-      }
-
-      // Apply sales-registry specific filters
-      if (baseSectionName === "sales-registry") {
-        // Apply payee filter if provided
-        if (filters.payee) {
-          const payeeFilter = filters.payee.toLowerCase();
-          dataArray = dataArray.filter((dataItem) => {
-            const itemPayer = (dataItem.userId || "").toLowerCase();
-            return itemPayer.includes(payeeFilter);
+            if (typeof valA === 'string' && typeof valB === 'string') {
+              return valA.localeCompare(valB) * sortDirection;
+            }
+            if (typeof valA === 'number' && typeof valB === 'number') {
+              return (valA - valB) * sortDirection;
+            }
+            // Fallback for other types or mixed types
+            if (valA < valB) return -1 * sortDirection;
+            if (valA > valB) return 1 * sortDirection;
+            return 0;
           });
         }
 
-        // Apply beneficiary filter if provided
-        if (filters.beneficiary) {
-          const beneficiaryFilter = filters.beneficiary.toLowerCase();
-          dataArray = dataArray.filter((dataItem) => {
-            const itemBeneficiary = (dataItem.beneficiaryId || "").toLowerCase();
-            return itemBeneficiary.includes(beneficiaryFilter);
-          });
-        }
+       // Pagination
+       const paginationOffset = Number(pagination?.offset || 0);
+       const paginationLimit = Number(pagination?.limit || 50);
+       const paginationEndIndex = Math.min(paginationOffset + paginationLimit, dataArray.length);
 
-        // Apply type filter if provided
-        if (filters.type && filters.type !== "") {
-          dataArray = dataArray.filter(
-            (dataItem) => (dataItem.transactionType || "").toLowerCase() === filters.type.toLowerCase()
-          );
-        }
-
-        // Apply state filter if provided (for sales-registry, state is used instead of status)
-        if (filters.state && filters.state !== "" && filters.state !== "Any") {
-          dataArray = dataArray.filter(
-            (dataItem) => (dataItem.state || "").toLowerCase() === filters.state.toLowerCase()
-          );
-        }
-
-        // Apply reference ID filter if provided
-        if (filters.refId) {
-          const refIdFilter = filters.refId.toLowerCase();
-          dataArray = dataArray.filter((dataItem) => {
-            const itemRefId = (dataItem.refId || "").toLowerCase();
-            return itemRefId.includes(refIdFilter);
-          });
-        }
-
-        // Apply purpose filter if provided
-        if (filters.purpose && filters.purpose !== "") {
-          dataArray = dataArray.filter(
-            (dataItem) => (dataItem.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
-          );
-        }
-
-        // Apply date range filters (from/to)
-        if (filters.from) {
-          const fromDateFilter = new Date(filters.from);
-          dataArray = dataArray.filter((dataItem) => {
-            const itemCreatedDate = new Date(dataItem.createdAt);
-            return itemCreatedDate >= fromDateFilter;
-          });
-        }
-
-        if (filters.to) {
-          const toDateFilter = new Date(filters.to);
-          // Set to end of day for inclusive filtering
-          toDateFilter.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((dataItem) => {
-            const itemCreatedDate = new Date(dataItem.createdAt);
-            return itemCreatedDate <= toDateFilter;
-          });
-        }
-      }
-
-      // Apply payment-sessions filters
-      if (baseSectionName === "payment-sessions") {
-        if (filters.userId) {
-          const v = String(filters.userId).toLowerCase();
-          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-        }
-        if (filters.orderId) {
-          const v = String(filters.orderId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.orderId || item.checkoutId || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.sessionType && filters.sessionType !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.sessionType || "").toLowerCase() === filters.sessionType.toLowerCase()
-          );
-        }
-        if (filters.status && filters.status !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-          );
-        }
-        if (filters.from) {
-          const fromD = new Date(filters.from);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.created_at);
-            return !Number.isNaN(d.getTime()) && d >= fromD;
-          });
-        }
-        if (filters.to) {
-          const toD = new Date(filters.to);
-          toD.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.created_at);
-            return !Number.isNaN(d.getTime()) && d <= toD;
-          });
-        }
-      }
-
-      // Apply payment-transactions filters
-      if (baseSectionName === "payment-transactions") {
-        if (filters.userId) {
-          const v = String(filters.userId).toLowerCase();
-          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-        }
-        if (filters.beneficiaryId) {
-          const v = String(filters.beneficiaryId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.beneficiaryId || item.recipientId || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.orderType && filters.orderType !== "") {
-          const typeFilter = filters.orderType.toLowerCase();
-          dataArray = dataArray.filter(
-            (item) =>
-              (item.orderType || item.transactionType || "").toLowerCase() === typeFilter
-          );
-        }
-        if (filters.status && filters.status !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-          );
-        }
-        if (filters.referenceId) {
-          const v = String(filters.referenceId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.orderId || item.transactionId || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.purpose && filters.purpose !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
-          );
-        }
-        if (filters.from) {
-          const fromD = new Date(filters.from);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.created_at);
-            return !Number.isNaN(d.getTime()) && d >= fromD;
-          });
-        }
-        if (filters.to) {
-          const toD = new Date(filters.to);
-          toD.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.created_at);
-            return !Number.isNaN(d.getTime()) && d <= toD;
-          });
-        }
-      }
-
-      // Apply payment-schedules filters
-      if (baseSectionName === "payment-schedules") {
-        if (filters.userId) {
-          const v = String(filters.userId).toLowerCase();
-          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-        }
-        if (filters.referenceId) {
-          const v = String(filters.referenceId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.orderId || item.subscriptionId || item.registrationId || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.frequency && filters.frequency !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.frequency || "").toLowerCase() === filters.frequency.toLowerCase()
-          );
-        }
-        if (filters.status && filters.status !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
-          );
-        }
-        if (filters.from) {
-          const fromD = new Date(filters.from);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.startDate);
-            return !Number.isNaN(d.getTime()) && d >= fromD;
-          });
-        }
-        if (filters.to) {
-          const toD = new Date(filters.to);
-          toD.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt || item.nextScheduleDate);
-            return !Number.isNaN(d.getTime()) && d <= toD;
-          });
-        }
-      }
-
-      // Apply payment-tokens filters
-      if (baseSectionName === "payment-tokens") {
-        if (filters.userId) {
-          const v = String(filters.userId).toLowerCase();
-          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
-        }
-        if (filters.registrationId) {
-          const v = String(filters.registrationId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.registrationId || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.type && filters.type !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.type || "").toLowerCase() === filters.type.toLowerCase()
-          );
-        }
-        if (filters.status && filters.status !== "") {
-          const s = filters.status.toLowerCase();
-          dataArray = dataArray.filter(
-            (item) => (item.status || "").toLowerCase() === s
-          );
-        }
-        if (filters.from) {
-          const fromD = new Date(filters.from);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt);
-            return !Number.isNaN(d.getTime()) && d >= fromD;
-          });
-        }
-        if (filters.to) {
-          const toD = new Date(filters.to);
-          toD.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt);
-            return !Number.isNaN(d.getTime()) && d <= toD;
-          });
-        }
-      }
-
-      // Apply payment-webhooks filters
-      if (baseSectionName === "payment-webhooks") {
-        if (filters.orderId) {
-          const v = String(filters.orderId).toLowerCase();
-          dataArray = dataArray.filter((item) =>
-            String(item.orderId || item.idempotencyKey || "").toLowerCase().includes(v)
-          );
-        }
-        if (filters.actionTaken && filters.actionTaken !== "") {
-          dataArray = dataArray.filter(
-            (item) => (item.actionTaken || "").toLowerCase() === filters.actionTaken.toLowerCase()
-          );
-        }
-        if (filters.handled !== undefined && filters.handled !== "") {
-          const handledVal = filters.handled === "true";
-          dataArray = dataArray.filter((item) => item.handled === handledVal);
-        }
-        if (filters.from) {
-          const fromD = new Date(filters.from);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt);
-            return !Number.isNaN(d.getTime()) && d >= fromD;
-          });
-        }
-        if (filters.to) {
-          const toD = new Date(filters.to);
-          toD.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((item) => {
-            const d = new Date(item.createdAt);
-            return !Number.isNaN(d.getTime()) && d <= toD;
-          });
-        }
-      }
-
-      // Apply from/to date filters if provided (skip for sales-registry and payment sections; they use their own blocks)
-      const paymentSections = ["payment-sessions", "payment-transactions", "payment-schedules", "payment-tokens", "payment-webhooks"];
-      if (baseSectionName !== "sales-registry" && !paymentSections.includes(baseSectionName)) {
-        if (filters.from) {
-          const fromDateFilter = new Date(filters.from);
-          dataArray = dataArray.filter((dataItem) => {
-            const itemCreatedDate = new Date(dataItem.createdAt);
-            return itemCreatedDate >= fromDateFilter;
-          });
-        }
-        if (filters.to) {
-          const toDateFilter = new Date(filters.to);
-          toDateFilter.setHours(23, 59, 59, 999);
-          dataArray = dataArray.filter((dataItem) => {
-            const itemCreatedDate = new Date(dataItem.createdAt);
-            return itemCreatedDate <= toDateFilter;
-          });
-        }
-      }
-
-      // Apply user-block specific filters
-      if (filters.fromUserId) {
-        const fromFilter = String(filters.fromUserId).toLowerCase();
-        dataArray = dataArray.filter((item) =>
-          String(item.fromUserId || "").toLowerCase().includes(fromFilter)
-        );
-      }
-
-      if (filters.toUserId) {
-        const toFilter = String(filters.toUserId).toLowerCase();
-        dataArray = dataArray.filter((item) =>
-          String(item.toUserId || "").toLowerCase().includes(toFilter)
-        );
-      }
-
-      if (filters.scope) {
-        const scopeFilter = String(filters.scope).toLowerCase();
-        dataArray = dataArray.filter(
-          (item) => String(item.scope || "").toLowerCase() === scopeFilter
-        );
-      }
-
-      if (filters.flag) {
-        const flagFilter = String(filters.flag).toLowerCase();
-        dataArray = dataArray.filter(
-          (item) => String(item.flag || "").toLowerCase() === flagFilter
-        );
-      }
-
-      if (filters.isPermanent === true) {
-        dataArray = dataArray.filter((item) => item.isPermanent === true);
-      }
-
-      // Get pagination offset value
-      const paginationOffset = Number(pagination?.offset || 0);
-      // Get pagination limit value
-      const paginationLimit = Number(pagination?.limit || 50);
-      // Calculate end index for pagination
-      const paginationEndIndex = Math.min(paginationOffset + paginationLimit, dataArray.length);
-
-      // Return paginated response object
-      return {
-        // Return sliced array for current page
+       return {
         items: dataArray.slice(paginationOffset, paginationEndIndex),
-        // Return total count of all items
         total: dataArray.length,
-        // Return next cursor if more items exist, null otherwise
         nextCursor: paginationEndIndex < dataArray.length ? paginationEndIndex : null,
-        // Return previous cursor if not on first page, null otherwise
         prevCursor: paginationOffset > 0 ? Math.max(0, paginationOffset - paginationLimit) : null
-      };
+       };
     }
   }
 };

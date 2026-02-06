@@ -2,95 +2,168 @@
   "scenarios": [
     {
       "scenarioId": "1",
-      "title": "Test Scenario 1: Create Media Item",
-      "description": "This test demonstrates how to create a new media item (metadata) using a POST request.",
+      "title": "Create Media Item",
+      "description": "Create a new media record with metadata. Requires x-actor-user-id header.",
       "apiMethod": "POST",
-      "apiEndpoint": "/media/create",
+      "apiEndpoint": "/media/createMediaItem",
+      "requestHeaders": {
+        "x-actor-user-id": "actor_123"
+      },
       "requestPayload": {
-        "filename": "test-image.jpg",
-        "type": "image/jpeg",
-        "url": "https://example.com/test-image.jpg",
-        "altText": "Test image description",
-        "status": "active"
+        "owner_user_id": "user_456",
+        "media_type": "video",
+        "title": "New Awesome Video",
+        "description": "A test video description",
+        "visibility": "public",
+        "asset_url": "https://example.com/video.mp4",
+        "file_size_bytes": 10485760
       },
       "checklistItems": [
-        "Go to database and verify new media record was created",
-        "Check that 'filename' matches",
-        "Check that 'type' matches",
-        "Verify 'testing' flag was set to true"
+        "Verify 201 Created status",
+        "Check database for new record with correct owner_user_id",
+        "Verify media_id is returned in response"
       ]
     },
     {
       "scenarioId": "2",
-      "title": "Test Scenario 2: Get Media by Type",
-      "description": "This test retrieves media items filtered by type.",
+      "title": "Fetch Media Items (List)",
+      "description": "Retrieve list of media items with optional filters.",
       "apiMethod": "GET",
-      "apiEndpoint": "/media/list",
-      "requestPayload": null,
-      "checklistItems": [
-        "Select a media type from the dropdown",
-        "Click 'Test API Call'",
-        "Verify API response contains only media of selected type"
+      "apiEndpoint": "/media/fetchMediaItems",
+      "queryParams": [
+        { "id": "limit", "label": "Limit", "type": "number", "value": 10 },
+        { "id": "media_type", "label": "Media Type", "type": "select", "options": [
+          { "value": "", "text": "All Types" },
+          { "value": "image", "text": "Image" },
+          { "value": "video", "text": "Video" },
+          { "value": "audio", "text": "Audio" }
+        ]},
+        { "id": "owner_user_id", "label": "Owner User ID", "type": "text", "placeholder": "Filter by owner..." }
       ],
-      "inputFields": [
-        {
-          "type": "select",
-          "id": "type",
-          "label": "Media Type",
-          "options": [
-            { "value": "", "text": "Select type..." },
-            { "value": "image", "text": "Image" },
-            { "value": "video", "text": "Video" },
-            { "value": "document", "text": "Document" }
-          ]
-        }
+      "checklistItems": [
+        "Verify items array is present",
+        "Verify count matches items.length",
+        "Check that filters are correctly applied"
       ]
     },
     {
       "scenarioId": "3",
-      "title": "Test Scenario 3: Get Media by ID",
-      "description": "This test retrieves a specific media item by ID.",
+      "title": "Get Media by ID",
+      "description": "Fetch a single media item by its UUID.",
       "apiMethod": "GET",
-      "apiEndpoint": "/media/{mediaId}",
-      "requestPayload": null,
-      "checklistItems": [
-        "Enter a media ID",
-        "Click 'Test API Call'",
-        "Verify response contains the specified media item"
-      ],
+      "apiEndpoint": "/media/fetchMediaItemById/{mediaId}",
       "inputFields": [
         {
           "type": "text",
           "id": "mediaId",
           "label": "Media ID",
-          "placeholder": "Enter media ID",
-          "value": ""
+          "placeholder": "Enter media_id (UUID)",
+          "required": true
         }
+      ],
+      "checklistItems": [
+        "Verify 200 OK status",
+        "Check that item media_id matches input"
       ]
     },
     {
       "scenarioId": "4",
-      "title": "Test Scenario 4: Update Media Metadata",
-      "description": "This test updates metadata for an existing media item.",
+      "title": "Update Media Item",
+      "description": "Update specific fields of an existing media item.",
       "apiMethod": "PUT",
-      "apiEndpoint": "/media/update/{mediaId}",
-      "requestPayload": {
-        "altText": "Updated alt text",
-        "status": "archived"
+      "apiEndpoint": "/media/updateMediaItem/{mediaId}",
+      "requestHeaders": {
+        "x-actor-user-id": "actor_123"
       },
-      "checklistItems": [
-        "Enter a media ID",
-        "Click 'Test API Call'",
-        "Go to database and verify updates"
-      ],
       "inputFields": [
         {
           "type": "text",
           "id": "mediaId",
           "label": "Media ID",
-          "placeholder": "Enter media ID",
-          "value": ""
+          "placeholder": "Enter media_id",
+          "required": true
         }
+      ],
+      "requestPayload": {
+        "title": "Updated Title",
+        "visibility": "private",
+        "featured": true
+      },
+      "checklistItems": [
+        "Verify success: true in response",
+        "Check database for updated fields"
+      ]
+    },
+    {
+      "scenarioId": "5",
+      "title": "Schedule Media Publication",
+      "description": "Schedule a media item to be published at a future date.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/media/scheduleMediaItem/{mediaId}",
+      "requestHeaders": {
+        "x-actor-user-id": "actor_123"
+      },
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "mediaId",
+          "label": "Media ID",
+          "placeholder": "Enter media_id",
+          "required": true
+        }
+      ],
+      "requestPayload": {
+        "publish_at": "2026-12-31T23:59:59Z"
+      },
+      "checklistItems": [
+        "Verify publish_at is set in database",
+        "Check if status changed to 'scheduled'"
+      ]
+    },
+    {
+      "scenarioId": "6",
+      "title": "Publish Media Immediately",
+      "description": "Set media status to 'published' immediately.",
+      "apiMethod": "POST",
+      "apiEndpoint": "/media/publishMediaItem/{mediaId}",
+      "requestHeaders": {
+        "x-actor-user-id": "actor_123"
+      },
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "mediaId",
+          "label": "Media ID",
+          "placeholder": "Enter media_id",
+          "required": true
+        }
+      ],
+      "checklistItems": [
+        "Verify status is 'published'",
+        "Verify item is visible in public lists"
+      ]
+    },
+    {
+      "scenarioId": "7",
+      "title": "Soft Delete Media",
+      "description": "Mark media as deleted without removing from database.",
+      "apiMethod": "DELETE",
+      "apiEndpoint": "/media/deleteMediaItem/{mediaId}",
+      "requestHeaders": {
+        "x-actor-user-id": "actor_123"
+      },
+      "inputFields": [
+        {
+          "type": "text",
+          "id": "mediaId",
+          "label": "Media ID",
+          "placeholder": "Enter media_id",
+          "required": true
+        }
+      ],
+      "checklistItems": [
+        "Verify is_deleted or soft_delete flag is true in DB",
+        "Check that item no longer appears in fetch results"
       ]
     }
   ]

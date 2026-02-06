@@ -53,8 +53,7 @@
     };
 
     window.handleSubscriptionView = (row) => {
-      const viewButton = document.querySelector(`[data-view-json='${encodeURIComponent(JSON.stringify(row))}']`);
-      if (viewButton) viewButton.click();
+      window.SlideIn.showJson(`Subscription: ${row.plan} (${row.id})`, row);
     };
 
     // Store current data for sorting
