@@ -43,7 +43,22 @@ window.AdminConfig = {
     },
     {
       slug: "sales-registry",
-      label: "Sales Registry"
+      label: "Token Registry"
+    },
+    {
+      slug: "user-tokens",
+      label: "User Tokens"
+    },
+    {
+      type: "group",
+      label: "Payment",
+      children: [
+        { slug: "payment-sessions", label: "Sessions" },
+        { slug: "payment-transactions", label: "Transactions" },
+        { slug: "payment-schedules", label: "Schedules" },
+        { slug: "payment-tokens", label: "Tokens" },
+        { slug: "payment-webhooks", label: "Webhooks" }
+      ]
     },
     {
       slug: "translation-settings",
@@ -349,7 +364,186 @@ window.AdminConfig = {
     ],
     stats: [],
     "site-settings": [],
-    "sales-registry": [],
+    "sales-registry": [
+      {
+        type: "text",
+        name: "payee",
+        label: "Payee User ID",
+        placeholder: "User ID"
+      },
+      {
+        type: "text",
+        name: "beneficiary",
+        label: "Beneficiary User ID",
+        placeholder: "User ID"
+      },
+      {
+        type: "select",
+        name: "type",
+        label: "Type",
+        options: [
+          { value: "", label: "All" },
+          { value: "transfer", label: "Transferred" },
+          { value: "payment", label: "Payment" },
+          { value: "refund", label: "Refund" },
+          { value: "held", label: "Held" }
+        ]
+      },
+      {
+        type: "select",
+        name: "state",
+        label: "State",
+        options: [
+          "",
+          { value: "completed", label: "Completed" },
+          { value: "pending", label: "Pending" },
+          { value: "failed", label: "Failed" },
+          { value: "cancelled", label: "Cancelled" },
+          { value: "held", label: "Held" }
+        ]
+      },
+      {
+        type: "text",
+        name: "refId",
+        label: "Reference ID",
+        placeholder: "Reference ID"
+      },
+      {
+        type: "select",
+        name: "purpose",
+        label: "Purpose",
+        options: [
+          "",
+          { value: "subscription", label: "Subscription" },
+          { value: "tip", label: "Tip" },
+          { value: "purchase", label: "Purchase" },
+          { value: "refund", label: "Refund" }
+        ]
+      },
+      {
+        type: "date",
+        name: "from",
+        label: "Date From"
+      },
+      {
+        type: "date",
+        name: "to",
+        label: "Date To"
+      }
+    ],
+    "user-tokens": [
+      {
+        type: "text",
+        name: "q",
+        label: "Search",
+        placeholder: "User ID…"
+      }
+    ],
+    "payment-sessions": [
+      { type: "text", name: "userId", label: "Payer User ID", placeholder: "User ID" },
+      { type: "text", name: "orderId", label: "Reference ID", placeholder: "Reference ID" },
+      {
+        type: "select",
+        name: "sessionType",
+        label: "Type",
+        options: ["", { value: "card", label: "Card" }, { value: "token", label: "Token" }]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "State",
+        options: ["", { value: "pending", label: "Pending" }, { value: "authorized", label: "Authorized" }, { value: "success", label: "Success" }, { value: "completed", label: "Completed" }, { value: "failed", label: "Failed" }, { value: "voided", label: "Voided" }]
+      },
+      { type: "date", name: "from", label: "Date From" },
+      { type: "date", name: "to", label: "Date To" }
+    ],
+    "payment-transactions": [
+      { type: "text", name: "userId", label: "Payee User ID", placeholder: "User ID" },
+      { type: "text", name: "beneficiaryId", label: "Beneficiary User ID", placeholder: "User ID" },
+      {
+        type: "select",
+        name: "orderType",
+        label: "Type",
+        options: ["", { value: "payment", label: "Payment" }, { value: "transfer", label: "Transfer" }, { value: "refund", label: "Refund" }]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "State",
+        options: [
+          "",
+          { value: "pending", label: "Pending" },
+          { value: "authorized", label: "Authorized" },
+          { value: "success", label: "Success" },
+          { value: "failed", label: "Failed" },
+          { value: "refunded", label: "Refunded" },
+          { value: "chargeback", label: "Chargeback" },
+          { value: "voided", label: "Voided" }
+        ]
+      },
+      { type: "text", name: "referenceId", label: "Reference ID", placeholder: "Reference ID" },
+      {
+        type: "select",
+        name: "purpose",
+        label: "Purpose",
+        options: ["", { value: "subscription", label: "Subscription" }, { value: "tip", label: "Tip" }, { value: "purchase", label: "Purchase" }, { value: "refund", label: "Refund" }]
+      },
+      { type: "date", name: "from", label: "Date From" },
+      { type: "date", name: "to", label: "Date To" }
+    ],
+    "payment-schedules": [
+      { type: "text", name: "userId", label: "Payer User ID", placeholder: "User ID" },
+      { type: "text", name: "referenceId", label: "Reference ID", placeholder: "Reference ID" },
+      {
+        type: "select",
+        name: "frequency",
+        label: "Type",
+        options: ["", { value: "monthly", label: "Monthly" }, { value: "yearly", label: "Yearly" }]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "State",
+        options: ["", { value: "active", label: "Active" }, { value: "paused", label: "Paused" }]
+      },
+      { type: "date", name: "from", label: "Date From" },
+      { type: "date", name: "to", label: "Date To" }
+    ],
+    "payment-tokens": [
+      { type: "text", name: "userId", label: "Payer User ID", placeholder: "User ID" },
+      { type: "text", name: "registrationId", label: "Reference ID", placeholder: "Reference ID" },
+      {
+        type: "select",
+        name: "type",
+        label: "Type",
+        options: ["", { value: "card", label: "Card" }]
+      },
+      {
+        type: "select",
+        name: "status",
+        label: "State",
+        options: ["", { value: "active", label: "Active" }, { value: "expired", label: "Expired" }, { value: "disabled", label: "Disabled" }]
+      },
+      { type: "date", name: "from", label: "Date From" },
+      { type: "date", name: "to", label: "Date To" }
+    ],
+    "payment-webhooks": [
+      { type: "text", name: "orderId", label: "Reference ID", placeholder: "Reference ID" },
+      {
+        type: "select",
+        name: "actionTaken",
+        label: "Type",
+        options: ["", { value: "processed", label: "Processed" }]
+      },
+      {
+        type: "select",
+        name: "handled",
+        label: "State",
+        options: ["", { value: "true", label: "Handled" }, { value: "false", label: "Pending" }]
+      },
+      { type: "date", name: "from", label: "Date From" },
+      { type: "date", name: "to", label: "Date To" }
+    ],
     "translation-settings": [],
     "notification-settings": [],
     fetch: [],
@@ -530,6 +724,29 @@ window.AdminConfig = {
     },
     "sales-registry": {
       text: "This page shows all recorded sales transactions, totals by period, and exportable sales reports."
+    },
+    "user-tokens": {
+      heading: "Overview",
+      list: [
+        "View user token balances (paid, free system, free creator)",
+        "Check token expiry dates",
+        "Drilldown to token registry as payee or beneficiary"
+      ]
+    },
+    "payment-sessions": {
+      text: "Payment gateway sessions. Filter by payer, reference ID, type, state, and date range."
+    },
+    "payment-transactions": {
+      text: "Payment gateway transactions. Filter by payee, beneficiary, type, state, purpose, and date range."
+    },
+    "payment-schedules": {
+      text: "Payment gateway schedules (subscriptions). Filter by payer, reference ID, frequency, state, and date range."
+    },
+    "payment-tokens": {
+      text: "Payment gateway tokens (card/registration). Filter by payer, reference ID, type, and date range. Card numbers are masked."
+    },
+    "payment-webhooks": {
+      text: "Payment gateway webhooks. Filter by reference ID, type, handled state, and date range."
     },
     "translation-settings": {
       text: "Configure supported locales and fallback language. Manage custom string translations per language."

@@ -1,0 +1,33 @@
+[
+  {
+    "userId": "user_001",
+    "creatorId": "creator_001",
+    "balance": 5.0,
+    "expiry": "2026-12-31T23:59:59Z"
+  },
+  {
+    "userId": "user_001",
+    "creatorId": "creator_002",
+    "balance": 5.0,
+    "expiry": "2026-06-30T23:59:59Z"
+  },
+  {
+    "userId": "user_003",
+    "creatorId": "creator_001",
+    "balance": 10.0,
+    "expiry": "2027-01-15T23:59:59Z"
+  },
+  {
+    "userId": "user_003",
+    "creatorId": "creator_002",
+    "balance": 20.0,
+    "expiry": "2026-12-31T23:59:59Z"
+  },
+  {
+    "userId": "user_004",
+    "creatorId": "creator_003",
+    "balance": 5.0,
+    "expiry": "2026-03-20T23:59:59Z"
+  }
+]
+

@@ -131,5 +131,26 @@ window.AdminUtils = {
         </div>
       </div>
     `;
+  },
+
+  /**
+   * Format numbers with locale-aware thousand separators.
+   * Used globally in tables so large numeric IDs and counts are easier to read.
+   * Example: 1234567890 -> "1,234,567,890"
+   * @param {number} value - Numeric value to format
+   * @returns {string} - Formatted number string
+   */
+  formatNumber(value) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+      return String(value);
+    }
+    try {
+      return new Intl.NumberFormat(undefined, {
+        maximumFractionDigits: 0
+      }).format(value);
+    } catch (error) {
+      // Fallback if Intl is not available or fails
+      return String(value);
+    }
   }
 };

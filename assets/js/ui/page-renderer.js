@@ -21,6 +21,7 @@
       this.tableConfig = config.tableConfig;
       this.pagination = config.pagination || { enabled: false };
       this.tabs = config.tabs || [];
+      this.tabFilterKey = config.tabFilterKey || 'status';
       
       // State
       this.cursor = 0;
@@ -69,18 +70,23 @@
     }
 
     /**
-     * Get active filters including tab status
+     * Get active filters including tab status/state
+     * Note: sidebar filters live in AdminState; tabs overlay a temporary filter
+     * for requests but do NOT mutate the stored filters.
      */
     getActiveFilters() {
       const filters = { ...(window.AdminState.activeFilters[this.section] || {}) };
       
-      // Apply tab status filter if tabs are configured
+      // Apply tab filter if tabs are configured
       if (this.tabs.length > 0) {
         const currentTab = this.tabs.find(t => t.id === this.activeTab);
-        if (currentTab && currentTab.statusFilter) {
-          filters.status = currentTab.statusFilter;
-        } else if (currentTab && !currentTab.statusFilter) {
-          delete filters.status;
+        if (currentTab) {
+          if (currentTab.filterKey && currentTab.filterValue) {
+            filters[currentTab.filterKey] = currentTab.filterValue;
+          }
+          if (currentTab.statusFilter) {
+            filters[this.tabFilterKey] = currentTab.statusFilter;
+          }
         }
       }
       
@@ -126,12 +132,16 @@
 
       try {
         const baseFilters = { ...(window.AdminState.activeFilters[this.section] || {}) };
-        delete baseFilters.status; // Remove status to get counts per tab
+        delete baseFilters[this.tabFilterKey];
+        delete baseFilters.nextToken;
 
         const countPromises = this.tabs.map(async (tab) => {
           const filters = { ...baseFilters };
+          if (tab.filterKey && tab.filterValue) {
+            filters[tab.filterKey] = tab.filterValue;
+          }
           if (tab.statusFilter) {
-            filters.status = tab.statusFilter;
+            filters[this.tabFilterKey] = tab.statusFilter;
           }
           const count = await window.ApiService.getTotalCount(this.section, filters);
           return { tabId: tab.id, count: count || 0 };
@@ -192,6 +202,10 @@
         }
         const activeFilters = this.getActiveFilters();
         
+        // Build filters for count (exclude nextToken)
+        const countFilters = { ...activeFilters };
+        delete countFilters.nextToken;
+        
         // Determine pagination settings
         const limit = this.pagination.enabled 
           ? (this.pagination.pageSize || 20)
@@ -203,7 +217,7 @@
             filters: activeFilters,
             pagination: { limit, offset: this.cursor }
           }),
-          window.ApiService.getTotalCount(this.section, activeFilters)
+          window.ApiService.getTotalCount(this.section, countFilters)
         ]);
 
         const dataItems = apiResponse.items || [];
@@ -237,18 +251,18 @@
             this.refreshTabCounts();
           }
 
-          // Add chips
+        }
+
+        // Clear previous table content only when not appending (not load more)
+        if (!shouldAppend) {
+          this.container.innerHTML = "";
+          // Re-add chips after clear so they persist above the table
           const chipsWrapper = document.createElement("div");
           chipsWrapper.id = "chipsWrap";
           chipsWrapper.className = "filter-chips";
           chipsWrapper.innerHTML = this.renderChips(this.section);
           this.container.appendChild(chipsWrapper);
           this.attachChipHandlers(chipsWrapper);
-        }
-
-        // Clear previous tables only when not appending (not load more)
-        if (!shouldAppend) {
-          this.container.innerHTML = "";
         }
         if (this.pagination.enabled) {
           // Paginated mode: create new table block for each page
@@ -272,7 +286,7 @@
             this.pageContent.appendChild(loadMoreWrap);
           }
 
-          const hasMore = apiResponse.hasMore !== false && (apiResponse.nextToken !== null || (this.cursor + dataItems.length < this.total));
+          const hasMore = apiResponse.hasMore !== false && (this.nextToken !== null || (this.cursor + dataItems.length < this.total));
           const loadMoreHtml = window.Table.createLoadMoreControls({ disabled: !hasMore });
           loadMoreWrap.innerHTML = loadMoreHtml;
 
@@ -326,15 +340,6 @@
       if (!tab) return;
 
       this.activeTab = tab.id;
-      
-      // Update filters
-      const filters = window.AdminState.activeFilters[this.section] || {};
-      if (tab.statusFilter) {
-        filters.status = tab.statusFilter;
-      } else {
-        delete filters.status;
-      }
-      window.AdminState.activeFilters[this.section] = filters;
 
       // Reset and re-render
       this.reset();

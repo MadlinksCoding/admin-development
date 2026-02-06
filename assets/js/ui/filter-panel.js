@@ -12,8 +12,6 @@
 
   // Expose FilterPanel on global window object
   window.FilterPanel = {
-    // Bootstrap offcanvas instance (initialized later)
-    offcanvas: null,
     // Form body element container (initialized later)
     formBody: null,
 
@@ -60,8 +58,6 @@
 
       // Append offcanvas to document body
       document.body.appendChild(offcanvasElement.firstElementChild);
-      // Create Bootstrap offcanvas instance
-      this.offcanvas = new bootstrap.Offcanvas("#filterOffcanvas");
       // Get reference to form body container
       this.formBody = $("#filterBody");
     },
@@ -177,6 +173,8 @@
     render() {
       // Get current section name
       const currentSection = getSection();
+      // Get previously saved filter values (if any)
+      const savedFilterValues = getFilters(currentSection) || {};
       // Get filter field configurations for current section
       const filterFields =
         window.AdminConfig.filters && window.AdminConfig.filters[currentSection]
@@ -197,9 +195,28 @@
           }</label>${this.fieldHtml(fieldConfiguration)}</div>`;
         })
         .join("");
+      
+      // Restore previously saved filter values first (defensive: never block UI on error)
+      try {
+        this.restoreValues();
+      } catch (error) {
+        console.warn("[FilterPanel] Failed to restore filter values:", error);
+      }
 
-      // Restore previously saved filter values
-      this.restoreValues();
+      // Apply section-specific default UI values (without changing global state)
+      // Sales Registry: default Type select should visually show \"Transferred\" when no type filter is active
+      try {
+        if (currentSection === "sales-registry" && !savedFilterValues.type) {
+          const typeSelect =
+            this.formBody?.querySelector('select[name="type"]') ||
+            document.querySelector('#filterOffcanvas select[name="type"]');
+          if (typeSelect && !typeSelect.value) {
+            typeSelect.value = "transfer";
+          }
+        }
+      } catch (error) {
+        console.warn("[FilterPanel] Failed to apply default UI values:", error);
+      }
     },
 
     /**
@@ -209,7 +226,7 @@
       // Get current section name
       const currentSection = getSection();
       // Get saved filter values from state
-      const savedFilterValues = getFilters(currentSection);
+      const savedFilterValues = getFilters(currentSection) || {};
 
       // Iterate through each saved filter value
       Object.entries(savedFilterValues).forEach(([filterKey, filterValue]) => {
@@ -365,13 +382,15 @@
      * Attach event listeners to filter panel elements
      */
     attachEvents() {
-      // Add click listener to filter button
-      this.filterBtn.addEventListener("click", () => {
-        // Render filter form when button clicked
-        this.render();
-        // Show the offcanvas
-        this.offcanvas.show();
-      });
+      // Get offcanvas element (created in createOffcanvas)
+      const offcanvasElement = document.getElementById("filterOffcanvas");
+
+      if (offcanvasElement) {
+        // Render filters each time the offcanvas is about to be shown
+        offcanvasElement.addEventListener("show.bs.offcanvas", () => {
+          this.render();
+        });
+      }
 
       // Add click listener to apply filters button
       $("#applyFiltersBtn").addEventListener("click", () => {
@@ -393,8 +412,13 @@
           pageContentElement.innerHTML = `<div class="text-center py-5"><div class="spinner-border spinner-large"></div><div class="mt-3">Loading…</div></div>`;
         }
 
-        // Hide the offcanvas
-        this.offcanvas.hide();
+        // Hide the offcanvas via Bootstrap instance (if available)
+        if (offcanvasElement) {
+          const instance = bootstrap.Offcanvas.getInstance(offcanvasElement);
+          if (instance) {
+            instance.hide();
+          }
+        }
         // Dispatch refresh event to reload data
         document.body.dispatchEvent(new CustomEvent("section:refresh"));
       });

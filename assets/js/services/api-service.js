@@ -302,6 +302,98 @@ window.PayloadBuilders = {
     };
   },
   /**
+   * Build payload for sales-registry section
+   * @param {Object} filterValues - Filter values object
+   * @param {Object} paginationOptions - Pagination options object
+   * @returns {Object} Payload object for API request
+   */
+  "sales-registry"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "sales-registry",
+      payee: filterValues.payee || undefined,
+      beneficiary: filterValues.beneficiary || undefined,
+      type: filterValues.type || undefined,
+      state: filterValues.state || undefined,
+      refId: filterValues.refId || undefined,
+      purpose: filterValues.purpose || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-sessions"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-sessions",
+      userId: filterValues.userId || undefined,
+      orderId: filterValues.orderId || undefined,
+      sessionType: filterValues.sessionType || undefined,
+      status: filterValues.status || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-transactions"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-transactions",
+      userId: filterValues.userId || undefined,
+      beneficiaryId: filterValues.beneficiaryId || undefined,
+      orderType: filterValues.orderType || undefined,
+      status: filterValues.status || undefined,
+      referenceId: filterValues.referenceId || undefined,
+      purpose: filterValues.purpose || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-schedules"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-schedules",
+      userId: filterValues.userId || undefined,
+      referenceId: filterValues.referenceId || undefined,
+      frequency: filterValues.frequency || undefined,
+      status: filterValues.status || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-tokens"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-tokens",
+      userId: filterValues.userId || undefined,
+      registrationId: filterValues.registrationId || undefined,
+      type: filterValues.type || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-webhooks"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-webhooks",
+      orderId: filterValues.orderId || undefined,
+      actionTaken: filterValues.actionTaken || undefined,
+      handled: filterValues.handled !== undefined && filterValues.handled !== "" ? filterValues.handled === "true" : undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  /**
    * Build payload for demo section
    * @param {Object} filterValues - Filter values object
    * @param {Object} paginationOptions - Pagination options object
@@ -554,6 +646,272 @@ async function getTotalCount(sectionName, filters = {}) {
         } else {
           console.log('[getTotalCount] No status filter to apply');
         }
+
+        // Apply sales-registry specific filters for count
+        if (baseSectionName === "sales-registry") {
+          // Apply payee filter if provided
+          if (filters.payee) {
+            const payeeFilter = filters.payee.toLowerCase();
+            fullData = fullData.filter((dataItem) => {
+              const itemPayer = (dataItem.userId || "").toLowerCase();
+              return itemPayer.includes(payeeFilter);
+            });
+          }
+
+          // Apply beneficiary filter if provided
+          if (filters.beneficiary) {
+            const beneficiaryFilter = filters.beneficiary.toLowerCase();
+            fullData = fullData.filter((dataItem) => {
+              const itemBeneficiary = (dataItem.beneficiaryId || "").toLowerCase();
+              return itemBeneficiary.includes(beneficiaryFilter);
+            });
+          }
+
+          // Apply type filter if provided
+          if (filters.type && filters.type !== "") {
+            fullData = fullData.filter(
+              (dataItem) => (dataItem.transactionType || "").toLowerCase() === filters.type.toLowerCase()
+            );
+          }
+
+          // Apply type filter if provided
+          if (filters.type && filters.type !== "") {
+            fullData = fullData.filter(
+              (dataItem) => (dataItem.type || "").toLowerCase() === filters.type.toLowerCase()
+            );
+          }
+
+          // Apply state filter if provided (for sales-registry, state is used instead of status)
+          if (filters.state && filters.state !== "" && filters.state !== "Any") {
+            fullData = fullData.filter(
+              (dataItem) => (dataItem.state || "").toLowerCase() === filters.state.toLowerCase()
+            );
+          }
+
+          // Apply reference ID filter if provided
+          if (filters.refId) {
+            const refIdFilter = filters.refId.toLowerCase();
+            fullData = fullData.filter((dataItem) => {
+              const itemRefId = (dataItem.refId || "").toLowerCase();
+              return itemRefId.includes(refIdFilter);
+            });
+          }
+
+          // Apply purpose filter if provided
+          if (filters.purpose && filters.purpose !== "") {
+            fullData = fullData.filter(
+              (dataItem) => (dataItem.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
+            );
+          }
+
+          // Apply date range filters (from/to)
+          if (filters.from) {
+            const fromDateFilter = new Date(filters.from);
+            fullData = fullData.filter((dataItem) => {
+              const itemCreatedDate = new Date(dataItem.createdAt);
+              return itemCreatedDate >= fromDateFilter;
+            });
+          }
+
+          if (filters.to) {
+            const toDateFilter = new Date(filters.to);
+            toDateFilter.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((dataItem) => {
+              const itemCreatedDate = new Date(dataItem.createdAt);
+              return itemCreatedDate <= toDateFilter;
+            });
+          }
+        }
+
+        // Payment sections: apply same filters as in get()
+        if (baseSectionName === "payment-sessions") {
+          if (filters.userId) {
+            const v = String(filters.userId).toLowerCase();
+            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+          }
+          if (filters.orderId) {
+            const v = String(filters.orderId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.orderId || item.checkoutId || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.sessionType && filters.sessionType !== "") {
+            fullData = fullData.filter(
+              (item) => (item.sessionType || "").toLowerCase() === filters.sessionType.toLowerCase()
+            );
+          }
+          if (filters.status && filters.status !== "") {
+            fullData = fullData.filter(
+              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+            );
+          }
+          if (filters.from) {
+            const fromD = new Date(filters.from);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.created_at);
+              return !Number.isNaN(d.getTime()) && d >= fromD;
+            });
+          }
+          if (filters.to) {
+            const toD = new Date(filters.to);
+            toD.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.created_at);
+              return !Number.isNaN(d.getTime()) && d <= toD;
+            });
+          }
+        }
+        if (baseSectionName === "payment-transactions") {
+          if (filters.userId) {
+            const v = String(filters.userId).toLowerCase();
+            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+          }
+          if (filters.beneficiaryId) {
+            const v = String(filters.beneficiaryId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.beneficiaryId || item.recipientId || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.orderType && filters.orderType !== "") {
+            const typeFilter = filters.orderType.toLowerCase();
+            fullData = fullData.filter(
+              (item) =>
+                (item.orderType || item.transactionType || "").toLowerCase() === typeFilter
+            );
+          }
+          if (filters.status && filters.status !== "") {
+            fullData = fullData.filter(
+              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+            );
+          }
+          if (filters.referenceId) {
+            const v = String(filters.referenceId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.orderId || item.transactionId || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.purpose && filters.purpose !== "") {
+            fullData = fullData.filter(
+              (item) => (item.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
+            );
+          }
+          if (filters.from) {
+            const fromD = new Date(filters.from);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.created_at);
+              return !Number.isNaN(d.getTime()) && d >= fromD;
+            });
+          }
+          if (filters.to) {
+            const toD = new Date(filters.to);
+            toD.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.created_at);
+              return !Number.isNaN(d.getTime()) && d <= toD;
+            });
+          }
+        }
+        if (baseSectionName === "payment-schedules") {
+          if (filters.userId) {
+            const v = String(filters.userId).toLowerCase();
+            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+          }
+          if (filters.referenceId) {
+            const v = String(filters.referenceId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.orderId || item.subscriptionId || item.registrationId || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.frequency && filters.frequency !== "") {
+            fullData = fullData.filter(
+              (item) => (item.frequency || "").toLowerCase() === filters.frequency.toLowerCase()
+            );
+          }
+          if (filters.status && filters.status !== "") {
+            fullData = fullData.filter(
+              (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+            );
+          }
+          if (filters.from) {
+            const fromD = new Date(filters.from);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.startDate);
+              return !Number.isNaN(d.getTime()) && d >= fromD;
+            });
+          }
+          if (filters.to) {
+            const toD = new Date(filters.to);
+            toD.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt || item.nextScheduleDate);
+              return !Number.isNaN(d.getTime()) && d <= toD;
+            });
+          }
+        }
+        if (baseSectionName === "payment-tokens") {
+          if (filters.userId) {
+            const v = String(filters.userId).toLowerCase();
+            fullData = fullData.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+          }
+          if (filters.registrationId) {
+            const v = String(filters.registrationId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.registrationId || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.type && filters.type !== "") {
+            fullData = fullData.filter(
+              (item) => (item.type || "").toLowerCase() === filters.type.toLowerCase()
+            );
+          }
+          if (filters.from) {
+            const fromD = new Date(filters.from);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt);
+              return !Number.isNaN(d.getTime()) && d >= fromD;
+            });
+          }
+          if (filters.to) {
+            const toD = new Date(filters.to);
+            toD.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt);
+              return !Number.isNaN(d.getTime()) && d <= toD;
+            });
+          }
+        }
+        if (baseSectionName === "payment-webhooks") {
+          if (filters.orderId) {
+            const v = String(filters.orderId).toLowerCase();
+            fullData = fullData.filter((item) =>
+              String(item.orderId || item.idempotencyKey || "").toLowerCase().includes(v)
+            );
+          }
+          if (filters.actionTaken && filters.actionTaken !== "") {
+            fullData = fullData.filter(
+              (item) => (item.actionTaken || "").toLowerCase() === filters.actionTaken.toLowerCase()
+            );
+          }
+          if (filters.handled !== undefined && filters.handled !== "") {
+            const handledVal = filters.handled === "true";
+            fullData = fullData.filter((item) => item.handled === handledVal);
+          }
+          if (filters.from) {
+            const fromD = new Date(filters.from);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt);
+              return !Number.isNaN(d.getTime()) && d >= fromD;
+            });
+          }
+          if (filters.to) {
+            const toD = new Date(filters.to);
+            toD.setHours(23, 59, 59, 999);
+            fullData = fullData.filter((item) => {
+              const d = new Date(item.createdAt);
+              return !Number.isNaN(d.getTime()) && d <= toD;
+            });
+          }
+        }
         
         // Apply other filters if needed (category, type, etc.)
         // Add more filter logic here if needed for accurate counts
@@ -572,6 +930,36 @@ async function getTotalCount(sectionName, filters = {}) {
 }
 
 /**
+ * Fetch a single transaction or session from Axcess (by ID).
+ * Uses the page's API config: payment-transactions or payment-sessions endpoint + /axcess/{entity}/{id}.
+ * @param {string} entity - "transaction" | "session"
+ * @param {string} id - transactionId, gatewayTxnId, or session id / checkoutId
+ * @returns {Promise<Object|null>} Fetched payload or null if no endpoint configured
+ */
+async function fetchFromAxcess(entity, id) {
+  if (!id || !entity) return null;
+  const section = entity === "transaction" ? "payment-transactions" : "payment-sessions";
+  let pageApiConfig;
+  try {
+    if (!hasApiConfigScript()) return null;
+    pageApiConfig = getPageApiConfig(section);
+  } catch (e) {
+    return null;
+  }
+  const env = window.Env?.current || "dev";
+  const baseUrl = pageApiConfig?.[env]?.endpoint?.trim();
+  if (!baseUrl) return null;
+  const url = baseUrl.replace(/\/$/, "") + "/axcess/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id);
+  try {
+    const res = await fetchWithTimeout(url, { method: "GET" });
+    if (!res.ok) throw new Error(res.statusText || "Request failed");
+    return await res.json();
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
  * API Service
  * Main service for fetching data from local or remote sources
  */
@@ -580,11 +968,16 @@ window.ApiService = {
    * Expose fetchWithTimeout function for use in page scripts
    */
   _fetchWithTimeout: fetchWithTimeout,
-  
+
   /**
    * Get total count for a section from separate endpoint
    */
   getTotalCount: getTotalCount,
+
+  /**
+   * Fetch a single transaction or session from Axcess by ID
+   */
+  fetchFromAxcess: fetchFromAxcess,
 
   /**
    * Get data for a section with optional filters and pagination
@@ -685,18 +1078,31 @@ window.ApiService = {
                 } else if (pagination.offset !== undefined) {
                   queryParams.append("offset", pagination.offset);
                 }
-              } else if (["user-blocks","moderation"].includes(baseSectionName)) {
-                
-                // Auto-append all filters that have been set (excluding undefined/null/empty string)
+              } else {
+                // Generic GET query params for all admin tables.
+                // Append filters and pagination in a consistent way so tables are truly dynamic.
                 Object.entries(filters).forEach(([key, value]) => {
-                  if (value !== undefined && value !== null && value !== "") {
-                  queryParams.append(key, value);
-                  }
+                  if (value === undefined || value === null || value === "") return;
+                  // Skip complex objects (not representable in query string)
+                  if (typeof value === "object") return;
+                  queryParams.append(key, String(value));
                 });
 
-                queryParams.append("show_total_count", "1");
+                // Pagination defaults from PageRenderer
+                if (pagination && pagination.limit != null && !queryParams.has("limit")) {
+                  queryParams.append("limit", String(pagination.limit));
+                }
+                if (pagination && pagination.offset != null && !queryParams.has("offset")) {
+                  queryParams.append("offset", String(pagination.offset));
+                }
+
+                // sales-registry / moderation / user-blocks historically used show_total_count
+                if (["user-blocks", "moderation", "sales-registry"].includes(baseSectionName)) {
+                  queryParams.append("show_total_count", "1");
+                }
               }
           // For user-blocks, list endpoint is /listUserBlocks under the configured base
+          // For sales-registry, use the endpoint as-is
           let listUrl = endpointUrl;
           if (baseSectionName === "user-blocks") {
             listUrl = endpointUrl.endsWith("/")
@@ -935,32 +1341,298 @@ window.ApiService = {
         console.log('[ApiService] No status filter applied. filters.status =', filters.status);
       }
 
-      // Apply from date filter if provided
-      if (filters.from) {
-        // Create date object from filter value
-        const fromDateFilter = new Date(filters.from);
-        // Filter array by from date
-        dataArray = dataArray.filter((dataItem) => {
-          // Create date object from item created date
-          const itemCreatedDate = new Date(dataItem.createdAt);
-          // Return true if item date is on or after from date
-          return itemCreatedDate >= fromDateFilter;
-        });
+      // Apply sales-registry specific filters
+      if (baseSectionName === "sales-registry") {
+        // Apply payee filter if provided
+        if (filters.payee) {
+          const payeeFilter = filters.payee.toLowerCase();
+          dataArray = dataArray.filter((dataItem) => {
+            const itemPayer = (dataItem.userId || "").toLowerCase();
+            return itemPayer.includes(payeeFilter);
+          });
+        }
+
+        // Apply beneficiary filter if provided
+        if (filters.beneficiary) {
+          const beneficiaryFilter = filters.beneficiary.toLowerCase();
+          dataArray = dataArray.filter((dataItem) => {
+            const itemBeneficiary = (dataItem.beneficiaryId || "").toLowerCase();
+            return itemBeneficiary.includes(beneficiaryFilter);
+          });
+        }
+
+        // Apply type filter if provided
+        if (filters.type && filters.type !== "") {
+          dataArray = dataArray.filter(
+            (dataItem) => (dataItem.transactionType || "").toLowerCase() === filters.type.toLowerCase()
+          );
+        }
+
+        // Apply state filter if provided (for sales-registry, state is used instead of status)
+        if (filters.state && filters.state !== "" && filters.state !== "Any") {
+          dataArray = dataArray.filter(
+            (dataItem) => (dataItem.state || "").toLowerCase() === filters.state.toLowerCase()
+          );
+        }
+
+        // Apply reference ID filter if provided
+        if (filters.refId) {
+          const refIdFilter = filters.refId.toLowerCase();
+          dataArray = dataArray.filter((dataItem) => {
+            const itemRefId = (dataItem.refId || "").toLowerCase();
+            return itemRefId.includes(refIdFilter);
+          });
+        }
+
+        // Apply purpose filter if provided
+        if (filters.purpose && filters.purpose !== "") {
+          dataArray = dataArray.filter(
+            (dataItem) => (dataItem.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
+          );
+        }
+
+        // Apply date range filters (from/to)
+        if (filters.from) {
+          const fromDateFilter = new Date(filters.from);
+          dataArray = dataArray.filter((dataItem) => {
+            const itemCreatedDate = new Date(dataItem.createdAt);
+            return itemCreatedDate >= fromDateFilter;
+          });
+        }
+
+        if (filters.to) {
+          const toDateFilter = new Date(filters.to);
+          // Set to end of day for inclusive filtering
+          toDateFilter.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((dataItem) => {
+            const itemCreatedDate = new Date(dataItem.createdAt);
+            return itemCreatedDate <= toDateFilter;
+          });
+        }
       }
 
-      // Apply to date filter if provided
-      if (filters.to) {
-        // Create date object from filter value
-        const toDateFilter = new Date(filters.to);
-        // Set time to end of day (23:59:59.999)
-        toDateFilter.setHours(23, 59, 59, 999);
-        // Filter array by to date
-        dataArray = dataArray.filter((dataItem) => {
-          // Create date object from item created date
-          const itemCreatedDate = new Date(dataItem.createdAt);
-          // Return true if item date is on or before to date
-          return itemCreatedDate <= toDateFilter;
-        });
+      // Apply payment-sessions filters
+      if (baseSectionName === "payment-sessions") {
+        if (filters.userId) {
+          const v = String(filters.userId).toLowerCase();
+          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+        }
+        if (filters.orderId) {
+          const v = String(filters.orderId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.orderId || item.checkoutId || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.sessionType && filters.sessionType !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.sessionType || "").toLowerCase() === filters.sessionType.toLowerCase()
+          );
+        }
+        if (filters.status && filters.status !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+          );
+        }
+        if (filters.from) {
+          const fromD = new Date(filters.from);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.created_at);
+            return !Number.isNaN(d.getTime()) && d >= fromD;
+          });
+        }
+        if (filters.to) {
+          const toD = new Date(filters.to);
+          toD.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.created_at);
+            return !Number.isNaN(d.getTime()) && d <= toD;
+          });
+        }
+      }
+
+      // Apply payment-transactions filters
+      if (baseSectionName === "payment-transactions") {
+        if (filters.userId) {
+          const v = String(filters.userId).toLowerCase();
+          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+        }
+        if (filters.beneficiaryId) {
+          const v = String(filters.beneficiaryId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.beneficiaryId || item.recipientId || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.orderType && filters.orderType !== "") {
+          const typeFilter = filters.orderType.toLowerCase();
+          dataArray = dataArray.filter(
+            (item) =>
+              (item.orderType || item.transactionType || "").toLowerCase() === typeFilter
+          );
+        }
+        if (filters.status && filters.status !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+          );
+        }
+        if (filters.referenceId) {
+          const v = String(filters.referenceId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.orderId || item.transactionId || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.purpose && filters.purpose !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.purpose || "").toLowerCase() === filters.purpose.toLowerCase()
+          );
+        }
+        if (filters.from) {
+          const fromD = new Date(filters.from);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.created_at);
+            return !Number.isNaN(d.getTime()) && d >= fromD;
+          });
+        }
+        if (filters.to) {
+          const toD = new Date(filters.to);
+          toD.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.created_at);
+            return !Number.isNaN(d.getTime()) && d <= toD;
+          });
+        }
+      }
+
+      // Apply payment-schedules filters
+      if (baseSectionName === "payment-schedules") {
+        if (filters.userId) {
+          const v = String(filters.userId).toLowerCase();
+          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+        }
+        if (filters.referenceId) {
+          const v = String(filters.referenceId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.orderId || item.subscriptionId || item.registrationId || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.frequency && filters.frequency !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.frequency || "").toLowerCase() === filters.frequency.toLowerCase()
+          );
+        }
+        if (filters.status && filters.status !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.status || "").toLowerCase() === filters.status.toLowerCase()
+          );
+        }
+        if (filters.from) {
+          const fromD = new Date(filters.from);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.startDate);
+            return !Number.isNaN(d.getTime()) && d >= fromD;
+          });
+        }
+        if (filters.to) {
+          const toD = new Date(filters.to);
+          toD.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt || item.nextScheduleDate);
+            return !Number.isNaN(d.getTime()) && d <= toD;
+          });
+        }
+      }
+
+      // Apply payment-tokens filters
+      if (baseSectionName === "payment-tokens") {
+        if (filters.userId) {
+          const v = String(filters.userId).toLowerCase();
+          dataArray = dataArray.filter((item) => String(item.userId || "").toLowerCase().includes(v));
+        }
+        if (filters.registrationId) {
+          const v = String(filters.registrationId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.registrationId || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.type && filters.type !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.type || "").toLowerCase() === filters.type.toLowerCase()
+          );
+        }
+        if (filters.status && filters.status !== "") {
+          const s = filters.status.toLowerCase();
+          dataArray = dataArray.filter(
+            (item) => (item.status || "").toLowerCase() === s
+          );
+        }
+        if (filters.from) {
+          const fromD = new Date(filters.from);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt);
+            return !Number.isNaN(d.getTime()) && d >= fromD;
+          });
+        }
+        if (filters.to) {
+          const toD = new Date(filters.to);
+          toD.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt);
+            return !Number.isNaN(d.getTime()) && d <= toD;
+          });
+        }
+      }
+
+      // Apply payment-webhooks filters
+      if (baseSectionName === "payment-webhooks") {
+        if (filters.orderId) {
+          const v = String(filters.orderId).toLowerCase();
+          dataArray = dataArray.filter((item) =>
+            String(item.orderId || item.idempotencyKey || "").toLowerCase().includes(v)
+          );
+        }
+        if (filters.actionTaken && filters.actionTaken !== "") {
+          dataArray = dataArray.filter(
+            (item) => (item.actionTaken || "").toLowerCase() === filters.actionTaken.toLowerCase()
+          );
+        }
+        if (filters.handled !== undefined && filters.handled !== "") {
+          const handledVal = filters.handled === "true";
+          dataArray = dataArray.filter((item) => item.handled === handledVal);
+        }
+        if (filters.from) {
+          const fromD = new Date(filters.from);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt);
+            return !Number.isNaN(d.getTime()) && d >= fromD;
+          });
+        }
+        if (filters.to) {
+          const toD = new Date(filters.to);
+          toD.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((item) => {
+            const d = new Date(item.createdAt);
+            return !Number.isNaN(d.getTime()) && d <= toD;
+          });
+        }
+      }
+
+      // Apply from/to date filters if provided (skip for sales-registry and payment sections; they use their own blocks)
+      const paymentSections = ["payment-sessions", "payment-transactions", "payment-schedules", "payment-tokens", "payment-webhooks"];
+      if (baseSectionName !== "sales-registry" && !paymentSections.includes(baseSectionName)) {
+        if (filters.from) {
+          const fromDateFilter = new Date(filters.from);
+          dataArray = dataArray.filter((dataItem) => {
+            const itemCreatedDate = new Date(dataItem.createdAt);
+            return itemCreatedDate >= fromDateFilter;
+          });
+        }
+        if (filters.to) {
+          const toDateFilter = new Date(filters.to);
+          toDateFilter.setHours(23, 59, 59, 999);
+          dataArray = dataArray.filter((dataItem) => {
+            const itemCreatedDate = new Date(dataItem.createdAt);
+            return itemCreatedDate <= toDateFilter;
+          });
+        }
       }
 
       // Apply user-block specific filters
