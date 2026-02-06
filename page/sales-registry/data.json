@@ -1,0 +1,357 @@
+[
+  {
+    "id": "txn_001",
+    "createdAt": "2026-01-15T10:30:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_001",
+    "beneficiaryId": "user_002",
+    "amount": 25.50,
+    "purpose": "subscription",
+    "state": "completed",
+    "refId": "ref_abc123",
+    "metadata": {
+      "subscriptionId": "sub_001",
+      "plan": "premium"
+    }
+  },
+  {
+    "id": "txn_002",
+    "createdAt": "2026-01-16T14:20:00Z",
+    "transactionType": "TIP",
+    "userId": "user_003",
+    "beneficiaryId": "user_001",
+    "amount": 100.00,
+    "purpose": "tip",
+    "state": "completed",
+    "refId": "ref_def456",
+    "metadata": {
+      "contentId": "content_001",
+      "message": "Great content!"
+    }
+  },
+  {
+    "id": "txn_003",
+    "createdAt": "2026-01-17T09:15:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_002",
+    "beneficiaryId": "user_004",
+    "amount": 50.00,
+    "purpose": "purchase",
+    "state": "pending",
+    "refId": "ref_ghi789",
+    "metadata": {
+      "productId": "prod_001",
+      "quantity": 1
+    }
+  },
+  {
+    "id": "txn_004",
+    "createdAt": "2026-01-18T16:45:00Z",
+    "transactionType": "DEBIT",
+    "userId": "user_004",
+    "beneficiaryId": "user_002",
+    "amount": 50.00,
+    "purpose": "refund",
+    "state": "completed",
+    "refId": "ref_jkl012",
+    "metadata": {
+      "originalTxnId": "txn_003",
+      "reason": "customer_request"
+    }
+  },
+  {
+    "id": "txn_005",
+    "createdAt": "2026-01-19T11:30:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_001",
+    "beneficiaryId": "user_005",
+    "amount": 75.25,
+    "purpose": "subscription",
+    "state": "failed",
+    "refId": "ref_mno345",
+    "metadata": {
+      "subscriptionId": "sub_002",
+      "error": "insufficient_funds"
+    }
+  },
+  {
+    "id": "txn_006",
+    "createdAt": "2026-01-20T13:20:00Z",
+    "transactionType": "TIP",
+    "userId": "user_005",
+    "beneficiaryId": "user_003",
+    "amount": 30.00,
+    "purpose": "tip",
+    "state": "cancelled",
+    "refId": "ref_pqr678",
+    "metadata": {
+      "contentId": "content_002",
+      "cancelledBy": "user_005"
+    }
+  },
+  {
+    "id": "txn_007",
+    "createdAt": "2026-01-21T08:10:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_002",
+    "beneficiaryId": "user_001",
+    "amount": 150.00,
+    "purpose": "purchase",
+    "state": "completed",
+    "refId": "ref_stu901",
+    "metadata": {
+      "productId": "prod_002",
+      "quantity": 2
+    }
+  },
+  {
+    "id": "txn_008",
+    "createdAt": "2026-01-22T15:55:00Z",
+    "transactionType": "TIP",
+    "userId": "user_004",
+    "beneficiaryId": "user_005",
+    "amount": 20.00,
+    "purpose": "tip",
+    "state": "pending",
+    "refId": "ref_vwx234",
+    "metadata": {
+      "contentId": "content_003"
+    }
+  },
+  {
+    "id": "txn_009",
+    "createdAt": "2026-01-23T10:40:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_003",
+    "beneficiaryId": "user_002",
+    "amount": 200.00,
+    "purpose": "subscription",
+    "state": "completed",
+    "refId": "ref_yza567",
+    "metadata": {
+      "subscriptionId": "sub_003",
+      "plan": "enterprise"
+    }
+  },
+  {
+    "id": "txn_010",
+    "createdAt": "2026-01-24T12:25:00Z",
+    "transactionType": "DEBIT",
+    "userId": "user_001",
+    "beneficiaryId": "user_003",
+    "amount": 100.00,
+    "purpose": "refund",
+    "state": "completed",
+    "refId": "ref_bcd890",
+    "metadata": {
+      "originalTxnId": "txn_009",
+      "reason": "service_issue"
+    }
+  },
+  {
+    "id": "txn_011",
+    "createdAt": "2026-01-25T09:05:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_005",
+    "beneficiaryId": "user_004",
+    "amount": 45.75,
+    "purpose": "purchase",
+    "state": "failed",
+    "refId": "ref_efg123",
+    "metadata": {
+      "productId": "prod_003",
+      "error": "payment_gateway_error"
+    }
+  },
+  {
+    "id": "txn_012",
+    "createdAt": "2026-01-26T14:50:00Z",
+    "transactionType": "TIP",
+    "userId": "user_001",
+    "beneficiaryId": "user_003",
+    "amount": 15.00,
+    "purpose": "tip",
+    "state": "completed",
+    "refId": "ref_hij456",
+    "metadata": {
+      "contentId": "content_004"
+    }
+  },
+  {
+    "id": "txn_013",
+    "createdAt": "2026-01-27T11:00:00Z",
+    "transactionType": "HOLD",
+    "userId": "user_002",
+    "beneficiaryId": "user_005",
+    "amount": 60.00,
+    "purpose": "tip",
+    "state": "open",
+    "refId": "ref_held001",
+    "metadata": {
+      "contentId": "content_005",
+      "holdReason": "review"
+    }
+  },
+  {
+    "id": "txn_014",
+    "createdAt": "2026-01-28T09:30:00Z",
+    "transactionType": "HOLD",
+    "userId": "user_004",
+    "beneficiaryId": "user_001",
+    "amount": 120.00,
+    "purpose": "subscription",
+    "state": "open",
+    "refId": "ref_held002",
+    "metadata": {
+      "subscriptionId": "sub_004",
+      "holdReason": "verification"
+    }
+  },
+  {
+    "id": "txn_015",
+    "createdAt": "2026-01-29T10:15:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_006",
+    "beneficiaryId": "user_002",
+    "amount": 80.00,
+    "purpose": "subscription",
+    "state": "completed",
+    "refId": "ref_extra001",
+    "metadata": {
+      "subscriptionId": "sub_005",
+      "plan": "standard"
+    }
+  },
+  {
+    "id": "txn_016",
+    "createdAt": "2026-01-30T14:45:00Z",
+    "transactionType": "TIP",
+    "userId": "user_002",
+    "beneficiaryId": "user_006",
+    "amount": 40.00,
+    "purpose": "tip",
+    "state": "pending",
+    "refId": "ref_extra002",
+    "metadata": {
+      "contentId": "content_006"
+    }
+  },
+  {
+    "id": "txn_017",
+    "createdAt": "2026-01-31T08:20:00Z",
+    "transactionType": "DEBIT",
+    "userId": "user_003",
+    "beneficiaryId": "user_004",
+    "amount": 35.00,
+    "purpose": "refund",
+    "state": "completed",
+    "refId": "ref_extra003",
+    "metadata": {
+      "originalTxnId": "txn_007",
+      "reason": "duplicate_charge"
+    }
+  },
+  {
+    "id": "txn_018",
+    "createdAt": "2026-02-01T12:05:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_001",
+    "beneficiaryId": "user_006",
+    "amount": 55.50,
+    "purpose": "purchase",
+    "state": "failed",
+    "refId": "ref_extra004",
+    "metadata": {
+      "productId": "prod_004",
+      "error": "card_declined"
+    }
+  },
+  {
+    "id": "txn_019",
+    "createdAt": "2026-02-02T17:40:00Z",
+    "transactionType": "TIP",
+    "userId": "user_005",
+    "beneficiaryId": "user_002",
+    "amount": 22.00,
+    "purpose": "tip",
+    "state": "completed",
+    "refId": "ref_extra005",
+    "metadata": {
+      "contentId": "content_007"
+    }
+  },
+  {
+    "id": "txn_020",
+    "createdAt": "2026-02-03T09:55:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_006",
+    "beneficiaryId": "user_003",
+    "amount": 130.00,
+    "purpose": "subscription",
+    "state": "completed",
+    "refId": "ref_extra006",
+    "metadata": {
+      "subscriptionId": "sub_006",
+      "plan": "premium"
+    }
+  },
+  {
+    "id": "txn_021",
+    "createdAt": "2026-02-04T13:10:00Z",
+    "transactionType": "HOLD",
+    "userId": "user_003",
+    "beneficiaryId": "user_006",
+    "amount": 18.00,
+    "purpose": "tip",
+    "state": "open",
+    "refId": "ref_extra007",
+    "metadata": {
+      "contentId": "content_008",
+      "holdReason": "manual_review"
+    }
+  },
+  {
+    "id": "txn_022",
+    "createdAt": "2026-02-05T11:25:00Z",
+    "transactionType": "DEBIT",
+    "userId": "user_002",
+    "beneficiaryId": "user_005",
+    "amount": 90.00,
+    "purpose": "refund",
+    "state": "completed",
+    "refId": "ref_extra008",
+    "metadata": {
+      "originalTxnId": "txn_018",
+      "reason": "customer_request"
+    }
+  },
+  {
+    "id": "txn_023",
+    "createdAt": "2026-02-06T16:00:00Z",
+    "transactionType": "CREDIT_PAID",
+    "userId": "user_004",
+    "beneficiaryId": "user_002",
+    "amount": 75.00,
+    "purpose": "purchase",
+    "state": "completed",
+    "refId": "ref_extra009",
+    "metadata": {
+      "productId": "prod_005",
+      "quantity": 3
+    }
+  },
+  {
+    "id": "txn_024",
+    "createdAt": "2026-02-07T19:35:00Z",
+    "transactionType": "TIP",
+    "userId": "user_001",
+    "beneficiaryId": "user_004",
+    "amount": 27.00,
+    "purpose": "tip",
+    "state": "completed",
+    "refId": "ref_extra010",
+    "metadata": {
+      "contentId": "content_009"
+    }
+  }
+]

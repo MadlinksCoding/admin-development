@@ -102,6 +102,18 @@ fansocial-admin/
 └── index.html                    # Root redirect
 ```
 
+## Running the project
+
+**Requirements:** Python 3.x (or Node.js if you prefer `npx serve`).
+
+- **With Python (recommended):** From the project root, run:
+  ```bash
+  npm start
+  ```
+  or `python -m http.server 8080`. Then open **http://localhost:8080/** in your browser. The app redirects to the Products page.
+
+- **With Node:** `npx serve . -l 8080` (requires `serve` available via npx).
+
 ## Key Patterns
 
 ### Page Script Pattern

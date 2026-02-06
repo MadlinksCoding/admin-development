@@ -349,6 +349,98 @@ window.PayloadBuilders = {
     };
   },
   /**
+   * Build payload for sales-registry section
+   * @param {Object} filterValues - Filter values object
+   * @param {Object} paginationOptions - Pagination options object
+   * @returns {Object} Payload object for API request
+   */
+  "sales-registry"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "sales-registry",
+      payee: filterValues.payee || undefined,
+      beneficiary: filterValues.beneficiary || undefined,
+      type: filterValues.type || undefined,
+      state: filterValues.state || undefined,
+      refId: filterValues.refId || undefined,
+      purpose: filterValues.purpose || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-sessions"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-sessions",
+      userId: filterValues.userId || undefined,
+      orderId: filterValues.orderId || undefined,
+      sessionType: filterValues.sessionType || undefined,
+      status: filterValues.status || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-transactions"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-transactions",
+      userId: filterValues.userId || undefined,
+      beneficiaryId: filterValues.beneficiaryId || undefined,
+      orderType: filterValues.orderType || undefined,
+      status: filterValues.status || undefined,
+      referenceId: filterValues.referenceId || undefined,
+      purpose: filterValues.purpose || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-schedules"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-schedules",
+      userId: filterValues.userId || undefined,
+      referenceId: filterValues.referenceId || undefined,
+      frequency: filterValues.frequency || undefined,
+      status: filterValues.status || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-tokens"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-tokens",
+      userId: filterValues.userId || undefined,
+      registrationId: filterValues.registrationId || undefined,
+      type: filterValues.type || undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  "payment-webhooks"(filterValues = {}, paginationOptions = {}) {
+    return {
+      env: window.Env.current,
+      section: "payment-webhooks",
+      orderId: filterValues.orderId || undefined,
+      actionTaken: filterValues.actionTaken || undefined,
+      handled: filterValues.handled !== undefined && filterValues.handled !== "" ? filterValues.handled === "true" : undefined,
+      from: filterValues.from || undefined,
+      to: filterValues.to || undefined,
+      nextToken: filterValues.nextToken || undefined,
+      pagination: paginationOptions
+    };
+  },
+  /**
    * Build payload for demo section
    * @param {Object} filterValues - Filter values object
    * @param {Object} paginationOptions - Pagination options object
@@ -533,15 +625,33 @@ async function getTotalCount(sectionName, filters = {}) {
   // Use adapter for request building and response transformation
   const adapter = window.ApiAdapters.get(sectionName);
   const countRequest = adapter.buildCountRequest(filters);
-  
+
+  const getLocalCount = async () => {
+    const dataArray = await localFetch(sectionName);
+    const items = Array.isArray(dataArray) ? dataArray : [];
+    return applyMockFilters(items, filters, sectionName).length;
+  };
+
   // If adapter signals no dedicated count endpoint (e.g., combined with list)
   if (!countRequest) {
-    return null;
+    try {
+      return await getLocalCount();
+    } catch (err) {
+      console.warn(`[ApiService] getTotalCount local fallback failed:`, err);
+      return null;
+    }
   }
 
   try {
     let fullUrl = resolveUrl(sectionName, countRequest.endpointSuffix);
-    if (!fullUrl) return null;
+    if (!fullUrl) {
+      try {
+        return await getLocalCount();
+      } catch (err) {
+        console.warn(`[ApiService] getTotalCount local fallback failed:`, err);
+        return null;
+      }
+    }
 
     if (countRequest.params) {
       const qs = countRequest.params.toString();
@@ -565,6 +675,36 @@ async function getTotalCount(sectionName, filters = {}) {
 }
 
 /**
+ * Fetch a single transaction or session from Axcess (by ID).
+ * Uses the page's API config: payment-transactions or payment-sessions endpoint + /axcess/{entity}/{id}.
+ * @param {string} entity - "transaction" | "session"
+ * @param {string} id - transactionId, gatewayTxnId, or session id / checkoutId
+ * @returns {Promise<Object|null>} Fetched payload or null if no endpoint configured
+ */
+async function fetchFromAxcess(entity, id) {
+  if (!id || !entity) return null;
+  const section = entity === "transaction" ? "payment-transactions" : "payment-sessions";
+  let pageApiConfig;
+  try {
+    if (!hasApiConfigScript()) return null;
+    pageApiConfig = getPageApiConfig(section);
+  } catch (e) {
+    return null;
+  }
+  const env = window.Env?.current || "dev";
+  const baseUrl = pageApiConfig?.[env]?.endpoint?.trim();
+  if (!baseUrl) return null;
+  const url = baseUrl.replace(/\/$/, "") + "/axcess/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id);
+  try {
+    const res = await fetchWithTimeout(url, { method: "GET" });
+    if (!res.ok) throw new Error(res.statusText || "Request failed");
+    return await res.json();
+  } catch (err) {
+    throw err;
+  }
+}
+
+/**
  * API Service
  * Main service for fetching data from local or remote sources
  */
@@ -574,169 +714,184 @@ async function getTotalCount(sectionName, filters = {}) {
  * @param {Object} filters - Filter criteria
  * @returns {Array} Filtered array
  */
-function applyMockFilters(dataArray, filters) {
+function applyMockFilters(dataArray, filters, sectionName = "") {
     if (!filters || Object.keys(filters).length === 0) return dataArray;
-    
-    let filtered = [...dataArray];
 
-    // 1. Global Search (q)
+    const sourceItems = Array.isArray(dataArray) ? dataArray : [];
+    let filtered = [...sourceItems];
+
+    const ignoreKeys = new Set([
+      "env",
+      "section",
+      "pagination",
+      "limit",
+      "offset",
+      "nextToken",
+      "sortField",
+      "sortDirection"
+    ]);
+
+    const normalize = (value) => String(value).toLowerCase();
+
+    const toSnakeCase = (value) =>
+      String(value)
+        .replace(/([a-z])([A-Z])/g, "$1_$2")
+        .replace(/[-\s]+/g, "_")
+        .toLowerCase();
+
+    const toCamelCase = (value) =>
+      String(value)
+        .replace(/[-_\s]+(.)?/g, (_, ch) => (ch ? ch.toUpperCase() : ""));
+
+    const buildCandidateKeys = (key) => {
+      const candidates = new Set();
+      const keyStr = String(key);
+      candidates.add(keyStr);
+      candidates.add(toSnakeCase(keyStr));
+      candidates.add(toCamelCase(keyStr));
+      candidates.add(keyStr.replace(/-/g, "_"));
+      candidates.add(keyStr.replace(/_/g, "-"));
+      return [...candidates].filter(Boolean);
+    };
+
+    const getFieldValues = (item, key) => {
+      const keys = buildCandidateKeys(key);
+      return keys
+        .map((k) => item?.[k])
+        .filter((v) => v !== undefined && v !== null);
+    };
+
+    const isBooleanValue = (value) =>
+      value === true || value === false || value === "true" || value === "false";
+
+    const matchesBoolean = (item, key, value) => {
+      const values = getFieldValues(item, key);
+      if (values.length === 0) return false;
+      const boolVal = value === true || value === "true";
+      return values.some((v) => {
+        if (typeof v === "boolean") return v === boolVal;
+        if (typeof v === "string") return normalize(v) === String(boolVal);
+        return false;
+      });
+    };
+
+    const matchesArray = (item, key, values) => {
+      const itemValues = getFieldValues(item, key).find((v) => Array.isArray(v));
+      if (!Array.isArray(itemValues)) return false;
+      const normalized = itemValues.map((v) => normalize(v));
+      return values.some((v) => normalized.includes(normalize(v)));
+    };
+
+    const getPrimitiveStrings = (item) => {
+      const output = [];
+      Object.values(item || {}).forEach((value) => {
+        if (value === undefined || value === null) return;
+        if (Array.isArray(value)) {
+          value.forEach((inner) => {
+            if (inner === undefined || inner === null) return;
+            if (typeof inner === "object") return;
+            output.push(normalize(inner));
+          });
+          return;
+        }
+        if (typeof value === "object") return;
+        output.push(normalize(value));
+      });
+      return output;
+    };
+
+    const filterDefinitions = (() => {
+      const baseSection = sectionName.split("/").pop();
+      const definitions = window.AdminConfig?.filters?.[sectionName] || window.AdminConfig?.filters?.[baseSection];
+      if (!Array.isArray(definitions)) return {};
+      return definitions.reduce((acc, def) => {
+        if (def?.name) acc[def.name] = def;
+        return acc;
+      }, {});
+    })();
+
+    const resolveMatchType = (key) => {
+      const def = filterDefinitions[key];
+      if (def?.match) return def.match;
+      if (def?.type === "select") return "exact";
+      if (def?.type === "date") return "date";
+      if (def?.type === "checkbox" || def?.type === "boolean") return "boolean";
+      return "contains";
+    };
+
+    const getDateCandidates = (item, key) => {
+      const candidates = getFieldValues(item, key);
+      if (candidates.length) return candidates;
+      const keys = Object.keys(item || {}).filter((k) => /(date|time|_at|At)$/i.test(k));
+      return keys.map((k) => item[k]).filter((v) => v);
+    };
+
+    const applyDateFilter = (filterKey, filterValue, comparison) => {
+      const targetKey = filterKey === "from" || filterKey === "to" ? "createdAt" : filterKey.replace(/_(from|to)$/i, "");
+      const compareDate = new Date(filterValue);
+      if (Number.isNaN(compareDate.getTime())) return;
+      if (comparison === "lte") {
+        compareDate.setHours(23, 59, 59, 999);
+      }
+      filtered = filtered.filter((item) => {
+        const dateValues = getDateCandidates(item, targetKey);
+        return dateValues.some((value) => {
+          const parsed = new Date(value);
+          if (Number.isNaN(parsed.getTime())) return false;
+          return comparison === "gte" ? parsed >= compareDate : parsed <= compareDate;
+        });
+      });
+    };
+
     if (filters.q) {
-      const s = filters.q.toLowerCase();
-      filtered = filtered.filter(i => 
-        (i.uid || "").toLowerCase().includes(s) ||
-        (i.public_uid || "").toLowerCase().includes(s) ||
-        (i.username || i.user_name || "").toLowerCase().includes(s) ||
-        (i.display_name || "").toLowerCase().includes(s) ||
-        (i.email || "").toLowerCase().includes(s) ||
-        (i.phone_number || "").toLowerCase().includes(s) ||
-        (i.userId || i.user_id || "").toLowerCase().includes(s) ||
-        (i.referenceId || i.reference_id || "").toLowerCase().includes(s) ||
-        (i.title || "").toLowerCase().includes(s) ||
-        (i.name || "").toLowerCase().includes(s)
-      );
+      const query = normalize(filters.q);
+      filtered = filtered.filter((item) => getPrimitiveStrings(item).some((val) => val.includes(query)));
     }
 
-    // 2. Exact User Identifiers
-    if (filters.uid) {
-        filtered = filtered.filter(i => (i.uid || "").toLowerCase() === filters.uid.toLowerCase());
-    }
-    if (filters.public_uid) {
-        filtered = filtered.filter(i => (i.public_uid || "").toLowerCase() === filters.public_uid.toLowerCase());
-    }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (ignoreKeys.has(key) || key === "q") return;
+      if (value === undefined || value === null || value === "") return;
+      if (typeof value === "string" && ["Any", "all"].includes(value)) return;
+      if (typeof value === "object" && !Array.isArray(value)) return;
 
-    // 3. User Specifics
-    if (filters.username || filters.user_name) {
-      const u = (filters.username || filters.user_name).toLowerCase();
-      filtered = filtered.filter(i => (i.username || i.user_name || "").toLowerCase().includes(u));
-    }
-    if (filters.phone_number) {
-      const p = filters.phone_number.toLowerCase();
-      filtered = filtered.filter(i => (i.phone_number || "").toLowerCase().includes(p));
-    }
-    if (filters.display_name) {
-      const d = filters.display_name.toLowerCase();
-      filtered = filtered.filter(i => (i.display_name || "").toLowerCase().includes(d));
-    }
-    if (filters.email) {
-      const e = filters.email.toLowerCase();
-      filtered = filtered.filter(i => (i.email || "").toLowerCase().includes(e));
-    }
-    if (filters.role && filters.role !== "") {
-      const r = filters.role.toLowerCase();
-      filtered = filtered.filter(i => (i.role || "").toLowerCase() === r);
-    }
+      if (/_from$/i.test(key)) {
+        applyDateFilter(key, value, "gte");
+        return;
+      }
+      if (/_to$/i.test(key)) {
+        applyDateFilter(key, value, "lte");
+        return;
+      }
+      if (key === "from") {
+        applyDateFilter(key, value, "gte");
+        return;
+      }
+      if (key === "to") {
+        applyDateFilter(key, value, "lte");
+        return;
+      }
 
-    // 4. Status
-    if (filters.status && filters.status !== "" && filters.status !== "Any" && filters.status !== "all") {
-      const s = filters.status.toLowerCase();
-      filtered = filtered.filter(i => (i.status || "").toLowerCase() === s);
-    }
+      if (Array.isArray(value)) {
+        filtered = filtered.filter((item) => matchesArray(item, key, value));
+        return;
+      }
 
-    // 5. Media Specifics
-    if (filters.media_id) {
-        const m = filters.media_id.toLowerCase();
-        filtered = filtered.filter(i => (i.media_id || "").toLowerCase() === m);
-    }
-    if (filters.media_type) {
-        const t = filters.media_type.toLowerCase();
-        filtered = filtered.filter(i => (i.media_type || "").toLowerCase() === t);
-    }
-    if (filters.visibility) {
-        const v = filters.visibility.toLowerCase();
-        filtered = filtered.filter(i => (i.visibility || "").toLowerCase() === v);
-    }
-    if (filters.owner_user_id) {
-        const o = filters.owner_user_id.toLowerCase();
-        filtered = filtered.filter(i => (i.owner_user_id || "").toLowerCase() === o);
-    }
+      if (isBooleanValue(value) || resolveMatchType(key) === "boolean") {
+        filtered = filtered.filter((item) => matchesBoolean(item, key, value));
+        return;
+      }
 
-    // 6. User Blocks Specifics
-    if (filters.id) {
-      const id = String(filters.id).toLowerCase();
-      filtered = filtered.filter(i => String(i.id || i.blockId || "").toLowerCase().includes(id));
-    }
-    if (filters.blocker_id) {
-        const b = filters.blocker_id.toLowerCase();
-        filtered = filtered.filter(i => (i.blocker_id || i.fromUserId || "").toLowerCase().includes(b));
-    }
-    if (filters.blocked_id) {
-        const b = filters.blocked_id.toLowerCase();
-        filtered = filtered.filter(i => (i.blocked_id || i.toUserId || "").toLowerCase().includes(b));
-    }
-    if (filters.scope) {
-        const s = filters.scope.toLowerCase();
-        filtered = filtered.filter(i => (i.scope || "").toLowerCase() === s);
-    }
-    if (filters.flag) {
-        const f = filters.flag.toLowerCase();
-        filtered = filtered.filter(i => (i.flag || "").toLowerCase() === f);
-    }
-    if (filters.is_permanent !== undefined && filters.is_permanent !== "") {
-        const p = String(filters.is_permanent) === "true";
-        filtered = filtered.filter(i => (i.is_permanent === p || i.isPermanent === p));
-    }
-    if (filters.expired !== undefined && filters.expired !== "") {
-        const e = String(filters.expired) === "true";
-        filtered = filtered.filter(i => (i.expired === e));
-    }
-
-    // 7. Products Specifics
-    if (filters.category && filters.category !== "All") {
-        const c = filters.category.toLowerCase();
-        filtered = filtered.filter(i => (i.category || "").toLowerCase() === c);
-    }
-    if (filters.sku) {
-        const s = filters.sku.toLowerCase();
-        filtered = filtered.filter(i => (i.sku || "").toLowerCase().includes(s));
-    }
-    if (filters.price_from) {
-        const p = parseFloat(filters.price_from);
-        filtered = filtered.filter(i => parseFloat(i.price || 0) >= p);
-    }
-    if (filters.price_to) {
-        const p = parseFloat(filters.price_to);
-        filtered = filtered.filter(i => parseFloat(i.price || 0) <= p);
-    }
-
-    // 8. Date Ranges
-    if (filters.from || filters.created_from) {
-      const f = new Date(filters.from || filters.created_from);
-      filtered = filtered.filter(i => {
-        const d = i.createdAt || i.created_at;
-        return d && new Date(d) >= f;
+      const matchType = resolveMatchType(key);
+      const needle = normalize(value);
+      filtered = filtered.filter((item) => {
+        const values = getFieldValues(item, key);
+        if (values.length === 0) return false;
+        if (matchType === "exact") {
+          return values.some((v) => normalize(v) === needle);
+        }
+        return values.some((v) => normalize(v).includes(needle));
       });
-    }
-    if (filters.to || filters.created_to) {
-      const t = new Date(filters.to || filters.created_to);
-      t.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(i => {
-        const d = i.createdAt || i.created_at;
-        return d && new Date(d) <= t;
-      });
-    }
-    if (filters.last_activity_from) {
-      const f = new Date(filters.last_activity_from);
-      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) >= f);
-    }
-    if (filters.last_activity_to) {
-      const t = new Date(filters.last_activity_to);
-      t.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(i => i.last_activity && new Date(i.last_activity) <= t);
-    }
-
-    // 9. Boolean Toggles
-    if (filters.promo === true || filters.promo === "true") {
-        filtered = filtered.filter(i => i.promo === true);
-    }
-    if (filters.inStock === true || filters.inStock === "true") {
-        filtered = filtered.filter(i => i.inStock === true);
-    }
-    if (filters.featured === true || filters.featured === "true") {
-        filtered = filtered.filter(i => i.featured === true);
-    }
-    if (filters.coming_soon === true || filters.coming_soon === "true") {
-        filtered = filtered.filter(i => i.coming_soon === true);
-    }
+    });
 
     return filtered;
 }
@@ -844,7 +999,7 @@ window.ApiService = {
        let dataArray = await localFetch(sectionName);
 
         // Apply consolidated mock filtering
-        dataArray = applyMockFilters(dataArray, filters);
+        dataArray = applyMockFilters(dataArray, filters, sectionName);
 
         // Sorting
         if (pagination.sortField) {

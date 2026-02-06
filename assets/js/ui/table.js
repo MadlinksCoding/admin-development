@@ -135,8 +135,14 @@
         return column.formatter(value, row);
       }
     }
-    // Default: escape HTML, display value as-is
+    // Default: escape HTML, display value as-is, with pretty number formatting
     if (value == null) return '-';
+
+    // Use global number formatter for large numeric values (IDs, counts, etc.)
+    if (typeof value === 'number' && window.AdminUtils && typeof window.AdminUtils.formatNumber === 'function') {
+      return window.AdminUtils.formatNumber(value);
+    }
+
     return String(value);
   }
 

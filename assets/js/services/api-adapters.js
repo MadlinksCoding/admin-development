@@ -381,6 +381,76 @@
         }
     }
 
+    /**
+     * Payment Gateway Base Adapter
+     * Handles GET requests with query params for payment-related sections
+     */
+    class PaymentGatewayBaseAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                params.append(key, value);
+            });
+
+            if (pagination && pagination.limit !== undefined && pagination.limit !== null) {
+                params.append("limit", pagination.limit);
+            }
+
+            if (filters && filters.nextToken) {
+                params.append("nextToken", filters.nextToken);
+            } else if (pagination && pagination.offset !== undefined && pagination.offset !== null) {
+                params.append("offset", pagination.offset);
+            }
+
+            return {
+                method: "GET",
+                params
+            };
+        }
+
+        transformResponse(responseData) {
+            if (!responseData || typeof responseData !== "object") return responseData;
+            if (Array.isArray(responseData.items)) return responseData;
+
+            const listKey = [
+                "data",
+                "rows",
+                "results",
+                "records",
+                "transactions",
+                "sessions",
+                "schedules",
+                "tokens",
+                "webhooks"
+            ].find((key) => Array.isArray(responseData[key]));
+
+            if (!listKey) return responseData;
+
+            const items = responseData[listKey];
+            const total = responseData.total !== undefined
+                ? responseData.total
+                : (responseData.totalCount !== undefined
+                    ? responseData.totalCount
+                    : (responseData.count !== undefined ? responseData.count : items.length));
+
+            return {
+                items,
+                total,
+                nextCursor: responseData.nextCursor,
+                prevCursor: responseData.prevCursor,
+                nextToken: responseData.nextToken
+            };
+        }
+    }
+
+    class PaymentSessionsAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentTransactionsAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentSchedulesAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentTokensAdapter extends PaymentGatewayBaseAdapter {}
+    class PaymentWebhooksAdapter extends PaymentGatewayBaseAdapter {}
+
 
     // Registry of all adapters
     const registry = {
@@ -391,7 +461,12 @@
         'products': ProductsAdapter,
         'orders': OrdersAdapter,
         'users': UsersAdapter,
-        'media': MediaAdapter
+        'media': MediaAdapter,
+        'payment-sessions': PaymentSessionsAdapter,
+        'payment-transactions': PaymentTransactionsAdapter,
+        'payment-schedules': PaymentSchedulesAdapter,
+        'payment-tokens': PaymentTokensAdapter,
+        'payment-webhooks': PaymentWebhooksAdapter
     };
 
     /**

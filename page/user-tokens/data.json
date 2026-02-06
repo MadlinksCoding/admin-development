@@ -1,0 +1,32 @@
+[
+  {
+    "userId": "user_001",
+    "paidTokens": 150.50,
+    "systemFreeTokens": 25.00,
+    "creatorFreeTokens": 10.00
+  },
+  {
+    "userId": "user_002",
+    "paidTokens": 0.00,
+    "systemFreeTokens": 5.00,
+    "creatorFreeTokens": 0.00
+  },
+  {
+    "userId": "user_003",
+    "paidTokens": 500.75,
+    "systemFreeTokens": 50.00,
+    "creatorFreeTokens": 30.00
+  },
+  {
+    "userId": "user_004",
+    "paidTokens": 75.25,
+    "systemFreeTokens": 15.00,
+    "creatorFreeTokens": 5.00
+  },
+  {
+    "userId": "user_005",
+    "paidTokens": 0.00,
+    "systemFreeTokens": 0.00,
+    "creatorFreeTokens": 0.00
+  }
+]
