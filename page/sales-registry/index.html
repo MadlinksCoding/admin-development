@@ -37,19 +37,13 @@
     <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <!-- Page-specific stylesheet -->
     <link href="page/sales-registry/style.css" rel="stylesheet" />
-    <!-- API Configuration: Configure API endpoints per environment. Uses ADMIN_APIS.md contracts (Token Registry). -->
+    <!-- API Configuration: Configure API endpoints per environment. Uses ADMIN_APIS.md contracts (Token Registry). Empty dev = mock data.json when backend not running. -->
     <script type="application/json" id="api-config">
       {
         "sales-registry": {
-          "prod": {
-            "endpoint": "http://209.38.24.155:3000/admin/token-registry"
-          },
-          "stage": {
-            "endpoint": "http://localhost:3000/admin/token-registry"
-          },
-          "dev": {
-            "endpoint": "http://localhost:3000/admin/token-registry"
-          }
+          "prod": { "endpoint": "token-registry" },
+          "stage": { "endpoint": "token-registry" },
+          "dev": { "endpoint": "token-registry" }
         }
       }
     </script>
@@ -91,7 +85,7 @@
             <!-- Reset filters button - appears when filters are active -->
             <button
               id="resetFiltersBtn"
-              class="btn btn-outline-secondary btn-sm"
+              class="btn btn-outline-primary btn-sm"
               style="display: none"
             >
               <i class="bi bi-x-circle"></i> Reset
@@ -128,8 +122,9 @@
     <!-- Configuration data -->
     <script src="assets/js/core/config.js"></script>
     <!-- Services -->
-    <!-- API service for data fetching -->
+    <!-- API adapters for request/response mapping -->
     <script src="assets/js/services/api-adapters.js"></script>
+    <!-- API service for data fetching -->
     <script src="assets/js/services/api-service.js"></script>
     <!-- UI Components -->
     <!-- Sidebar navigation component -->

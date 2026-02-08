@@ -18,13 +18,13 @@
     <link href="assets/css/notice.css" rel="stylesheet" />
     <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <link href="page/payment-webhooks/style.css" rel="stylesheet" />
-    <!-- API config: implements ADMIN_APIS.md /admin/payment-webhooks -->
+    <!-- API config: Base URL + /payment-webhooks (no /admin prefix) -->
     <script type="application/json" id="api-config">
       {
         "payment-webhooks": {
-          "prod": { "endpoint": "admin/payment-webhooks" },
-          "stage": { "endpoint": "admin/payment-webhooks" },
-          "dev": { "endpoint": "" }
+          "prod": { "endpoint": "payment-webhooks" },
+          "stage": { "endpoint": "payment-webhooks" },
+          "dev": { "endpoint": "payment-webhooks" }
         }
       }
     </script>
@@ -44,7 +44,7 @@
           <div class="d-flex gap-2">
             <select id="envSelect" class="form-select form-select-sm env-pill w-auto"></select>
             <button id="filterBtn" class="btn btn-outline-primary btn-sm" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" aria-controls="filterOffcanvas"><i class="bi bi-funnel"></i></button>
-            <button id="resetFiltersBtn" class="btn btn-outline-secondary btn-sm" style="display: none"><i class="bi bi-x-circle"></i> Reset</button>
+            <button id="resetFiltersBtn" class="btn btn-outline-primary btn-sm" style="display: none"><i class="bi bi-x-circle"></i> Reset</button>
             <button class="btn btn-primary btn-sm" onclick="document.body.dispatchEvent(new CustomEvent('section:refresh'));">Refresh</button>
           </div>
         </div>
@@ -56,21 +56,42 @@
         </div>
       </main>
     </div>
+    <!-- Bootstrap JavaScript bundle from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core JavaScript modules -->
+    <!-- Utility functions -->
     <script src="assets/js/core/utils.js"></script>
+    <!-- State management -->
     <script src="assets/js/core/state.js"></script>
+    <!-- Configuration data -->
     <script src="assets/js/core/config.js"></script>
+    <!-- Services -->
+    <!-- API adapters for request/response mapping -->
     <script src="assets/js/services/api-adapters.js"></script>
+    <!-- API service for data fetching -->
     <script src="assets/js/services/api-service.js"></script>
+    <!-- UI Components -->
+    <!-- Sidebar navigation component -->
     <script src="assets/js/ui/sidebar.js"></script>
+    <!-- Environment selector component -->
     <script src="assets/js/ui/env-selector.js"></script>
+    <!-- Filter panel component -->
     <script src="assets/js/ui/filter-panel.js"></script>
+    <!-- Modal viewer component -->
     <script src="assets/js/ui/modal-viewer.js"></script>
+    <!-- Notes panel component -->
     <script src="assets/js/ui/notes-panel.js"></script>
+    <!-- Tabs component -->
     <script src="assets/js/ui/tabs.js"></script>
+    <!-- Table component -->
     <script src="assets/js/ui/table.js"></script>
+    <!-- Page renderer utility -->
     <script src="assets/js/ui/page-renderer.js"></script>
+    <!-- Main -->
+    <!-- Main admin panel orchestrator -->
     <script src="assets/js/admin.js"></script>
+    <!-- Page-specific -->
+    <!-- Page-specific JavaScript logic -->
     <script src="page/payment-webhooks/script.js" defer></script>
   </body>
 </html>

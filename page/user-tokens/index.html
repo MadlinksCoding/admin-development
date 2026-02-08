@@ -37,19 +37,13 @@
     <link href="assets/css/notes-panel.css" rel="stylesheet" />
     <!-- Page-specific stylesheet -->
     <link href="page/user-tokens/style.css" rel="stylesheet" />
-    <!-- API Configuration: Configure API endpoints per environment. Uses ADMIN_APIS.md contracts. -->
+    <!-- API Configuration: Configure API endpoints per environment. Uses ADMIN_APIS.md contracts. Empty dev = mock data.json when backend not running. -->
     <script type="application/json" id="api-config">
       {
         "user-tokens": {
-          "prod": {
-            "endpoint": "http://209.38.24.155:3000/admin/user-tokens"
-          },
-          "stage": {
-            "endpoint": "http://localhost:3000/admin/user-tokens"
-          },
-          "dev": {
-            "endpoint": "http://localhost:3000/admin/user-tokens"
-          }
+          "prod": { "endpoint": "user-tokens" },
+          "stage": { "endpoint": "user-tokens" },
+          "dev": { "endpoint": "user-tokens" }
         }
       }
     </script>
@@ -91,7 +85,7 @@
             <!-- Reset filters button - appears when filters are active -->
             <button
               id="resetFiltersBtn"
-              class="btn btn-outline-secondary btn-sm"
+              class="btn btn-outline-primary btn-sm"
               style="display: none"
             >
               <i class="bi bi-x-circle"></i> Reset
@@ -150,10 +144,10 @@
     <script src="assets/js/ui/notes-panel.js"></script>
     <!-- Tabs component -->
     <script src="assets/js/ui/tabs.js"></script>
-    <!-- Page renderer utility -->
-    <script src="assets/js/ui/page-renderer.js"></script>
     <!-- Table component -->
     <script src="assets/js/ui/table.js"></script>
+    <!-- Page renderer utility -->
+    <script src="assets/js/ui/page-renderer.js"></script>
     <!-- Main -->
     <!-- Main admin panel orchestrator -->
     <script src="assets/js/admin.js"></script>
