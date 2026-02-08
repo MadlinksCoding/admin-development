@@ -382,6 +382,80 @@
     }
 
     /**
+     * User Tokens Adapter
+     * GET /user-tokens and GET /user-tokens/count with query params (q, userId, limit, nextToken, offset)
+     */
+    class UserTokensAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                if (key === "nextToken") return;
+                params.append(key, value);
+            });
+            if (pagination && pagination.limit != null) params.append("limit", pagination.limit);
+            if (filters && filters.nextToken) params.append("nextToken", filters.nextToken);
+            else if (pagination && pagination.offset != null) params.append("offset", pagination.offset);
+            return { method: "GET", params };
+        }
+
+        buildCountRequest(filters) {
+            const params = new URLSearchParams();
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                if (key === "nextToken") return;
+                params.append(key, value);
+            });
+            return { method: "GET", params, endpointSuffix: "count" };
+        }
+
+        transformResponse(responseData) {
+            if (!responseData || typeof responseData !== "object") return responseData;
+            if (Array.isArray(responseData.items)) return responseData;
+            const items = responseData.data || responseData.users || responseData.items || [];
+            const total = responseData.total != null ? responseData.total : (responseData.totalCount != null ? responseData.totalCount : (responseData.count != null ? responseData.count : items.length));
+            return { items, total, nextToken: responseData.nextToken, nextCursor: responseData.nextCursor, prevCursor: responseData.prevCursor };
+        }
+    }
+
+    /**
+     * Sales Registry (Token Registry) Adapter
+     * GET /token-registry and GET /token-registry/count with query params (payee, beneficiary, state, type, refId, purpose, from, to, limit, nextToken, offset)
+     */
+    class SalesRegistryAdapter extends BaseAdapter {
+        buildRequest(filters, pagination) {
+            const params = new URLSearchParams();
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                if (key === "nextToken") return;
+                params.append(key, value);
+            });
+            if (pagination && pagination.limit != null) params.append("limit", pagination.limit);
+            if (filters && filters.nextToken) params.append("nextToken", filters.nextToken);
+            else if (pagination && pagination.offset != null) params.append("offset", pagination.offset);
+            return { method: "GET", params };
+        }
+
+        buildCountRequest(filters) {
+            const params = new URLSearchParams();
+            Object.entries(filters || {}).forEach(([key, value]) => {
+                if (value === undefined || value === null || value === "") return;
+                if (key === "nextToken") return;
+                params.append(key, value);
+            });
+            return { method: "GET", params, endpointSuffix: "count" };
+        }
+
+        transformResponse(responseData) {
+            if (!responseData || typeof responseData !== "object") return responseData;
+            if (Array.isArray(responseData.items)) return responseData;
+            const items = responseData.data || responseData.transactions || responseData.items || [];
+            const total = responseData.total != null ? responseData.total : (responseData.totalCount != null ? responseData.totalCount : (responseData.count != null ? responseData.count : items.length));
+            return { items, total, nextToken: responseData.nextToken, nextCursor: responseData.nextCursor, prevCursor: responseData.prevCursor };
+        }
+    }
+
+    /**
      * Payment Gateway Base Adapter
      * Handles GET requests with query params for payment-related sections
      */
@@ -457,6 +531,8 @@
         'default': BaseAdapter,
         'kyc-shufti': KycShuftiAdapter,
         'user-blocks': UserBlocksAdapter,
+        'user-tokens': UserTokensAdapter,
+        'sales-registry': SalesRegistryAdapter,
         'moderation': ModerationAdapter,
         'products': ProductsAdapter,
         'orders': OrdersAdapter,

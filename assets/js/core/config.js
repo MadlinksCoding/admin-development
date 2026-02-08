@@ -995,12 +995,14 @@ window.AdminEndpoints = {
   base: {
     prod: "http://209.38.24.155:3000",
     stage: "http://localhost:3000",
-    dev: ""
+    dev: "http://localhost:3000"
   },
   routes: {
-    // Define specific overrides here. Default is /<slug>
+    // Define section routes here. Used when resolving API paths; default fallback is /<slug>
     "kyc-shufti": "/kyc-shufti",
     "user-blocks": "/user-blocks",
+    "user-tokens": "/user-tokens",
+    "sales-registry": "/sales-registry",
     "moderation": "/moderation",
     "users": "/users",
     "media": "/media",

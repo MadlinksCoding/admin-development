@@ -35,7 +35,7 @@
       if (Number.isNaN(date.getTime())) return String(value);
       const text = formatDDMMYYYY(value);
       const isExpired = date < new Date();
-      return isExpired ? `${text} <span class="badge bg-warning text-dark ms-1">Expired</span>` : text;
+      return isExpired ? `${text} <span class="text-muted small ms-1">(Expired)</span>` : text;
     } catch (error) { return String(value); }
   }
 
@@ -48,8 +48,15 @@
       if (!el) return "";
       const cfg = JSON.parse(el.textContent || "{}");
       const env = window.Env?.current || "dev";
-      const endpoint = cfg?.[sectionName]?.[env]?.endpoint || "";
-      return String(endpoint || "").trim();
+      let endpoint = cfg?.[sectionName]?.[env]?.endpoint || "";
+      endpoint = String(endpoint || "").trim();
+      if (!endpoint) return "";
+      // If relative path, prepend base URL so requests go to backend (e.g. http://localhost:3000)
+      const baseUrl = (window.AdminEndpoints?.base || {})[env] || "";
+      if (baseUrl && endpoint && !endpoint.startsWith("http")) {
+        return baseUrl.replace(/\/$/, "") + "/" + endpoint.replace(/^\//, "");
+      }
+      return endpoint;
     } catch (e) {
       return "";
     }
@@ -320,12 +327,12 @@
         },
         { 
           label: "Transactions (payer)", 
-          className: "btn btn-sm btn-outline-secondary me-1", 
+          className: "btn btn-sm btn-outline-primary me-1", 
           onClick: "handleDrilldownToTransactionsAsPayer" 
         },
         { 
           label: "Transactions (beneficiary)", 
-          className: "btn btn-sm btn-outline-secondary", 
+          className: "btn btn-sm btn-outline-primary", 
           onClick: "handleDrilldownToTransactionsAsBeneficiary" 
         }
       ]
