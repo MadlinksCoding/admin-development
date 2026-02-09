@@ -995,7 +995,7 @@ window.AdminEndpoints = {
   base: {
     prod: "http://209.38.24.155:3000",
     stage: "http://localhost:3000",
-    dev: "http://localhost:3000"
+    dev: ""
   },
   routes: {
     // Define section routes here. Used when resolving API paths; default fallback is /<slug>
