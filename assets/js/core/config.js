@@ -998,9 +998,11 @@ window.AdminEndpoints = {
     dev: ""
   },
   routes: {
-    // Define specific overrides here. Default is /<slug>
+    // Define section routes here. Used when resolving API paths; default fallback is /<slug>
     "kyc-shufti": "/kyc-shufti",
     "user-blocks": "/user-blocks",
+    "user-tokens": "/user-tokens",
+    "sales-registry": "/sales-registry",
     "moderation": "/moderation",
     "users": "/users",
     "media": "/media",

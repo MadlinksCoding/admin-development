@@ -692,8 +692,12 @@ async function fetchFromAxcess(entity, id) {
     return null;
   }
   const env = window.Env?.current || "dev";
-  const baseUrl = pageApiConfig?.[env]?.endpoint?.trim();
+  let baseUrl = pageApiConfig?.[env]?.endpoint?.trim();
   if (!baseUrl) return null;
+  const envBase = (window.AdminEndpoints?.base || {})[env] || "";
+  if (envBase && !baseUrl.startsWith("http")) {
+    baseUrl = envBase.replace(/\/$/, "") + "/" + baseUrl.replace(/^\//, "");
+  }
   const url = baseUrl.replace(/\/$/, "") + "/axcess/" + encodeURIComponent(entity) + "/" + encodeURIComponent(id);
   try {
     const res = await fetchWithTimeout(url, { method: "GET" });
